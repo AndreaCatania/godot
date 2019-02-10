@@ -32,6 +32,9 @@ void BrainArea::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("learn", "input", "expected", "learning_rate"), &BrainArea::learn);
 	ClassDB::bind_method(D_METHOD("guess", "input"), &BrainArea::guess);
 
+	ClassDB::bind_method(D_METHOD("save_knowledge", "path", "overwrite"), &BrainArea::save_knowledge);
+	ClassDB::bind_method(D_METHOD("load_knowledge", "path"), &BrainArea::load_knowledge);
+
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "input_layer_size"), "set_input_layer_size", "get_input_layer_size");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "hidden_layers_count"), "set_hidden_layers_count", "get_hidden_layers_count");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "output_layer_size"), "set_output_layer_size", "get_output_layer_size");
@@ -104,4 +107,37 @@ Ref<SynapticTerminals> BrainArea::guess(const Vector<real_t> &p_input) {
 	output.instance();
 	brain_area.guess(input, output->matrix);
 	return output;
+}
+
+void BrainArea::save_knowledge(const String &p_path, bool p_overwrite) {
+
+	ERR_FAIL_COND(p_overwrite == false && FileAccess::exists(p_path));
+	Error e;
+	FileAccess *f = FileAccess::open(p_path, FileAccess::WRITE, &e);
+
+	if (e != OK) {
+		ERR_EXPLAIN("Can't open file because " + itos(e));
+		ERR_FAIL();
+	}
+
+	f->store_buffer((const uint8_t *)(&brain_area), sizeof(brain::BrainArea));
+
+	f->close();
+}
+
+void BrainArea::load_knowledge(const String &p_path) {
+
+	ERR_FAIL_COND(!FileAccess::exists(p_path));
+
+	Error e;
+	FileAccess *f = FileAccess::open(p_path, FileAccess::READ, &e);
+
+	if (e != OK) {
+		ERR_EXPLAIN("Can't open file because " + itos(e));
+		ERR_FAIL();
+	}
+
+	f->get_buffer((uint8_t *)(&brain_area), sizeof(brain::BrainArea));
+
+	f->close();
 }
