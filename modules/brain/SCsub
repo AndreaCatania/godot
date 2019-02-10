@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+
+# UTILITY
+# TODO pelase move this inside a file
+import os
+import os.path
+import glob
+
+def detect_files(base_path, excludes = [], extensions = []):
+    out_files = []
+    files = glob.glob(base_path + "/*")
+    for f in files:
+        if os.path.isdir(f):
+            out_files.extend(detect_files(f, excludes, extensions))
+        else:
+            excluded = False
+            for exclude in excludes:
+                if f.find(exclude) >= 0:
+                    excluded = True
+                    break;
+
+            if excluded:
+                continue
+
+            if len(extensions) == 0:
+                out_files.append(f)
+            else:
+                for e in extensions:
+                    if f.endswith('.' + e):
+                        out_files.append(f)
+                        break
+    return out_files
+# UTILITY
+
+
+Import('env')
+Import('env_modules')
+
+env_brain = env_modules.Clone()
+
+# Thirdparty
+env_thirdparty = env_brain.Clone()
+env_thirdparty["CPPPATH"] = '#thirdparty/brain'
+env_thirdparty.add_source_files(env.modules_sources, detect_files("../../thirdparty/brain", [], ["c", "cpp"]))
+
+# Godot source
+env_brain.Append(CPPPATH = ['#thirdparty/brain'])
+env_brain.add_source_files(env.modules_sources, "./extra/*.cpp")
+env_brain.add_source_files(env.modules_sources, "./areas/*.cpp")
+env_brain.add_source_files(env.modules_sources, "*.cpp")
