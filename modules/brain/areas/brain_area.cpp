@@ -116,13 +116,22 @@ void BrainArea::save_knowledge(const String &p_path, bool p_overwrite) {
 	FileAccess *f = FileAccess::open(p_path, FileAccess::WRITE, &e);
 
 	if (e != OK) {
-		ERR_EXPLAIN("Can't open file because " + itos(e));
+		ERR_EXPLAIN("Can't open file" + p_path + " because " + itos(e));
 		ERR_FAIL();
 	}
 
-	f->store_buffer((const uint8_t *)(&brain_area), sizeof(brain::BrainArea));
+	std::vector<uint8_t> buffer;
+	if (!brain_area.get_buffer(buffer)) {
+		f->close();
+		memdelete(f);
+		ERR_EXPLAIN("Can't save knowledge. File: " + p_path);
+		ERR_FAIL();
+	}
+
+	f->store_buffer(buffer.data(), buffer.size());
 
 	f->close();
+	memdelete(f);
 }
 
 void BrainArea::load_knowledge(const String &p_path) {
@@ -137,7 +146,26 @@ void BrainArea::load_knowledge(const String &p_path) {
 		ERR_FAIL();
 	}
 
-	f->get_buffer((uint8_t *)(&brain_area), sizeof(brain::BrainArea));
+	std::vector<uint8_t> buffer;
+
+	const uint32_t buffer_size = f->get_len();
+	buffer.resize(buffer_size);
+
+	const int readed = f->get_buffer(buffer.data(), buffer_size);
+	if (readed != buffer_size) {
+		f->close();
+		memdelete(f);
+		ERR_EXPLAIN("File corrupted: " + p_path);
+		ERR_FAIL();
+	}
+
+	if (!brain_area.set_buffer(buffer)) {
+		f->close();
+		memdelete(f);
+		ERR_EXPLAIN("File corrupted: " + p_path);
+		ERR_FAIL();
+	}
 
 	f->close();
+	memdelete(f);
 }
