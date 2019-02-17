@@ -17,6 +17,76 @@ real_t SynapticTerminals::get(int p_index) const {
 	return matrix.get(p_index, 0);
 }
 
+bool BrainArea::_set(const StringName &p_name, const Variant &p_value) {
+	String name(p_name);
+
+	if (!name.begins_with("hidden_layer_"))
+		return false;
+
+	const int hidden_layer = name
+									 .get_slicec('/', 0)
+									 .get_slicec('_', 2)
+									 .to_int();
+
+	String what = name.get_slicec('/', 1);
+
+	if (what == "size") {
+
+		set_hidden_layer_size(hidden_layer, p_value);
+	} else if (what == "activation") {
+
+		set_hidden_layer_activation(
+				hidden_layer,
+				static_cast<Activation>(static_cast<int>(p_value)));
+	} else {
+		return false;
+	}
+
+	return true;
+}
+
+bool BrainArea::_get(const StringName &p_name, Variant &r_ret) const {
+
+	String name(p_name);
+
+	if (!name.begins_with("hidden_layer_"))
+		return false;
+
+	const int hidden_layer = name
+									 .get_slicec('/', 0)
+									 .get_slicec('_', 2)
+									 .to_int();
+
+	String what = name.get_slicec('/', 1);
+
+	if (what == "size") {
+
+		r_ret = get_hidden_layer_size(hidden_layer);
+	} else if (what == "activation") {
+
+		r_ret = get_hidden_layer_activation(hidden_layer);
+	} else {
+		return false;
+	}
+
+	return true;
+}
+
+void BrainArea::_get_property_list(List<PropertyInfo> *p_list) const {
+
+	for (int i(0); i < get_hidden_layers_count(); ++i) {
+		p_list->push_back(PropertyInfo(
+				Variant::INT,
+				"hidden_layer_" + itos(i) + "/size"));
+
+		p_list->push_back(PropertyInfo(
+				Variant::INT,
+				"hidden_layer_" + itos(i) + "/activation",
+				PROPERTY_HINT_ENUM,
+				"Sigmoid"));
+	}
+}
+
 void BrainArea::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_input_layer_size", "size"), &BrainArea::set_input_layer_size);
@@ -38,6 +108,8 @@ void BrainArea::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "input_layer_size"), "set_input_layer_size", "get_input_layer_size");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "hidden_layers_count"), "set_hidden_layers_count", "get_hidden_layers_count");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "output_layer_size"), "set_output_layer_size", "get_output_layer_size");
+
+	BIND_ENUM_CONSTANT(ACTIVATION_SIGMOID);
 }
 
 BrainArea::BrainArea() {}
@@ -68,10 +140,35 @@ void BrainArea::set_hidden_layers_count(int p_count) {
 					brain::BrainArea::ACTIVATION_SIGMOID);
 		}
 	}
+
+	_change_notify();
 }
 
-int BrainArea::get_hidden_layers_count() {
+int BrainArea::get_hidden_layers_count() const {
 	return brain_area.get_hidden_layers_count();
+}
+
+void BrainArea::set_hidden_layer_size(int p_hidden_layer, int p_size) {
+	ERR_FAIL_INDEX(p_hidden_layer, get_hidden_layers_count());
+	brain_area.set_hidden_layer_size(p_hidden_layer, p_size);
+}
+
+int BrainArea::get_hidden_layer_size(int p_hidden_layer) const {
+	ERR_FAIL_INDEX_V(p_hidden_layer, get_hidden_layers_count(), 0);
+	return brain_area.get_hidden_layer_size(p_hidden_layer);
+}
+
+void BrainArea::set_hidden_layer_activation(int p_hidden_layer, Activation p_activation) {
+	ERR_FAIL_INDEX(p_hidden_layer, get_hidden_layers_count());
+	ERR_FAIL_INDEX(p_activation, ACTIVATION_MAX);
+	brain_area.set_hidden_layer_activation(
+			p_hidden_layer,
+			static_cast<brain::BrainArea::Activation>(p_activation));
+}
+
+BrainArea::Activation BrainArea::get_hidden_layer_activation(int p_hidden_layer) const {
+	ERR_FAIL_INDEX_V(p_hidden_layer, get_hidden_layers_count(), ACTIVATION_MAX);
+	return static_cast<Activation>(brain_area.get_hidden_layer_activation(p_hidden_layer));
 }
 
 void BrainArea::set_output_layer_size(int p_size) {
@@ -156,6 +253,20 @@ void BrainArea::load_knowledge(const String &p_path) {
 		f->close();
 		memdelete(f);
 		ERR_EXPLAIN("File corrupted: " + p_path);
+		ERR_FAIL();
+	}
+
+	if (brain_area.is_buffer_corrupted(buffer)) {
+		f->close();
+		memdelete(f);
+		ERR_EXPLAIN("File corrupted: " + p_path);
+		ERR_FAIL();
+	}
+
+	if (!brain_area.is_buffer_compatible(buffer)) {
+		f->close();
+		memdelete(f);
+		ERR_EXPLAIN("This knowledge has a different brain structure: " + p_path);
 		ERR_FAIL();
 	}
 
