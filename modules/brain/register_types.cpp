@@ -2,7 +2,6 @@
 #include "register_types.h"
 
 #include "areas/brain_area.h"
-#include "extra/mnist_images.h"
 #include "thirdparty/brain/brain/error_handler.h"
 
 brain::ErrorHandlerList *error_handler;
@@ -32,7 +31,6 @@ void print_error_callback(
 void register_brain_types() {
 	ClassDB::register_class<BrainArea>();
 	ClassDB::register_class<SynapticTerminals>();
-	ClassDB::register_class<MnistImages>();
 
 	error_handler = new brain::ErrorHandlerList;
 	error_handler->errfunc = print_error_callback;
