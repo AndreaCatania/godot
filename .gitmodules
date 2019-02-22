@@ -1,0 +1,3 @@
+[submodule "thirdparty/brain"]
+	path = thirdparty/brain
+	url = git@github.com:AndreaCatania/brain.git
