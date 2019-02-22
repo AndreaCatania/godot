@@ -38,6 +38,8 @@ Import('env_modules')
 
 env_brain = env_modules.Clone()
 
+env_brain.Append(CXXFLAGS = '-std=c++11')
+
 # Thirdparty
 env_thirdparty = env_brain.Clone()
 env_thirdparty["CPPPATH"] = '#thirdparty/brain'
