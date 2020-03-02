@@ -5232,7 +5232,7 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 
 						return;
 					} else { // tokenizer->is_token_literal(0, true)
-						StringName const_id = tokenizer->get_token_literal();
+						String const_id = tokenizer->get_token_literal();
 
 						tokenizer->advance();
 
