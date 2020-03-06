@@ -1,0 +1,3 @@
+[submodule "thirdparty/flex"]
+	path = thirdparty/flex
+	url = https://github.com/NVIDIAGameWorks/FleX.git
