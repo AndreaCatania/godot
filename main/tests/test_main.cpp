@@ -46,11 +46,13 @@
 #include "test_render.h"
 #include "test_shader_lang.h"
 #include "test_string.h"
+#include "test_transform.h"
 
 const char **tests_get_names() {
 	static const char *test_names[] = {
 		"string",
 		"math",
+		"transform",
 		"physics_2d",
 		"physics_3d",
 		"render",
@@ -77,6 +79,10 @@ MainLoop *test_main(String p_test, const List<String> &p_args) {
 
 	if (p_test == "math") {
 		return TestMath::test();
+	}
+
+	if (p_test == "transform") {
+		return TestTransform::test();
 	}
 
 	if (p_test == "physics_2d") {
