@@ -1,0 +1,25 @@
+{{title|Miscellaneous operations}}
+{{misc/navbar}}
+
+The following miscellaneous operations are provided.
+
+{{dsc begin}}
+{{dsc h1 | Constant declaration}}
+{{dsc inc | misc/dsc make_int }}
+{{dsc inc | misc/dsc make_uint }}
+{{dsc inc | misc/dsc make_float }}
+
+{{dsc h1 | Data transfer}}
+{{dsc inc | misc/dsc extract }}
+{{dsc inc | misc/dsc insert }}
+{{dsc inc | misc/dsc splat }}
+{{dsc inc | misc/dsc test_bits_any }}
+{{dsc inc | misc/dsc for_each }}
+
+{{dsc h1 | Casts}}
+{{dsc inc | misc/dsc bit_cast }}
+
+{{dsc h1 | Cache operations}}
+{{dsc inc | misc/dsc prefetch_read }}
+{{dsc inc | misc/dsc prefetch_write }}
+{{dsc end}}

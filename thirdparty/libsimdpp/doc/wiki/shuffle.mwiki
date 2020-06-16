@@ -1,0 +1,35 @@
+{{title|Shuffling operations}}
+{{shuffle/navbar}}
+
+The following shuffle operations are provided.
+
+{{dsc begin}}
+{{dsc h1 | Shuffling}}
+{{dsc inc | shuffle/dsc blend }}
+{{dsc inc | shuffle/dsc splat }}
+{{dsc inc | shuffle/dsc permute2 }}
+{{dsc inc | shuffle/dsc permute4 }}
+{{dsc inc | shuffle/dsc shuffle2x2 }}
+{{dsc inc | shuffle/dsc shuffle4x2 }}
+{{dsc inc | shuffle/dsc transpose2 }}
+{{dsc inc | shuffle/dsc transpose4 }}
+
+{{dsc h1 | Combining and splitting}}
+{{dsc inc | shuffle/dsc combine }}
+{{dsc inc | shuffle/dsc split }}
+
+{{dsc h1 | Shuffling (128 bit granularity)}}
+{{dsc inc | shuffle/dsc alignX_128 }}
+{{dsc inc | shuffle/dsc moveX_l_128 }}
+{{dsc inc | shuffle/dsc moveX_r_128 }}
+{{dsc inc | shuffle/dsc splatX_128 }}
+{{dsc inc | shuffle/dsc zipX_hi_128 }}
+{{dsc inc | shuffle/dsc zipX_lo_128 }}
+{{dsc inc | shuffle/dsc unzipX_hi_128 }}
+{{dsc inc | shuffle/dsc unzipX_lo_128 }}
+{{dsc inc | shuffle/dsc make_shuffle_bytes16_mask }}
+{{dsc inc | shuffle/dsc shuffle_bytes16 }}
+{{dsc inc | shuffle/dsc shuffle_zbytes16 }}
+{{dsc inc | shuffle/dsc permute_bytes16 }}
+{{dsc inc | shuffle/dsc permute_zbytes16 }}
+{{dsc end}}

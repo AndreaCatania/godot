@@ -1,0 +1,45 @@
+{{title|Integer operations}}
+{{int/navbar}}
+
+The following simple operations for integer computations are provided.
+
+{{dsc begin}}
+{{dsc h1 | Elementary operations}}
+{{dsc inc | int/dsc add }}
+{{dsc inc | int/dsc add_sat }}
+{{dsc inc | int/dsc sub }}
+{{dsc inc | int/dsc sub_sat }}
+{{dsc inc | int/dsc mul_lo }}
+{{dsc inc | int/dsc mul_hi }}
+{{dsc inc | int/dsc mull }}
+{{dsc inc | int/dsc neg }}
+
+{{dsc h1 | Comparisons}}
+{{dsc inc | int/dsc cmp_eq }}
+{{dsc inc | int/dsc cmp_neq }}
+{{dsc inc | int/dsc cmp_lt }}
+{{dsc inc | int/dsc cmp_gt }}
+{{dsc inc | int/dsc cmp_le }}
+{{dsc inc | int/dsc cmp_ge }}
+
+{{dsc h1 | Reduction}}
+{{dsc inc | int/dsc reduce_add }}
+{{dsc inc | int/dsc reduce_mul }}
+{{dsc inc | int/dsc reduce_min }}
+{{dsc inc | int/dsc reduce_max }}
+{{dsc inc | int/dsc reduce_and }}
+{{dsc inc | int/dsc reduce_or }}
+{{dsc inc | int/dsc reduce_popcnt }}
+
+{{dsc h1 | Miscellaneous}}
+{{dsc inc | int/dsc abs }}
+{{dsc inc | int/dsc avg }}
+{{dsc inc | int/dsc avg_trunc }}
+{{dsc inc | int/dsc min }}
+{{dsc inc | int/dsc max }}
+{{dsc inc | int/dsc shift_l }}
+{{dsc inc | int/dsc shift_l_v }}
+{{dsc inc | int/dsc shift_r }}
+{{dsc inc | int/dsc shift_r_v }}
+{{dsc inc | int/dsc popcnt}}
+{{dsc end}}
