@@ -91,6 +91,7 @@ class SpaceBullet : public RIDBullet {
 	friend void onBulletTickCallback(btDynamicsWorld *world, btScalar timeStep);
 	friend class BulletPhysicsDirectSpaceState;
 
+public:
 	btBroadphaseInterface *broadphase = nullptr;
 	btDefaultCollisionConfiguration *collisionConfiguration = nullptr;
 	btCollisionDispatcher *dispatcher = nullptr;
