@@ -7,6 +7,9 @@
 ECS *ECS::singleton = nullptr;
 LocalVector<StringName> ECS::components;
 
+void ECS::_bind_methods() {
+}
+
 ECS::ECS() :
 		Object() {
 	MessageQueue::get_singleton()->push_callable(callable_mp(this, &ECS::ecs_init));
@@ -33,7 +36,9 @@ void ECS::__set_singleton(ECS *p_singleton) {
 	}
 }
 
-void ECS::_bind_methods() {
+EntityIndex ECS::create_new_entity_id() {
+	// TODO add here MT guard?
+	return entity_count++;
 }
 
 void ECS::ecs_init() {

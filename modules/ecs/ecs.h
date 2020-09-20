@@ -38,12 +38,33 @@ struct SystemMethod {
 	virtual void execute(Vector<Object *> &p_objects) = 0;
 };
 
+struct EntityIndex {
+	const uint32_t index;
+
+	EntityIndex() :
+			index(UINT32_MAX) {}
+	EntityIndex(uint32_t p_index) :
+			index(p_index) {}
+
+	bool is_null() const {
+		return index == UINT32_MAX;
+	}
+
+	bool operator==(const EntityIndex &p_other) {
+		return p_other.index == index;
+	}
+};
+
 class ECS : public Object {
 	GDCLASS(ECS, Object);
+
+	friend class Entity;
 
 	static ECS *singleton;
 
 	static LocalVector<StringName> components;
+
+	uint32_t entity_count;
 
 	// TODO just a naive test
 	Vector<SystemMethod *> systems;
@@ -54,6 +75,9 @@ public:
 
 	template <class C>
 	static void unregister_component();
+
+protected:
+	static void _bind_methods();
 
 public:
 	static void __set_singleton(ECS *p_singleton);
@@ -68,10 +92,9 @@ public:
 	// TODO just a naive test
 	void add_object(Object *p_object);
 
-protected:
-	static void _bind_methods();
-
 private:
+	EntityIndex create_new_entity_id();
+
 	void ecs_init();
 };
 
