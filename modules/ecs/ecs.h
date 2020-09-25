@@ -3,8 +3,10 @@
 #ifndef ECS_H
 #define ECS_H
 
-#include "core/local_vector.h"
+#include "core/oa_hash_map.h"
 #include "core/object.h"
+
+class Storage;
 
 #define ECSCLASS(m_class)                             \
 private:                                              \
@@ -27,10 +29,6 @@ public:
 	}
 };
 
-enum class StorageType {
-	DenseVector,
-};
-
 // TODO move this elsewhere.
 // TODO just a naive test
 struct SystemMethod {
@@ -38,13 +36,16 @@ struct SystemMethod {
 	virtual void execute(Vector<Object *> &p_objects) = 0;
 };
 
-struct EntityIndex {
-	const uint32_t index;
+class EntityIndex {
+	uint32_t index;
 
+public:
 	EntityIndex() :
 			index(UINT32_MAX) {}
 	EntityIndex(uint32_t p_index) :
 			index(p_index) {}
+	EntityIndex(const EntityIndex &p_other) :
+			index(p_other.index) {}
 
 	bool is_null() const {
 		return index == UINT32_MAX;
@@ -52,6 +53,14 @@ struct EntityIndex {
 
 	bool operator==(const EntityIndex &p_other) {
 		return p_other.index == index;
+	}
+
+	bool operator==(uint32_t p_naked_index) {
+		return index == p_naked_index;
+	}
+
+	operator uint32_t() const {
+		return index;
 	}
 };
 
@@ -62,7 +71,9 @@ class ECS : public Object {
 
 	static ECS *singleton;
 
-	static LocalVector<StringName> components;
+	// TODO register the components it's fine, but the storages must be stored per pipeline.
+	// Yes, we will have move pipelines, not just one.
+	static OAHashMap<StringName, Storage *> components;
 
 	uint32_t entity_count;
 
@@ -100,18 +111,20 @@ private:
 
 template <class C>
 void ECS::register_component() {
-	components.push_back(C::get_class_static());
+	StringName component_name = C::get_class_static();
+	ERR_FAIL_COND_MSG(components.has(component_name), "This component is already registered.");
 	C::init_storage();
 	C::_bind_properties();
 	// At this point the storage can't be nullptr.
 	CRASH_COND(C::get_storage() == nullptr);
+	components.insert(component_name, C::get_storage());
 }
 
 template <class C>
 void ECS::unregister_component() {
-	const int64_t index = components.find(C::get_class_static());
-	ERR_FAIL_COND_MSG(index == -1, "The component " + C::get_class_static() + " is not registered.");
-	components.remove(index);
+	StringName component_name = C::get_class_static();
+	ERR_FAIL_COND_MSG(components.has(component_name) == false, "This component is not registered.");
+	components.remove(component_name);
 	C::clear_properties_static();
 	C::destroy_storage();
 	// At this point the storage is always nullptr.
