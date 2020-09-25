@@ -11,6 +11,9 @@
 
 #include "editor_plugins/entity_editor_plugin.h"
 
+// TODO remove this
+#include "component_storages/storage_io.h"
+
 // TODO improve this workflow once the new pipeline is integrated.
 class REP : public Object {
 public:
@@ -34,6 +37,24 @@ void register_ecs_types() {
 
 	// Register editor plugins
 	MessageQueue::get_singleton()->push_callable(callable_mp(&rep, &REP::register_editor_plugins));
+
+	// TODO test
+	Storage *transform_storage = TransformComponent::get_storage();
+	Storage *mesh_storage = MeshComponent::get_storage();
+
+	EntityIndex entity_1(0);
+	StorageIO::insert(transform_storage, entity_1, TransformComponent());
+	StorageIO::insert(mesh_storage, entity_1, MeshComponent());
+
+	EntityIndex entity_2(1);
+	StorageIO::insert(transform_storage, entity_2, TransformComponent());
+	StorageIO::insert(mesh_storage, entity_2, MeshComponent());
+
+	
+	print_line("bb");
+	transform_storage->remove(entity_2);
+	transform_storage->remove(entity_1);
+	print_line("aa");
 }
 
 void unregister_ecs_types() {

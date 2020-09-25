@@ -5,7 +5,7 @@
 #include "scene/main/scene_tree.h"
 
 ECS *ECS::singleton = nullptr;
-LocalVector<StringName> ECS::components;
+OAHashMap<StringName, Storage *> ECS::components;
 
 void ECS::_bind_methods() {
 }
