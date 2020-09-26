@@ -75,6 +75,9 @@ public:
 	/// It's undefined behaviour use it in any other way than the above one.
 	const EntityBuilder &create_entity();
 
+	/// Returns the last created EntityID or UINT32_MAX.
+	EntityID get_last_entity_id() const;
+
 	/// Adds a new component (or sets the default if already exists) to a
 	/// specific Entity.
 	template <class C>
