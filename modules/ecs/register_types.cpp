@@ -42,12 +42,15 @@ void register_ecs_types() {
 
 	// TODO test ~~~~~~~~~~~~~~~~~
 	Pipeline pipeline;
-	const EntityIndex entity_1 = pipeline.create_entity();
-	pipeline.add_component(entity_1, TransformComponent());
-	pipeline.add_component(entity_1, MeshComponent());
 
-	const EntityIndex entity_2 = pipeline.create_entity();
-	pipeline.add_component(entity_2, TransformComponent());
+	// Create entity 1
+	pipeline.create_entity()
+			.with(TransformComponent())
+			.with(MeshComponent());
+
+	// Create entity 2
+	pipeline.create_entity()
+			.with(TransformComponent());
 
 	for (Query query = Query<TransformComponent, const MeshComponent>(&pipeline);
 			query.is_done() == false;

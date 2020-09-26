@@ -10,7 +10,7 @@
 class Entity : public Node {
 	GDCLASS(Entity, Node);
 
-	EntityIndex index;
+	EntityID index;
 	LocalVector<Component> components;
 
 protected:

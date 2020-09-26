@@ -27,7 +27,7 @@ class Query<C, Cs...> : Query<Cs...> {
 public:
 	Query(Pipeline *p_pipeline) :
 			Query<Cs...>(p_pipeline), pipeline(p_pipeline) {
-		storage = pipeline->get_storage_mut<C>();
+		storage = pipeline->get_storage<C>();
 		ERR_FAIL_COND_MSG(storage == nullptr, "The storage" + String(typeid(TypedStorage<C>).name()) + " is null.");
 	}
 
@@ -46,7 +46,7 @@ public:
 #endif
 
 		// TODO just a test.
-		C &c = storage->get(EntityIndex(0));
+		C &c = storage->get(EntityID(0));
 
 		return std::tuple_cat(std::tuple<C &>(c), Query<Cs...>::get());
 	}
