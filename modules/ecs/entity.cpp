@@ -5,7 +5,7 @@ void Entity::_bind_methods() {
 }
 
 Entity::Entity() :
-		index(ECS::get_singleton()->create_new_entity_id()) {
+		index(0) { // TODO set this
 }
 
 Entity::~Entity() {

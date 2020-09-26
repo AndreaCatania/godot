@@ -12,7 +12,9 @@
 #include "editor_plugins/entity_editor_plugin.h"
 
 // TODO remove this
-#include "component_storages/storage_io.h"
+#include "iterators/query.h"
+#include "pipeline.h"
+#include "storages/storage_io.h"
 
 // TODO improve this workflow once the new pipeline is integrated.
 class REP : public Object {
@@ -38,29 +40,27 @@ void register_ecs_types() {
 	// Register editor plugins
 	MessageQueue::get_singleton()->push_callable(callable_mp(&rep, &REP::register_editor_plugins));
 
-	// TODO test
-	Storage *transform_storage = TransformComponent::get_storage();
-	Storage *mesh_storage = MeshComponent::get_storage();
+	// TODO test ~~~~~~~~~~~~~~~~~
+	Pipeline pipeline;
+	const EntityIndex entity_1 = pipeline.create_entity();
+	pipeline.add_component(entity_1, TransformComponent());
+	pipeline.add_component(entity_1, MeshComponent());
 
-	EntityIndex entity_1(0);
-	StorageIO::insert(transform_storage, entity_1, TransformComponent());
-	StorageIO::insert(mesh_storage, entity_1, MeshComponent());
+	const EntityIndex entity_2 = pipeline.create_entity();
+	pipeline.add_component(entity_2, TransformComponent());
 
-	EntityIndex entity_2(1);
-	StorageIO::insert(transform_storage, entity_2, TransformComponent());
-	StorageIO::insert(mesh_storage, entity_2, MeshComponent());
+	//for (auto query = Query<TransformComponent, MeshComponent>(); query.has_next(); query += 1) {
+	//	query.get(transform_storage, mesh_storage);
+	//	break;
+	//}
 
-	
-	print_line("bb");
-	transform_storage->remove(entity_2);
-	transform_storage->remove(entity_1);
-	print_line("aa");
+	//print_line("bb");
+	//transform_storage->remove(entity_2);
+	//transform_storage->remove(entity_1);
+	//print_line("aa");
 }
 
 void unregister_ecs_types() {
-	ECS::unregister_component<MeshComponent>();
-	ECS::unregister_component<TransformComponent>();
-
 	ECS *ecs = ECS::get_singleton();
 	ECS::__set_singleton(nullptr);
 	memdelete(ecs);

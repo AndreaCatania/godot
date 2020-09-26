@@ -3,25 +3,22 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 
-#include "component_storages/dense_vector.h"
 #include "core/oa_hash_map.h"
 #include "core/object.h"
 #include "ecs.h"
+#include "storages/dense_vector.h"
 
 #define COMPONENT(m_class, m_storage_class)                                                    \
 	ECSCLASS(m_class)                                                                          \
+	friend class Pipeline;                                                                     \
 	friend class Component;                                                                    \
                                                                                                \
 private:                                                                                       \
-	static inline m_storage_class<m_class> *__storage = nullptr;                               \
-	static _FORCE_INLINE_ void init_storage() {                                                \
-		CRASH_COND(__storage != nullptr);                                                      \
-		__storage = memnew(m_storage_class<m_class>);                                          \
+	static _FORCE_INLINE_ m_storage_class<m_class> *create_storage() {                         \
+		return memnew(m_storage_class<m_class>);                                               \
 	}                                                                                          \
-	static _FORCE_INLINE_ void destroy_storage() {                                             \
-		CRASH_COND(__storage == nullptr);                                                      \
-		memdelete(__storage);                                                                  \
-		__storage = nullptr;                                                                   \
+	static _FORCE_INLINE_ void destroy_storage(m_storage_class<m_class> *p_storage) {          \
+		memdelete(p_storage);                                                                  \
 	}                                                                                          \
                                                                                                \
 	static inline OAHashMap<StringName, PropertyInfo> property_map;                            \
@@ -39,20 +36,19 @@ private:                                                                        
 		return get_properties_static();                                                        \
 	}                                                                                          \
                                                                                                \
-public:                                                                                        \
-	static _FORCE_INLINE_ m_storage_class<m_class> *get_storage() {                            \
-		return __storage;                                                                      \
-	}                                                                                          \
-                                                                                               \
 private:
 
 class Component : public ECSClass {
 	ECSCLASS(Component);
 
+	static inline uint32_t component_id = UINT32_MAX;
+
 public:
 	Component();
 
 public:
+	static uint32_t get_component_id();
+
 	static void _bind_properties();
 	virtual OAHashMap<StringName, PropertyInfo> *get_properties() const;
 };

@@ -3,10 +3,8 @@
 #ifndef ECS_H
 #define ECS_H
 
-#include "core/oa_hash_map.h"
+#include "core/local_vector.h"
 #include "core/object.h"
-
-class Storage;
 
 #define ECSCLASS(m_class)                             \
 private:                                              \
@@ -27,13 +25,6 @@ public:
 	virtual String get_class() const {
 		return "ECSClass";
 	}
-};
-
-// TODO move this elsewhere.
-// TODO just a naive test
-struct SystemMethod {
-	virtual ~SystemMethod();
-	virtual void execute(Vector<Object *> &p_objects) = 0;
 };
 
 class EntityIndex {
@@ -70,22 +61,11 @@ class ECS : public Object {
 	friend class Entity;
 
 	static ECS *singleton;
-
-	// TODO register the components it's fine, but the storages must be stored per pipeline.
-	// Yes, we will have move pipelines, not just one.
-	static OAHashMap<StringName, Storage *> components;
-
-	uint32_t entity_count;
-
-	// TODO just a naive test
-	Vector<SystemMethod *> systems;
+	static LocalVector<StringName> components;
 
 public:
 	template <class C>
 	static void register_component();
-
-	template <class C>
-	static void unregister_component();
 
 protected:
 	static void _bind_methods();
@@ -97,38 +77,18 @@ public:
 	ECS();
 	virtual ~ECS();
 
-	// TODO just a naive test
-	void add_system(SystemMethod *p_system);
-
-	// TODO just a naive test
-	void add_object(Object *p_object);
-
 private:
-	EntityIndex create_new_entity_id();
-
 	void ecs_init();
 };
 
 template <class C>
 void ECS::register_component() {
-	StringName component_name = C::get_class_static();
-	ERR_FAIL_COND_MSG(components.has(component_name), "This component is already registered.");
-	C::init_storage();
-	C::_bind_properties();
-	// At this point the storage can't be nullptr.
-	CRASH_COND(C::get_storage() == nullptr);
-	components.insert(component_name, C::get_storage());
-}
+	ERR_FAIL_COND_MSG(C::get_component_id() != UINT32_MAX, "This component is already registered.");
 
-template <class C>
-void ECS::unregister_component() {
 	StringName component_name = C::get_class_static();
-	ERR_FAIL_COND_MSG(components.has(component_name) == false, "This component is not registered.");
-	components.remove(component_name);
-	C::clear_properties_static();
-	C::destroy_storage();
-	// At this point the storage is always nullptr.
-	CRASH_COND(C::get_storage() != nullptr);
+	C::component_id = components.size();
+	C::_bind_properties();
+	components.push_back(component_name);
 }
 
 #endif
