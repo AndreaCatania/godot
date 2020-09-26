@@ -15,10 +15,9 @@ class Query {
 public:
 	Query(Pipeline *p_pipeline) {}
 
-	std::tuple<const Cs &...> get() const { return std::tuple(); }
+	std::tuple<Cs &...> get() const { return std::tuple(); }
 };
 
-// TODO make this const too?
 template <class C, class... Cs>
 class Query<C, Cs...> : Query<Cs...> {
 	uint32_t index = 0;
@@ -40,17 +39,16 @@ public:
 		index += p_i;
 	}
 
-	// TODO return the component as reference or constant reference.
-	std::tuple<const C &, const Cs &...> get() const {
+	std::tuple<C &, Cs &...> get() const {
 #ifdef DEBUG_ENABLED
 		// This can't happen because `is_done` returns true.
 		CRASH_COND_MSG(storage == nullptr, "The storage" + String(typeid(TypedStorage<C>).name()) + " is null.");
 #endif
 
 		// TODO just a test.
-		const C &c = storage->get(EntityIndex(0));
+		C &c = storage->get(EntityIndex(0));
 
-		return std::tuple_cat(std::tuple<const C &>(c), Query<Cs...>::get());
+		return std::tuple_cat(std::tuple<C &>(c), Query<Cs...>::get());
 	}
 };
 

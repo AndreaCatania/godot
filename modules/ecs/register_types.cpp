@@ -49,10 +49,12 @@ void register_ecs_types() {
 	const EntityIndex entity_2 = pipeline.create_entity();
 	pipeline.add_component(entity_2, TransformComponent());
 
-	for (auto query = Query<TransformComponent, MeshComponent>(&pipeline);
+	for (Query query = Query<TransformComponent, const MeshComponent>(&pipeline);
 			query.is_done() == false;
 			query += 1) {
 		auto [transform, mesh] = query.get();
+
+		transform.set_transform(Transform(Basis(), Vector3(100.0, 0, 0)));
 		print_line(String() + transform.get_transform());
 		break;
 	}
