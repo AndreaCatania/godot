@@ -1,6 +1,10 @@
 #include "component.h"
 
-/* Author: AndreaCatania */
+/** @author AndreaCatania */
+
+uint32_t Component::get_component_id() {
+	return component_id;
+}
 
 Component::Component() {
 }

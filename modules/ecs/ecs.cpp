@@ -5,21 +5,18 @@
 #include "scene/main/scene_tree.h"
 
 ECS *ECS::singleton = nullptr;
-OAHashMap<StringName, Storage *> ECS::components;
+LocalVector<StringName> ECS::components;
 
 void ECS::_bind_methods() {
 }
 
 ECS::ECS() :
 		Object() {
+	// TODO Do I need this?
 	MessageQueue::get_singleton()->push_callable(callable_mp(this, &ECS::ecs_init));
 }
 
 ECS::~ECS() {
-}
-
-void ECS::add_system(SystemMethod *p_system) {
-	systems.push_back(p_system);
 }
 
 ECS *ECS::get_singleton() {
@@ -34,11 +31,6 @@ void ECS::__set_singleton(ECS *p_singleton) {
 		ERR_FAIL_COND_MSG(singleton != nullptr, "There is already a singleton, make sure to remove that first.");
 		singleton = p_singleton;
 	}
-}
-
-EntityIndex ECS::create_new_entity_id() {
-	// TODO add here MT guard?
-	return entity_count++;
 }
 
 void ECS::ecs_init() {
