@@ -2,10 +2,13 @@
 
 /* Author: AndreaCatania */
 
-TransformComponent::TransformComponent() {
+TransformComponent::TransformComponent() {}
+
+TransformComponent::TransformComponent(const Transform &p_transform) :
+		transform(p_transform) {
 }
 
-void TransformComponent::set_transform(Transform &p_transform) {
+void TransformComponent::set_transform(const Transform &p_transform) {
 	transform = p_transform;
 }
 

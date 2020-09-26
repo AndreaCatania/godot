@@ -12,8 +12,9 @@ class TransformComponent : public Component {
 
 public:
 	TransformComponent();
+	TransformComponent(const Transform &p_transform);
 
-	void set_transform(Transform &p_transform);
+	void set_transform(const Transform &p_transform);
 	const Transform &get_transform() const;
 
 protected:
