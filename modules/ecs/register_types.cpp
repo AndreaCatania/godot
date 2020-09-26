@@ -53,13 +53,12 @@ void register_ecs_types() {
 			.with(TransformComponent());
 
 	for (Query query = Query<TransformComponent, const MeshComponent>(&pipeline);
-			query.is_done() == false;
+			query.has_next();
 			query += 1) {
 		auto [transform, mesh] = query.get();
 
 		transform.set_transform(Transform(Basis(), Vector3(100.0, 0, 0)));
 		print_line(String() + transform.get_transform());
-		break;
 	}
 }
 
