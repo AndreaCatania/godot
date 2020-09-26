@@ -21,6 +21,9 @@ private:                                                                        
 		memdelete(p_storage);                                                                  \
 	}                                                                                          \
                                                                                                \
+	static inline uint32_t component_id = UINT32_MAX;                                          \
+	static uint32_t get_component_id() { return component_id; }                                \
+                                                                                               \
 	static inline OAHashMap<StringName, PropertyInfo> property_map;                            \
 	static void add_property(const PropertyInfo &p_info, StringName p_set, StringName p_get) { \
 		print_line("TODO integrate set and get.");                                             \
@@ -41,14 +44,10 @@ private:
 class Component : public ECSClass {
 	ECSCLASS(Component);
 
-	static inline uint32_t component_id = UINT32_MAX;
-
 public:
 	Component();
 
 public:
-	static uint32_t get_component_id();
-
 	static void _bind_properties();
 	virtual OAHashMap<StringName, PropertyInfo> *get_properties() const;
 };

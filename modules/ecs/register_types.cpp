@@ -49,15 +49,13 @@ void register_ecs_types() {
 	const EntityIndex entity_2 = pipeline.create_entity();
 	pipeline.add_component(entity_2, TransformComponent());
 
-	//for (auto query = Query<TransformComponent, MeshComponent>(); query.has_next(); query += 1) {
-	//	query.get(transform_storage, mesh_storage);
-	//	break;
-	//}
-
-	//print_line("bb");
-	//transform_storage->remove(entity_2);
-	//transform_storage->remove(entity_1);
-	//print_line("aa");
+	for (auto query = Query<TransformComponent, MeshComponent>(&pipeline);
+			query.is_done() == false;
+			query += 1) {
+		auto [transform, mesh] = query.get();
+		print_line(String() + transform.get_transform());
+		break;
+	}
 }
 
 void unregister_ecs_types() {

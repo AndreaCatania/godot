@@ -23,17 +23,6 @@ public:
 	template <class C>
 	void add_component(EntityIndex p_entity, const C &p_data);
 
-private:
-	/// Creates a new component storage into the pipeline, if the storage
-	/// already exists, does nothing.
-	template <class C>
-	void create_storage();
-
-	/// Destroy a component storage if exists.
-	// TODO when this is called?
-	template <class C>
-	void destroy_storage();
-
 	/// Returns the constant storage pointer.
 	/// If the storage doesn't exist, returns null.
 	/// If the type is wrong, this function crashes.
@@ -45,6 +34,17 @@ private:
 	/// If the type is wrong, this function crashes.
 	template <class C>
 	TypedStorage<C> *get_storage_mut();
+
+private:
+	/// Creates a new component storage into the pipeline, if the storage
+	/// already exists, does nothing.
+	template <class C>
+	void create_storage();
+
+	/// Destroy a component storage if exists.
+	// TODO when this is called?
+	template <class C>
+	void destroy_storage();
 };
 
 template <class C>
@@ -53,6 +53,38 @@ void Pipeline::add_component(EntityIndex p_entity, const C &p_data) {
 	TypedStorage<C> *storage = get_storage_mut<C>();
 	ERR_FAIL_COND(storage == nullptr);
 	storage->insert(p_entity, p_data);
+}
+
+template <class C>
+const TypedStorage<C> *Pipeline::get_storage_const() const {
+	const uint32_t id = C::get_component_id();
+	ERR_FAIL_COND_V_MSG(id == UINT32_MAX, nullptr, "The component is not registered.");
+
+	if (id >= storages.size() || storages[id] == nullptr) {
+		return nullptr;
+	}
+
+#ifdef DEBUG_ENABLED
+	ERR_FAIL_COND_V_MSG(dynamic_cast<TypedStorage<C> *>(storages[id]) == nullptr, nullptr, "[FATAL] The data type (" + String(typeid(C).name()) + ") is not compatible with the storage type: (" + storages[id]->get_type_name() + ")");
+#endif
+
+	return static_cast<TypedStorage<C> *>(storages[id]);
+}
+
+template <class C>
+TypedStorage<C> *Pipeline::get_storage_mut() {
+	const uint32_t id = C::get_component_id();
+	ERR_FAIL_COND_V_MSG(id == UINT32_MAX, nullptr, "The component is not registered.");
+
+	if (id >= storages.size() || storages[id] == nullptr) {
+		return nullptr;
+	}
+
+#ifdef DEBUG_ENABLED
+	ERR_FAIL_COND_V_MSG(dynamic_cast<TypedStorage<C> *>(storages[id]) == nullptr, nullptr, "[FATAL] The data type (" + String(typeid(C).name()) + ") is not compatible with the storage type: (" + storages[id]->get_type_name() + ")");
+#endif
+
+	return static_cast<TypedStorage<C> *>(storages[id]);
 }
 
 template <class C>
@@ -89,38 +121,6 @@ void Pipeline::destroy_storage() {
 	}
 
 	C::destroy_storage(storages[id]);
-}
-
-template <class C>
-const TypedStorage<C> *Pipeline::get_storage_const() const {
-	const uint32_t id = C::get_component_id();
-	ERR_FAIL_COND_V_MSG(id == UINT32_MAX, nullptr, "The component is not registered.");
-
-	if (id >= storages.size() || storages[id] == nullptr) {
-		return nullptr;
-	}
-
-#ifdef DEBUG_ENABLED
-	ERR_FAIL_COND_V_MSG(dynamic_cast<TypedStorage<C> *>(storages[id]) == nullptr, nullptr, "[FATAL] The data type (" + String(typeid(C).name()) + ") is not compatible with the storage type: (" + storages[id]->get_type_name() + ")");
-#endif
-
-	return static_cast<TypedStorage<C> *>(storages[id]);
-}
-
-template <class C>
-TypedStorage<C> *Pipeline::get_storage_mut() {
-	const uint32_t id = C::get_component_id();
-	ERR_FAIL_COND_V_MSG(id == UINT32_MAX, nullptr, "The component is not registered.");
-
-	if (id >= storages.size() || storages[id] == nullptr) {
-		return nullptr;
-	}
-
-#ifdef DEBUG_ENABLED
-	ERR_FAIL_COND_V_MSG(dynamic_cast<TypedStorage<C> *>(storages[id]) == nullptr, nullptr, "[FATAL] The data type (" + String(typeid(C).name()) + ") is not compatible with the storage type: (" + storages[id]->get_type_name() + ")");
-#endif
-
-	return static_cast<TypedStorage<C> *>(storages[id]);
 }
 
 #endif
