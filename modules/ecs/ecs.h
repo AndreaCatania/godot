@@ -27,31 +27,33 @@ public:
 	}
 };
 
-class EntityIndex {
-	uint32_t index;
+class EntityID {
+	uint32_t id;
 
 public:
-	EntityIndex() :
-			index(UINT32_MAX) {}
-	EntityIndex(uint32_t p_index) :
-			index(p_index) {}
-	EntityIndex(const EntityIndex &p_other) :
-			index(p_other.index) {}
+	EntityID() :
+			id(UINT32_MAX) {}
+
+	EntityID(uint32_t p_index) :
+			id(p_index) {}
+
+	EntityID(const EntityID &p_other) :
+			id(p_other.id) {}
 
 	bool is_null() const {
-		return index == UINT32_MAX;
+		return id == UINT32_MAX;
 	}
 
-	bool operator==(const EntityIndex &p_other) {
-		return p_other.index == index;
+	bool operator==(const EntityID &p_other) const {
+		return id == p_other.id;
 	}
 
-	bool operator==(uint32_t p_naked_index) {
-		return index == p_naked_index;
+	bool operator==(uint32_t p_naked_index) const {
+		return id == p_naked_index;
 	}
 
 	operator uint32_t() const {
-		return index;
+		return id;
 	}
 };
 

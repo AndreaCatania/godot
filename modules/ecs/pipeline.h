@@ -11,29 +11,86 @@
 #include "modules/ecs/storages/storage.h"
 
 class Storage;
+class Pipeline;
+
+/// Utility that can be used to create an entity with components.
+/// You can use it in this way:
+/// ```
+///	Pipeline pipeline;
+///
+///	pipeline.create_entity()
+///			.with(TransformComponent())
+///			.with(MeshComponent());
+/// ```
+class EntityBuilder {
+	friend class Pipeline;
+
+	EntityID entity;
+	Pipeline *pipeline;
+
+private:
+	EntityBuilder(Pipeline *p_pipeline);
+	EntityBuilder &operator=(const EntityBuilder &) = delete;
+	EntityBuilder &operator=(EntityBuilder) = delete;
+	EntityBuilder(const EntityBuilder &) = delete;
+	EntityBuilder() = delete;
+
+public:
+	template <class C>
+	const EntityBuilder &with(const C &p_data) const;
+
+	operator EntityID() const {
+		return entity;
+	}
+};
 
 class Pipeline {
 	LocalVector<Storage *> storages;
 	uint32_t entity_count = 0;
+	EntityBuilder entity_builder = EntityBuilder(this);
 
 public:
-	EntityIndex create_entity();
+	/// Creates a new Entity id. You can add the components using the function
+	/// `add_component`.
+	EntityID create_entity_index();
 
-	/// Add a new component or reset if already exists.
+	/// Creates a new Entity id and returns an `EntityBuilder`.
+	/// You can use the `EntityBuilder` in this way:
+	/// ```
+	///	Pipeline pipeline;
+	///
+	///	pipeline.create_entity()
+	///			.with(TransformComponent())
+	///			.with(MeshComponent());
+	/// ```
+	///
+	/// It's possible to get the `EntityID` just by assining the `EntityBuilder`
+	/// to an `EntityID`.
+	/// ```
+	///	EntityID entity = pipeline.create_entity()
+	///			.with(MeshComponent());
+	/// ```
+	///
+	/// Note: The `EntityBuilder` reference points to an internal variable.
+	/// It's undefined behaviour use it in any other way than the above one.
+	const EntityBuilder &create_entity();
+
+	/// Adds a new component (or sets the default if already exists) to a
+	/// specific Entity.
 	template <class C>
-	void add_component(EntityIndex p_entity, const C &p_data);
+	void add_component(EntityID p_entity, const C &p_data);
 
 	/// Returns the constant storage pointer.
 	/// If the storage doesn't exist, returns null.
 	/// If the type is wrong, this function crashes.
 	template <class C>
-	const TypedStorage<C> *get_storage_const() const;
+	const TypedStorage<const C> *get_storage() const;
 
 	/// Returns the storage pointer.
 	/// If the storage doesn't exist, returns null.
 	/// If the type is wrong, this function crashes.
 	template <class C>
-	TypedStorage<C> *get_storage_mut();
+	TypedStorage<C> *get_storage();
 
 private:
 	/// Creates a new component storage into the pipeline, if the storage
@@ -48,15 +105,21 @@ private:
 };
 
 template <class C>
-void Pipeline::add_component(EntityIndex p_entity, const C &p_data) {
+const EntityBuilder &EntityBuilder::with(const C &p_data) const {
+	pipeline->add_component(entity, p_data);
+	return *this;
+}
+
+template <class C>
+void Pipeline::add_component(EntityID p_entity, const C &p_data) {
 	create_storage<C>();
-	TypedStorage<C> *storage = get_storage_mut<C>();
+	TypedStorage<C> *storage = get_storage<C>();
 	ERR_FAIL_COND(storage == nullptr);
 	storage->insert(p_entity, p_data);
 }
 
 template <class C>
-const TypedStorage<C> *Pipeline::get_storage_const() const {
+const TypedStorage<const C> *Pipeline::get_storage() const {
 	const uint32_t id = C::get_component_id();
 	ERR_FAIL_COND_V_MSG(id == UINT32_MAX, nullptr, "The component is not registered.");
 
@@ -64,25 +127,17 @@ const TypedStorage<C> *Pipeline::get_storage_const() const {
 		return nullptr;
 	}
 
-#ifdef DEBUG_ENABLED
-	ERR_FAIL_COND_V_MSG(dynamic_cast<TypedStorage<C> *>(storages[id]) == nullptr, nullptr, "[FATAL] The data type (" + String(typeid(C).name()) + ") is not compatible with the storage type: (" + storages[id]->get_type_name() + ")");
-#endif
-
-	return static_cast<TypedStorage<C> *>(storages[id]);
+	return static_cast<TypedStorage<const C> *>(storages[id]);
 }
 
 template <class C>
-TypedStorage<C> *Pipeline::get_storage_mut() {
+TypedStorage<C> *Pipeline::get_storage() {
 	const uint32_t id = C::get_component_id();
 	ERR_FAIL_COND_V_MSG(id == UINT32_MAX, nullptr, "The component is not registered.");
 
 	if (id >= storages.size() || storages[id] == nullptr) {
 		return nullptr;
 	}
-
-#ifdef DEBUG_ENABLED
-	ERR_FAIL_COND_V_MSG(dynamic_cast<TypedStorage<C> *>(storages[id]) == nullptr, nullptr, "[FATAL] The data type (" + String(typeid(C).name()) + ") is not compatible with the storage type: (" + storages[id]->get_type_name() + ")");
-#endif
 
 	return static_cast<TypedStorage<C> *>(storages[id]);
 }
