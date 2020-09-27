@@ -1,7 +1,6 @@
-/* Author: AndreaCatania */
+#pragma once
 
-#ifndef COMPONENT_H
-#define COMPONENT_H
+/* Author: AndreaCatania */
 
 #include "core/oa_hash_map.h"
 #include "core/object.h"
@@ -51,5 +50,3 @@ public:
 	static void _bind_properties();
 	virtual OAHashMap<StringName, PropertyInfo> *get_properties() const;
 };
-
-#endif
