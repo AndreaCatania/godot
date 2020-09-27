@@ -1,7 +1,6 @@
-/* Author: AndreaCatania */
+#pragma once
 
-#ifndef ECS_H
-#define ECS_H
+/* Author: AndreaCatania */
 
 #include "core/local_vector.h"
 #include "core/object.h"
@@ -92,5 +91,3 @@ void ECS::register_component() {
 	C::_bind_properties();
 	components.push_back(component_name);
 }
-
-#endif

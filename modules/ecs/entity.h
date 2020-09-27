@@ -1,7 +1,6 @@
-/* Author: AndreaCatania */
+#pragma once
 
-#ifndef ENTITY_H
-#define ENTITY_H
+/* Author: AndreaCatania */
 
 #include "component.h"
 #include "core/local_vector.h"
@@ -22,5 +21,3 @@ public:
 
 	void add_component(StringName p_component_name);
 };
-
-#endif

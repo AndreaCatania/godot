@@ -1,10 +1,8 @@
+#pragma once
 
 /**
 	@author AndreaCatania
 */
-
-#ifndef PIPELINE_H
-#define PIPELINE_H
 
 #include "core/local_vector.h"
 #include "ecs.h"
@@ -180,5 +178,3 @@ void Pipeline::destroy_storage() {
 
 	C::destroy_storage(storages[id]);
 }
-
-#endif
