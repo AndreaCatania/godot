@@ -6,6 +6,7 @@
 
 ECS *ECS::singleton = nullptr;
 LocalVector<StringName> ECS::components;
+LocalVector<StringName> ECS::resources;
 
 void ECS::_bind_methods() {
 }

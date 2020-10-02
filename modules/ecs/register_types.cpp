@@ -14,6 +14,8 @@
 // TODO remove this
 #include "iterators/query.h"
 #include "pipeline.h"
+#include "resources/ecs_resource.h"
+#include "resources/test_res.h"
 #include "storages/storage_io.h"
 
 // TODO improve this workflow once the new pipeline is integrated.
@@ -23,6 +25,10 @@ public:
 		EditorNode::get_singleton()->add_editor_plugin(memnew(EntityEditorPlugin(EditorNode::get_singleton())));
 	}
 } rep;
+
+void test_system(const TestResource &p_cmd, const Query<TransformComponent> &p_query) {
+	//return SystemInfo();
+}
 
 void register_ecs_types() {
 	ClassDB::register_class<ECS>();
@@ -36,6 +42,8 @@ void register_ecs_types() {
 	// Register components
 	ECS::register_component<MeshComponent>();
 	ECS::register_component<TransformComponent>();
+
+	ECS::register_resource<TestResource>();
 
 	// Register editor plugins
 	MessageQueue::get_singleton()->push_callable(callable_mp(&rep, &REP::register_editor_plugins));
@@ -51,6 +59,12 @@ void register_ecs_types() {
 	// Create entity 2
 	pipeline.create_entity()
 			.with(TransformComponent());
+
+	pipeline.add_resource(TestResource());
+
+	pipeline.add_system([]() -> SystemInfo {
+		return SystemInfo::from_function(/*test_system*/);
+	});
 
 	for (Query query = Query<TransformComponent, const MeshComponent>(&pipeline);
 			query.has_next();

@@ -63,10 +63,14 @@ class ECS : public Object {
 
 	static ECS *singleton;
 	static LocalVector<StringName> components;
+	static LocalVector<StringName> resources;
 
 public:
 	template <class C>
 	static void register_component();
+
+	template <class C>
+	static void register_resource();
 
 protected:
 	static void _bind_methods();
@@ -90,4 +94,14 @@ void ECS::register_component() {
 	C::component_id = components.size();
 	C::_bind_properties();
 	components.push_back(component_name);
+}
+
+template <class R>
+void ECS::register_resource() {
+	ERR_FAIL_COND_MSG(R::get_resource_id() != UINT32_MAX, "This resource is already registered.");
+
+	StringName resource_name = R::get_class_static();
+	R::resource_id = resources.size();
+	R::_bind_properties();
+	resources.push_back(resource_name);
 }

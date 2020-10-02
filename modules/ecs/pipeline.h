@@ -7,9 +7,11 @@
 #include "core/local_vector.h"
 #include "ecs.h"
 #include "modules/ecs/storages/storage.h"
+#include "systems/system.h"
 
 class Storage;
 class Pipeline;
+class ECSResource;
 
 /// Utility that can be used to create an entity with components.
 /// You can use it in this way:
@@ -44,6 +46,8 @@ public:
 
 class Pipeline {
 	LocalVector<Storage *> storages;
+	LocalVector<int> systems;
+	LocalVector<ECSResource *> resources;
 	uint32_t entity_count = 0;
 	EntityBuilder entity_builder = EntityBuilder(this);
 
@@ -70,7 +74,7 @@ public:
 	/// ```
 	///
 	/// Note: The `EntityBuilder` reference points to an internal variable.
-	/// It's undefined behaviour use it in any other way than the above one.
+	/// It's undefined behavior use it in any other way than the above one.
 	const EntityBuilder &create_entity();
 
 	/// Returns the last created EntityID or UINT32_MAX.
@@ -92,6 +96,12 @@ public:
 	/// If the type is wrong, this function crashes.
 	template <class C>
 	TypedStorage<C> *get_storage();
+
+	void add_system(get_system_info_func func);
+
+	/// Adds a new resource or updates it if already exists.
+	template <class R>
+	void add_resource(const R &p_resource);
 
 private:
 	/// Creates a new component storage into the pipeline, if the storage
@@ -141,6 +151,22 @@ TypedStorage<C> *Pipeline::get_storage() {
 	}
 
 	return static_cast<TypedStorage<C> *>(storages[id]);
+}
+
+template <class R>
+void Pipeline::add_resource(const R &p_resource) {
+	const uint32_t id = R::get_resource_id();
+	ERR_FAIL_COND_MSG(id == UINT32_MAX, "The resource is not registered.");
+
+	if (id >= resources.size()) {
+		const uint32_t start = resources.size();
+		resources.resize(id + 1);
+		for (uint32_t i = start; i < resources.size(); i += 1) {
+			resources[i] = nullptr;
+		}
+	}
+
+	(*resources[id]) = p_resource;
 }
 
 template <class C>
