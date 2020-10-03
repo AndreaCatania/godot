@@ -65,7 +65,7 @@ template <class... Cs>
 class Query {
 	Pipeline *pipeline;
 	uint32_t id = 0;
-	QueryStorage<Cs...> q;
+	QueryStorage<std::remove_reference_t<Cs>...> q;
 
 public:
 	Query(Pipeline *p_pipeline) :

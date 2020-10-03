@@ -70,7 +70,7 @@ void register_ecs_types() {
 	});
 
 	// TODO make the query work also with reference so to make it less error prone
-	for (Query query = Query<TransformComponent, const MeshComponent>(&pipeline);
+	for (Query query = Query<TransformComponent &, const MeshComponent &>(&pipeline);
 			query.has_next();
 			query += 1) {
 		auto [transform, mesh] = query.get();
