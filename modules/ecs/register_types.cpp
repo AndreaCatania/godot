@@ -65,8 +65,12 @@ void register_ecs_types() {
 
 	pipeline.add_system([]() -> SystemInfo {
 		// TODO make the query work also with reference so to make it less error prone
-		SystemInfo i = get_system_info_from_function<const TestResource &, Query<TransformComponent> &>(/*test_system*/);
-		return get_system_info_from_function<const TestResource &, Query<TransformComponent> &>(/*test_system*/);
+		SystemInfo i = get_system_info_from_function(test_system);
+		i.system_func = [](Pipeline *p_pipeline) {
+			// TODO Get components and create query.
+			// pass to -> test_system();
+		};
+		return i;
 	});
 
 	// TODO make the query work also with reference so to make it less error prone
