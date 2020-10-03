@@ -56,7 +56,7 @@ struct InfoConstructor<C, Cs...> : InfoConstructor<Cs...> {
 
 /// Creates a SystemInfo, extracting the information from a system function.
 template <class... RCs>
-SystemInfo from_function() {
+SystemInfo get_system_info_from_function() {
 	SystemInfo si;
 	InfoConstructor<RCs...> a(si);
 	return si;
