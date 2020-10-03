@@ -17,6 +17,7 @@
 #include "resources/ecs_resource.h"
 #include "resources/test_res.h"
 #include "storages/storage_io.h"
+#include "systems/system_builder.h"
 
 // TODO improve this workflow once the new pipeline is integrated.
 class REP : public Object {
@@ -26,7 +27,7 @@ public:
 	}
 } rep;
 
-void test_system(const TestResource &p_cmd, const Query<TransformComponent> &p_query) {
+void test_system(const TestResource &p_res, Query<TransformComponent> &p_query) {
 	//return SystemInfo();
 }
 
@@ -63,9 +64,12 @@ void register_ecs_types() {
 	pipeline.add_resource(TestResource());
 
 	pipeline.add_system([]() -> SystemInfo {
-		return SystemInfo::from_function(/*test_system*/);
+		// TODO make the query work also with reference so to make it less error prone
+		SystemInfo i = get_system_info_from_function<const TestResource &, Query<TransformComponent> &>(/*test_system*/);
+		return get_system_info_from_function<const TestResource &, Query<TransformComponent> &>(/*test_system*/);
 	});
 
+	// TODO make the query work also with reference so to make it less error prone
 	for (Query query = Query<TransformComponent, const MeshComponent>(&pipeline);
 			query.has_next();
 			query += 1) {

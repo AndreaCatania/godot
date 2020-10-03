@@ -1,9 +1,6 @@
-/**
-	@author AndreaCatania
-*/
+/** @author AndreaCatania */
 
-#ifndef QUERY_H
-#define QUERY_H
+#pragma once
 
 #include "modules/ecs/pipeline.h"
 #include "modules/ecs/storages/storage.h"
@@ -16,6 +13,8 @@ public:
 
 	bool has_data(EntityID p_entity) const { return true; }
 	std::tuple<Cs &...> get() const { return std::tuple(); }
+
+	static void get_components(LocalVector<uint32_t> &r_mutable_components, LocalVector<uint32_t> &r_immutable_components) {}
 };
 
 template <class C, class... Cs>
@@ -46,6 +45,16 @@ public:
 		C &c = storage->get(EntityID(0));
 
 		return std::tuple_cat(std::tuple<C &>(c), QueryStorage<Cs...>::get());
+	}
+
+	static void get_components(LocalVector<uint32_t> &r_mutable_components, LocalVector<uint32_t> &r_immutable_components) {
+		if (std::is_const<C>()) {
+			r_immutable_components.push_back(C::get_component_id());
+		} else {
+			r_mutable_components.push_back(C::get_component_id());
+		}
+
+		QueryStorage<Cs...>::get_components(r_mutable_components, r_immutable_components);
 	}
 };
 
@@ -102,6 +111,8 @@ public:
 	std::tuple<Cs &...> get() const {
 		return q.get();
 	}
-};
 
-#endif
+	static void get_components(LocalVector<uint32_t> &r_mutable_components, LocalVector<uint32_t> &r_immutable_components) {
+		QueryStorage<Cs...>::get_components(r_mutable_components, r_immutable_components);
+	}
+};

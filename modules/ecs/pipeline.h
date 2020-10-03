@@ -166,6 +166,10 @@ void Pipeline::add_resource(const R &p_resource) {
 		}
 	}
 
+	if (resources[id] == nullptr) {
+		resources[id] = memnew(R());
+	}
+
 	(*resources[id]) = p_resource;
 }
 
