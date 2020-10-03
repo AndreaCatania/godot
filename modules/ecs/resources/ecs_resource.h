@@ -11,8 +11,11 @@
                                                                                                \
 private:                                                                                       \
 	static inline uint32_t resource_id = UINT32_MAX;                                           \
+                                                                                               \
+public:                                                                                        \
 	static uint32_t get_resource_id() { return resource_id; }                                  \
                                                                                                \
+private:                                                                                       \
 	static inline OAHashMap<StringName, PropertyInfo> property_map;                            \
 	static void add_property(const PropertyInfo &p_info, StringName p_set, StringName p_get) { \
 		print_line("TODO integrate set and get.");                                             \
