@@ -64,12 +64,13 @@ public:
 template <class... Cs>
 class Query {
 	Pipeline *pipeline;
-	uint32_t id = 0;
+	uint32_t id = UINT32_MAX;
 	QueryStorage<std::remove_reference_t<Cs>...> q;
 
 public:
 	Query(Pipeline *p_pipeline) :
 			pipeline(p_pipeline), q(p_pipeline) {
+		id = 0;
 		if (q.has_data(0) == false) {
 			next_entity();
 		}
@@ -79,7 +80,7 @@ public:
 		return id == UINT32_MAX;
 	}
 
-	bool has_next() const {
+	bool has_next() const { // TODO remove this because it not a good name
 		return id != UINT32_MAX;
 	}
 
@@ -95,6 +96,7 @@ public:
 	void next_entity() {
 		const uint32_t last_id = pipeline->get_last_entity_id();
 		if (unlikely(id == UINT32_MAX || last_id == UINT32_MAX)) {
+			id = UINT32_MAX;
 			return;
 		}
 

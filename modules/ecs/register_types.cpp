@@ -1,18 +1,19 @@
 
 #include "./register_types.h"
 
+#include "components/mesh_component.h"
+#include "components/transform_component.h"
 #include "core/engine.h"
 #include "core/message_queue.h"
 #include "ecs.h"
-#include "entity.h"
-
-#include "components/mesh_component.h"
-#include "components/transform_component.h"
+#include "nodes/ecs_world.h"
+#include "nodes/entity.h"
 
 #include "editor_plugins/entity_editor_plugin.h"
 
 // TODO remove this
 #include "iterators/query.h"
+#include "nodes/test_node.h"
 #include "pipeline.h"
 #include "resources/ecs_resource.h"
 #include "resources/test_res.h"
@@ -41,7 +42,9 @@ void test_system(TestResource &p_res, Query<TransformComponent, const MeshCompon
 
 void register_ecs_types() {
 	ClassDB::register_class<ECS>();
+	ClassDB::register_class<ECSWorld>();
 	ClassDB::register_class<Entity>();
+	ClassDB::register_class<TestNode>(); // TODO Just test
 
 	// Create and register singleton
 	ECS *ecs = memnew(ECS);
@@ -51,11 +54,12 @@ void register_ecs_types() {
 	// Register components
 	ECS::register_component<MeshComponent>();
 	ECS::register_component<TransformComponent>();
-
-	ECS::register_resource<TestResource>();
+	ECS::register_resource<TestResource>(); // TODO Just test
 
 	// Register editor plugins
-	MessageQueue::get_singleton()->push_callable(callable_mp(&rep, &REP::register_editor_plugins));
+	if (Engine::get_singleton()->is_editor_hint()) {
+		MessageQueue::get_singleton()->push_callable(callable_mp(&rep, &REP::register_editor_plugins));
+	}
 
 	// TODO test ~~~~~~~~~~~~~~~~~
 	Pipeline pipeline;
