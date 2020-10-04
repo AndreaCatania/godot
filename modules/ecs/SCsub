@@ -7,6 +7,7 @@ ecs = env_modules.Clone()
 
 
 # Module source files
+ecs.add_source_files(env.modules_sources, "nodes/*.cpp")
 ecs.add_source_files(env.modules_sources, "storages/*.cpp")
 ecs.add_source_files(env.modules_sources, "components/*.cpp")
 ecs.add_source_files(env.modules_sources, "systems/*.cpp")

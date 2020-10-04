@@ -46,7 +46,7 @@ public:
 
 class Pipeline {
 	LocalVector<Storage *> storages;
-	LocalVector<int> systems;
+	LocalVector<system_execute> systems;
 	LocalVector<ECSResource *> resources;
 	uint32_t entity_count = 0;
 	EntityBuilder entity_builder = EntityBuilder(this);
@@ -77,6 +77,9 @@ public:
 	/// It's undefined behavior use it in any other way than the above one.
 	const EntityBuilder &create_entity();
 
+	/// Remove the entity from this Pipeline.
+	void destroy_entity(EntityID p_entity);
+
 	/// Returns the last created EntityID or UINT32_MAX.
 	EntityID get_last_entity_id() const;
 
@@ -105,6 +108,8 @@ public:
 
 	template <class R>
 	R &get_resource();
+
+	void dispatch();
 
 private:
 	/// Creates a new component storage into the pipeline, if the storage

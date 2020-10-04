@@ -1,7 +1,7 @@
 /* Author: AndreaCatania */
 
 #include "entity_editor_plugin.h"
-#include "modules/ecs/entity.h"
+#include "modules/ecs/nodes/entity.h"
 
 EntityEditor::EntityEditor(
 		EditorInspectorPluginEntity *p_plugin,
