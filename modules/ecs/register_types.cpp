@@ -27,8 +27,16 @@ public:
 	}
 } rep;
 
-void test_system(const TestResource &p_res, Query<TransformComponent> &p_query) {
-	//return SystemInfo();
+void test_system(TestResource &p_res, Query<TransformComponent, MeshComponent> &p_query) {
+	print_line("System is executed: " + itos(p_res.a));
+	p_res.a += 1;
+
+	for (; p_query.has_next(); p_query += 1) {
+		auto [transform, mesh] = p_query.get();
+
+		transform.set_transform(Transform(Basis(), transform.get_transform().origin + Vector3(10.0, 0, 0)));
+		print_line(String() + transform.get_transform());
+	}
 }
 
 void register_ecs_types() {
@@ -64,24 +72,12 @@ void register_ecs_types() {
 	pipeline.add_resource(TestResource());
 
 	pipeline.add_system([]() -> SystemInfo {
-		// TODO make the query work also with reference so to make it less error prone
 		SystemInfo i = get_system_info_from_function(test_system);
 		i.system_func = [](Pipeline *p_pipeline) {
-			// TODO Get components and create query.
-			// pass to -> test_system();
+			system_exec_func(p_pipeline, test_system);
 		};
 		return i;
 	});
-
-	// TODO make the query work also with reference so to make it less error prone
-	for (Query query = Query<TransformComponent &, const MeshComponent &>(&pipeline);
-			query.has_next();
-			query += 1) {
-		auto [transform, mesh] = query.get();
-
-		transform.set_transform(Transform(Basis(), Vector3(100.0, 0, 0)));
-		print_line(String() + transform.get_transform());
-	}
 }
 
 void unregister_ecs_types() {

@@ -29,4 +29,10 @@ void Pipeline::add_system(get_system_info_func func) {
 	print_line(
 			"Added function that has " + itos(info.mutable_components.size()) +
 			" mut comp, " + itos(info.immutable_components.size()) + " immutable comp");
+
+	// TODO just a test
+	info.system_func(this);
+	info.system_func(this);
+	info.system_func(this);
+	info.system_func(this);
 }

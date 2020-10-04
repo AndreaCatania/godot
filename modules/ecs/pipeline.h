@@ -103,6 +103,9 @@ public:
 	template <class R>
 	void add_resource(const R &p_resource);
 
+	template <class R>
+	R &get_resource();
+
 private:
 	/// Creates a new component storage into the pipeline, if the storage
 	/// already exists, does nothing.
@@ -171,6 +174,18 @@ void Pipeline::add_resource(const R &p_resource) {
 	}
 
 	(*resources[id]) = p_resource;
+}
+
+template <class R>
+R &Pipeline::get_resource() {
+	const uint32_t id = R::get_resource_id();
+	CRASH_COND_MSG(id == UINT32_MAX, "The resource is not registered.");
+
+	if (unlikely(id >= resources.size() || resources[id] == nullptr)) {
+		add_resource(R());
+	}
+
+	return *static_cast<R *>(resources[id]);
 }
 
 template <class C>
