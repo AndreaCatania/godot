@@ -9,37 +9,10 @@
 
 // TODO put all this into a CPP or a namespace?
 
+namespace SystemBuilder {
+
 template <bool B>
 struct bool_type {};
-
-// TODO combine `extra_resource_ifno` with `extract_query_info` like I did for `extract_query_or_resource`
-
-template <class R>
-void extract_resource_info(bool_type<true>, SystemInfo &r_info) {
-	if (std::is_const<R>()) {
-		r_info.immutable_resources.push_back(R::get_resource_id());
-	} else {
-		r_info.mutable_resources.push_back(R::get_resource_id());
-	}
-}
-
-template <class R>
-void extract_resource_info(bool_type<false>, SystemInfo &r_info) {}
-
-template <class Q>
-void extract_query_info(bool_type<true>, SystemInfo &r_info) {
-	Q::get_components(r_info.mutable_components, r_info.immutable_components);
-}
-
-template <class Q>
-void extract_query_info(bool_type<false>, SystemInfo &r_info) {}
-
-template <class... Cs>
-struct InfoConstructor {
-	InfoConstructor(SystemInfo &r_info) {
-		// Nothing to do.
-	}
-};
 
 template <typename Test, template <typename...> class Ref>
 struct is_specialization : bool_type<false> {};
@@ -47,12 +20,32 @@ struct is_specialization : bool_type<false> {};
 template <template <typename...> class Ref, typename... Args>
 struct is_specialization<Ref<Args...>, Ref> : bool_type<true> {};
 
+template <class Q>
+void extract_info(bool_type<true>, SystemInfo &r_info) {
+	// This is a query.
+	Q::get_components(r_info.mutable_components, r_info.immutable_components);
+}
+
+template <class R>
+void extract_info(bool_type<false>, SystemInfo &r_info) {
+	// This is a resource.
+	if (std::is_const<R>()) {
+		r_info.immutable_resources.push_back(R::get_resource_id());
+	} else {
+		r_info.mutable_resources.push_back(R::get_resource_id());
+	}
+}
+
+template <class... Cs>
+struct InfoConstructor {
+	InfoConstructor(SystemInfo &r_info) {}
+};
+
 template <class C, class... Cs>
 struct InfoConstructor<C, Cs...> : InfoConstructor<Cs...> {
 	InfoConstructor(SystemInfo &r_info) :
 			InfoConstructor<Cs...>(r_info) {
-		extract_resource_info<std::remove_reference_t<C>>(bool_type<std::is_base_of<ECSResource, std::remove_reference_t<C>>::value>(), r_info);
-		extract_query_info<std::remove_reference_t<C>>(is_specialization<std::remove_reference_t<C>, Query>(), r_info);
+		extract_info<std::remove_reference_t<C>>(is_specialization<std::remove_reference_t<C>, Query>(), r_info);
 	}
 };
 
@@ -68,14 +61,14 @@ SystemInfo get_system_info_from_function(void (*system_func)(RCs...)) {
 // The keyword `auto` doesn't take into account the reference `&`, so it's
 // necessary wrap the type to preserve the reference.
 template <class C>
-struct ECSContainer {
+struct Container {
 	C inner;
 
 	template <class... Cs>
-	ECSContainer(Query<Cs...> p_query) :
+	Container(Query<Cs...> p_query) :
 			inner(p_query) {}
 
-	ECSContainer(C p_inner) :
+	Container(C p_inner) :
 			inner(p_inner) {}
 
 	C &get_inner() {
@@ -84,16 +77,18 @@ struct ECSContainer {
 };
 
 template <class C>
-ECSContainer<C> obtain_query_or_resource(bool_type<true>, Pipeline *p_pipeline) {
-	return ECSContainer<C>(C(p_pipeline));
+Container<C> obtain_query_or_resource(bool_type<true>, Pipeline *p_pipeline) {
+	return Container<C>(C(p_pipeline));
 }
 
 template <class C>
-ECSContainer<C &> obtain_query_or_resource(bool_type<false>, Pipeline *p_pipeline) {
-	return ECSContainer<C &>(p_pipeline->get_resource<C>());
+Container<C &> obtain_query_or_resource(bool_type<false>, Pipeline *p_pipeline) {
+	return Container<C &>(p_pipeline->get_resource<C>());
 }
 
 #define OBTAIN(name, T, pipeline) auto name = obtain_query_or_resource<std::remove_reference_t<T>>(is_specialization<std::remove_reference_t<T>, Query>(), pipeline);
+
+// ~~~~ system_exec_func definition ~~~~ //
 
 template <class A>
 void system_exec_func(Pipeline *p_pipeline, void (*p_system)(A)) {
@@ -954,3 +949,5 @@ void system_exec_func(Pipeline *p_pipeline, void (*p_system)(A, B, C, D, E, F, G
 }
 
 #undef OBTAIN
+
+} // namespace SystemBuilder

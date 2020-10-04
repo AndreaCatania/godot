@@ -108,11 +108,11 @@ public:
 		id = UINT32_MAX;
 	}
 
-	std::tuple<Cs &...> get() const {
+	std::tuple<std::remove_reference_t<Cs> &...> get() const {
 		return q.get();
 	}
 
 	static void get_components(LocalVector<uint32_t> &r_mutable_components, LocalVector<uint32_t> &r_immutable_components) {
-		QueryStorage<Cs...>::get_components(r_mutable_components, r_immutable_components);
+		QueryStorage<std::remove_reference_t<Cs>...>::get_components(r_mutable_components, r_immutable_components);
 	}
 };

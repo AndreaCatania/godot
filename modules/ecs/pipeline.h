@@ -97,7 +97,7 @@ public:
 	template <class C>
 	TypedStorage<C> *get_storage();
 
-	void add_system(get_system_info_func func);
+	void add_system(get_system_info_func p_get_info_func);
 
 	/// Adds a new resource or updates it if already exists.
 	template <class R>
@@ -223,3 +223,15 @@ void Pipeline::destroy_storage() {
 
 	C::destroy_storage(storages[id]);
 }
+
+// By defining the same name of the method, the IDE autocomplete shows the method
+// name `add_system`, properly + it's impossible use the function directly
+// by mistake.
+#define add_system(func)                                                   \
+	add_system([]() -> SystemInfo {                                        \
+		SystemInfo i = SystemBuilder::get_system_info_from_function(func); \
+		i.system_func = [](Pipeline *p_pipeline) {                         \
+			SystemBuilder::system_exec_func(p_pipeline, func);             \
+		};                                                                 \
+		return i;                                                          \
+	})
