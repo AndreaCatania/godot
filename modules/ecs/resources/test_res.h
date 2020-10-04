@@ -5,5 +5,6 @@
 struct TestResource : public ECSResource {
 	RESOURCE(TestResource);
 
+public:
 	int a = 10;
 };
