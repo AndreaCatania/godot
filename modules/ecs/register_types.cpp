@@ -27,7 +27,7 @@ public:
 	}
 } rep;
 
-void test_system(TestResource &p_res, Query<TransformComponent, MeshComponent> &p_query) {
+void test_system(TestResource &p_res, Query<TransformComponent, const MeshComponent &> &p_query) {
 	print_line("System is executed: " + itos(p_res.a));
 	p_res.a += 1;
 
@@ -71,13 +71,7 @@ void register_ecs_types() {
 
 	pipeline.add_resource(TestResource());
 
-	pipeline.add_system([]() -> SystemInfo {
-		SystemInfo i = get_system_info_from_function(test_system);
-		i.system_func = [](Pipeline *p_pipeline) {
-			system_exec_func(p_pipeline, test_system);
-		};
-		return i;
-	});
+	pipeline.add_system(test_system);
 }
 
 void unregister_ecs_types() {
