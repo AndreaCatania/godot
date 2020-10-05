@@ -24,7 +24,9 @@ public:
 	virtual ~Entity();
 
 	void _notification(int p_what);
+
 	void add_component(StringName p_component_name);
+	const LocalVector<StringName> &get_components() const;
 
 private:
 	void update_world();

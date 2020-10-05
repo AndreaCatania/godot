@@ -47,10 +47,10 @@ void EntityEditor::update_editors() {
 			add_component_menu->get_popup()->remove_item(i);
 		}
 
-		//LocalVector<StringName> &components = ECS::get_components();
-		add_component_menu->get_popup()->add_item(TTR("Element 1"), 0);
-		add_component_menu->get_popup()->add_item(TTR("Element 2"), 1);
-		add_component_menu->get_popup()->add_item(TTR("Element 3"), 2);
+		const LocalVector<StringName> &components = ECS::get_registered_components();
+		for (uint32_t i = 0; i < components.size(); i += 1) {
+			add_component_menu->get_popup()->add_item(components[i], i);
+		}
 	}
 
 	if (components_section) {
@@ -59,14 +59,20 @@ void EntityEditor::update_editors() {
 			components_section->get_vbox()->remove_child(components_section->get_vbox()->get_child(i));
 		}
 
-		EditorInspectorSection *component_section = memnew(EditorInspectorSection);
-		component_section->setup("component_##name", "##name", entity, section_color, true);
-		component_section->unfold();
-		Label *lbl = memnew(Label);
-		lbl->set_text("Test component");
-		component_section->get_vbox()->add_child(lbl);
+		const LocalVector<StringName> &components = entity->get_components();
+		for (uint32_t i = 0; i < components.size(); i += 1) {
+			// Add the components of this Entity
+			EditorInspectorSection *component_section = memnew(EditorInspectorSection);
+			component_section->setup("component_" + components[i], components[i], entity, section_color, true);
+			component_section->unfold();
 
-		components_section->get_vbox()->add_child(component_section);
+			// TODO here the component properties.
+			Label *lbl = memnew(Label);
+			lbl->set_text("Test component");
+			component_section->get_vbox()->add_child(lbl);
+
+			components_section->get_vbox()->add_child(component_section);
+		}
 	}
 }
 

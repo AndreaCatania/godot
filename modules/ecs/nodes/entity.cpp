@@ -28,6 +28,12 @@ void Entity::add_component(StringName p_component_name) {
 	// TODO
 }
 
+const LocalVector<StringName> &get_components() const {
+	// TODO all just a test
+	static LocalVector<StringName> test;
+	return test;
+}
+
 void Entity::update_world() {
 	if (ecs_world != nullptr) {
 #ifdef DEBUG_ENABLED
