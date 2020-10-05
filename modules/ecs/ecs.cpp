@@ -20,6 +20,14 @@ ECS::ECS() :
 ECS::~ECS() {
 }
 
+const LocalVector<StringName> &ECS::get_registered_components() {
+	return components;
+}
+
+const LocalVector<StringName> &ECS::get_registered_resources() {
+	return resources;
+}
+
 ECS *ECS::get_singleton() {
 	return singleton;
 }

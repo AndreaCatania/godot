@@ -69,8 +69,12 @@ public:
 	template <class C>
 	static void register_component();
 
+	static const LocalVector<StringName> &get_registered_components();
+
 	template <class C>
 	static void register_resource();
+
+	static const LocalVector<StringName> &get_registered_resources();
 
 protected:
 	static void _bind_methods();
