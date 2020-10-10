@@ -17,6 +17,7 @@ class EntityEditor : public VBoxContainer {
 	EditorInspectorPluginEntity *editor_plugin;
 
 	Entity *entity;
+	OAHashMap<StringName, EditorProperty *> components_properties;
 
 	// Add new component HUD objects.
 	MenuButton *add_component_menu = nullptr;
@@ -31,8 +32,10 @@ public:
 	void create_editors();
 	void update_editors();
 	void create_component_inspector(StringName p_component_name, VBoxContainer *p_container);
+	void update_component_inspector(StringName p_component_name);
 	void _add_component_pressed(uint32_t p_component_id);
 	void _remove_component_pressed(StringName p_component_name);
+	void _property_changed(const String &p_path, const Variant &p_value, const String &p_name, bool p_changing);
 };
 
 class EditorInspectorPluginEntity : public EditorInspectorPlugin {

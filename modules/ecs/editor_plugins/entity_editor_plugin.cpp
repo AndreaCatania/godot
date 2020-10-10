@@ -63,6 +63,7 @@ void EntityEditor::update_editors() {
 		for (int i = components_section->get_vbox()->get_child_count() - 1; i >= 0; i -= 1) {
 			components_section->get_vbox()->get_child(i)->queue_delete(); // TODO is this enough to also destroy the internally created things?
 		}
+		components_properties.clear();
 
 		const Dictionary &components = entity->get_components_data();
 		for (const Variant *key = components.next(nullptr); key != nullptr; key = components.next(key)) {
@@ -81,6 +82,8 @@ void EntityEditor::update_editors() {
 			create_component_inspector(key->operator StringName(), component_section->get_vbox());
 
 			components_section->get_vbox()->add_child(component_section);
+
+			update_component_inspector(key->operator StringName());
 		}
 	}
 }
@@ -291,7 +294,24 @@ void EntityEditor::create_component_inspector(StringName p_component_name, VBoxC
 		if (prop != nullptr) {
 			prop->set_label(it.value->name.capitalize());
 			p_container->add_child(prop);
+
+			prop->set_object_and_property(entity, String(p_component_name) + "/" + it.value->name);
+			prop->connect("property_changed", callable_mp(this, &EntityEditor::_property_changed));
+			components_properties.insert(p_component_name, prop);
 		}
+	}
+}
+
+void EntityEditor::update_component_inspector(StringName p_component_name) {
+	const OAHashMap<StringName, PropertyInfo> *properties = ECS::get_component_properties(p_component_name);
+	if (properties == nullptr) {
+		return;
+	}
+
+	for (OAHashMap<StringName, PropertyInfo>::Iterator it = properties->iter(); it.valid; it = properties->next_iter(it)) {
+		EditorProperty *prop = *components_properties.lookup_ptr(*it.key);
+		const Variant value = entity->get_component_data_value(p_component_name, *it.key);
+		prop->set_object_and_property
 	}
 }
 
@@ -303,6 +323,20 @@ void EntityEditor::_add_component_pressed(uint32_t p_component_id) {
 void EntityEditor::_remove_component_pressed(StringName p_component_name) {
 	entity->remove_component_data(p_component_name);
 	update_editors();
+}
+
+void EntityEditor::_property_changed(const String &p_path, const Variant &p_value, const String &p_name, bool p_changing) {
+	if (p_changing) {
+		// Nothing to do while chaning.
+		return;
+	}
+
+	const Vector<String> names = p_path.split("/");
+	ERR_FAIL_COND(names.size() < 2);
+	const String component_name = names[0];
+	const String property_name = names[1];
+
+	entity->set_component_data_value(component_name, property_name, p_value);
 }
 
 bool EditorInspectorPluginEntity::can_handle(Object *p_object) {
