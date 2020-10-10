@@ -1,6 +1,8 @@
 /* Author: AndreaCatania */
 
 #include "entity_editor_plugin.h"
+#include "editor/editor_properties.h"
+#include "editor/editor_properties_array_dict.h"
 #include "modules/ecs/nodes/entity.h"
 
 EntityEditor::EntityEditor(
@@ -33,6 +35,10 @@ void EntityEditor::create_editors() {
 	add_component_menu->get_popup()->connect("id_pressed", callable_mp(this, &EntityEditor::_add_component_pressed));
 	add_child(add_component_menu);
 
+	// TODO right now this is not customizable.
+	//EditorInspectorCategory *category = memnew(EditorInspectorCategory);
+	//add_child(category);
+
 	components_section = memnew(EditorInspectorSection);
 	components_section->setup("components", "Components", entity, section_color, true);
 	add_child(components_section);
@@ -55,31 +61,236 @@ void EntityEditor::update_editors() {
 	if (components_section) {
 		// Remove old childs.
 		for (int i = components_section->get_vbox()->get_child_count() - 1; i >= 0; i -= 1) {
-			Node *n = components_section->get_vbox()->get_child(i);
-			components_section->get_vbox()->remove_child(n);
-			memdelete(n);
+			components_section->get_vbox()->get_child(i)->queue_delete(); // TODO is this enough to also destroy the internally created things?
 		}
 
 		const Dictionary &components = entity->get_components_data();
 		for (const Variant *key = components.next(nullptr); key != nullptr; key = components.next(key)) {
-			const Variant *data = components.getptr(*key);
 			// Add the components of this Entity
 			EditorInspectorSection *component_section = memnew(EditorInspectorSection);
 			component_section->setup("component_" + String(*key), String(*key), entity, section_color, true);
 			component_section->unfold();
 
+			// TODO would be nice put this into the EditorInspectorSection.
 			Button *del_btn = memnew(Button);
 			del_btn->set_text("Remove component");
 			del_btn->set_flat(true);
 			del_btn->connect("pressed", callable_mp(this, &EntityEditor::_remove_component_pressed), varray(key->operator StringName()));
 			component_section->get_vbox()->add_child(del_btn);
 
-			// TODO here the component properties.
-			Label *lbl = memnew(Label);
-			lbl->set_text("Test component");
-			component_section->get_vbox()->add_child(lbl);
+			create_component_inspector(key->operator StringName(), component_section->get_vbox());
 
 			components_section->get_vbox()->add_child(component_section);
+		}
+	}
+}
+
+void EntityEditor::create_component_inspector(StringName p_component_name, VBoxContainer *p_container) {
+	const OAHashMap<StringName, PropertyInfo> *properties = ECS::get_component_properties(p_component_name);
+	if (properties == nullptr) {
+		return;
+	}
+
+	for (OAHashMap<StringName, PropertyInfo>::Iterator it = properties->iter(); it.valid; it = properties->next_iter(it)) {
+		EditorProperty *prop = nullptr;
+
+		switch (it.value->type) {
+			case Variant::NIL: {
+				prop = memnew(EditorPropertyNil);
+
+			} break;
+
+			// atomic types
+			case Variant::BOOL: {
+				prop = memnew(EditorPropertyCheck);
+
+			} break;
+			case Variant::INT: {
+				EditorPropertyInteger *editor = memnew(EditorPropertyInteger);
+				editor->setup(-100000, 100000, 1, true, true);
+				prop = editor;
+
+			} break;
+			case Variant::FLOAT: {
+				EditorPropertyFloat *editor = memnew(EditorPropertyFloat);
+
+				editor->setup(-100000, 100000, 0.001, true, false, true, true);
+				prop = editor;
+			} break;
+			case Variant::STRING: {
+				prop = memnew(EditorPropertyText);
+
+			} break;
+
+			// math types
+			case Variant::VECTOR2: {
+				EditorPropertyVector2 *editor = memnew(EditorPropertyVector2);
+				editor->setup(-100000, 100000, 0.001, true);
+				prop = editor;
+
+			} break;
+			case Variant::VECTOR2I: {
+				EditorPropertyVector2i *editor = memnew(EditorPropertyVector2i);
+				editor->setup(-100000, 100000, true);
+				prop = editor;
+
+			} break;
+			case Variant::RECT2: {
+				EditorPropertyRect2 *editor = memnew(EditorPropertyRect2);
+				editor->setup(-100000, 100000, 0.001, true);
+				prop = editor;
+
+			} break;
+			case Variant::RECT2I: {
+				EditorPropertyRect2i *editor = memnew(EditorPropertyRect2i);
+				editor->setup(-100000, 100000, true);
+				prop = editor;
+
+			} break;
+			case Variant::VECTOR3: {
+				EditorPropertyVector3 *editor = memnew(EditorPropertyVector3);
+				editor->setup(-100000, 100000, 0.001, true);
+				prop = editor;
+
+			} break;
+			case Variant::VECTOR3I: {
+				EditorPropertyVector3i *editor = memnew(EditorPropertyVector3i);
+				editor->setup(-100000, 100000, true);
+				prop = editor;
+
+			} break;
+			case Variant::TRANSFORM2D: {
+				EditorPropertyTransform2D *editor = memnew(EditorPropertyTransform2D);
+				editor->setup(-100000, 100000, 0.001, true);
+				prop = editor;
+
+			} break;
+			case Variant::PLANE: {
+				EditorPropertyPlane *editor = memnew(EditorPropertyPlane);
+				editor->setup(-100000, 100000, 0.001, true);
+				prop = editor;
+
+			} break;
+			case Variant::QUAT: {
+				EditorPropertyQuat *editor = memnew(EditorPropertyQuat);
+				editor->setup(-100000, 100000, 0.001, true);
+				prop = editor;
+
+			} break;
+			case Variant::AABB: {
+				EditorPropertyAABB *editor = memnew(EditorPropertyAABB);
+				editor->setup(-100000, 100000, 0.001, true);
+				prop = editor;
+
+			} break;
+			case Variant::BASIS: {
+				EditorPropertyBasis *editor = memnew(EditorPropertyBasis);
+				editor->setup(-100000, 100000, 0.001, true);
+				prop = editor;
+
+			} break;
+			case Variant::TRANSFORM: {
+				EditorPropertyTransform *editor = memnew(EditorPropertyTransform);
+				editor->setup(-100000, 100000, 0.001, true);
+				prop = editor;
+
+			} break;
+
+			// misc types
+			case Variant::COLOR: {
+				prop = memnew(EditorPropertyColor);
+
+			} break;
+			case Variant::STRING_NAME: {
+				EditorPropertyText *ept = memnew(EditorPropertyText);
+				ept->set_string_name(true);
+				prop = ept;
+
+			} break;
+			case Variant::NODE_PATH: {
+				prop = memnew(EditorPropertyNodePath);
+
+			} break;
+			case Variant::_RID: {
+				prop = memnew(EditorPropertyRID);
+
+			} break;
+			case Variant::OBJECT: {
+				//if (Object::cast_to<EncodedObjectAsID>(value)) {
+				//	EditorPropertyObjectID *editor = memnew(EditorPropertyObjectID);
+				//	editor->setup("Object");
+				//	prop = editor;
+
+				//} else {
+				//	EditorPropertyResource *editor = memnew(EditorPropertyResource);
+				//	editor->setup("Resource");
+				//	prop = editor;
+				//}
+
+			} break;
+			case Variant::DICTIONARY: {
+				prop = memnew(EditorPropertyDictionary);
+
+			} break;
+			case Variant::ARRAY: {
+				EditorPropertyArray *editor = memnew(EditorPropertyArray);
+				editor->setup(Variant::ARRAY);
+				prop = editor;
+			} break;
+
+			// arrays
+			case Variant::PACKED_BYTE_ARRAY: {
+				EditorPropertyArray *editor = memnew(EditorPropertyArray);
+				editor->setup(Variant::PACKED_BYTE_ARRAY);
+				prop = editor;
+			} break;
+			case Variant::PACKED_INT32_ARRAY: {
+				EditorPropertyArray *editor = memnew(EditorPropertyArray);
+				editor->setup(Variant::PACKED_INT32_ARRAY);
+				prop = editor;
+			} break;
+			case Variant::PACKED_FLOAT32_ARRAY: {
+				EditorPropertyArray *editor = memnew(EditorPropertyArray);
+				editor->setup(Variant::PACKED_FLOAT32_ARRAY);
+				prop = editor;
+			} break;
+			case Variant::PACKED_INT64_ARRAY: {
+				EditorPropertyArray *editor = memnew(EditorPropertyArray);
+				editor->setup(Variant::PACKED_INT64_ARRAY);
+				prop = editor;
+			} break;
+			case Variant::PACKED_FLOAT64_ARRAY: {
+				EditorPropertyArray *editor = memnew(EditorPropertyArray);
+				editor->setup(Variant::PACKED_FLOAT64_ARRAY);
+				prop = editor;
+			} break;
+			case Variant::PACKED_STRING_ARRAY: {
+				EditorPropertyArray *editor = memnew(EditorPropertyArray);
+				editor->setup(Variant::PACKED_STRING_ARRAY);
+				prop = editor;
+			} break;
+			case Variant::PACKED_VECTOR2_ARRAY: {
+				EditorPropertyArray *editor = memnew(EditorPropertyArray);
+				editor->setup(Variant::PACKED_VECTOR2_ARRAY);
+				prop = editor;
+			} break;
+			case Variant::PACKED_VECTOR3_ARRAY: {
+				EditorPropertyArray *editor = memnew(EditorPropertyArray);
+				editor->setup(Variant::PACKED_VECTOR3_ARRAY);
+				prop = editor;
+			} break;
+			case Variant::PACKED_COLOR_ARRAY: {
+				EditorPropertyArray *editor = memnew(EditorPropertyArray);
+				editor->setup(Variant::PACKED_COLOR_ARRAY);
+				prop = editor;
+			} break;
+			default: {
+			}
+		}
+
+		if (prop != nullptr) {
+			prop->set_label(it.value->name.capitalize());
+			p_container->add_child(prop);
 		}
 	}
 }

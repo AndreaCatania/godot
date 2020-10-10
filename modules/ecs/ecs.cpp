@@ -6,6 +6,7 @@
 
 ECS *ECS::singleton = nullptr;
 LocalVector<StringName> ECS::components;
+LocalVector<ComponentInfo> ECS::components_info;
 LocalVector<StringName> ECS::resources;
 
 void ECS::_bind_methods() {
@@ -22,6 +23,12 @@ ECS::~ECS() {
 
 const LocalVector<StringName> &ECS::get_registered_components() {
 	return components;
+}
+
+const OAHashMap<StringName, PropertyInfo> *ECS::get_component_properties(StringName p_component_name) {
+	const int64_t id = components.find(p_component_name);
+	ERR_FAIL_COND_V(id == -1, nullptr);
+	return components_info[id].get_properties();
 }
 
 const LocalVector<StringName> &ECS::get_registered_resources() {
