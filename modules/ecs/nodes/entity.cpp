@@ -48,6 +48,23 @@ const Dictionary &Entity::get_components_data() const {
 	return components_data;
 }
 
+void Entity::set_component_data_value(StringName p_component_name, StringName p_property_name, const Variant &p_value) {
+	ERR_FAIL_COND(components_data.has(p_component_name) == false);
+	if (components_data[p_component_name].get_type() != Variant::DICTIONARY) {
+		components_data[p_component_name] = Dictionary();
+	}
+	(components_data[p_component_name].operator Dictionary())[p_property_name] = p_value;
+}
+
+Variant Entity::get_component_data_value(StringName p_component_name, StringName p_property_name) const {
+	ERR_FAIL_COND_V(components_data.has(p_component_name) == false, Variant());
+	if (components_data[p_component_name].get_type() != Variant::DICTIONARY) {
+		return Variant();
+	} else {
+		return (components_data[p_component_name].operator Dictionary())[p_property_name];
+	}
+}
+
 void Entity::update_world() {
 	if (ecs_world != nullptr) {
 #ifdef DEBUG_ENABLED
