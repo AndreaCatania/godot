@@ -5,6 +5,15 @@
 #include "modules/ecs/components/transform_component.h" // TODO remove
 
 void Entity::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("_set_components_data"), &Entity::set_components_data);
+	ClassDB::bind_method(D_METHOD("_get_components_data"), &Entity::get_components_data);
+
+	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "_component_data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "_set_components_data", "_get_components_data");
+}
+
+void Entity::set_components_data(Dictionary p_data) {
+	components_data = p_data;
+	update_component_data();
 }
 
 Entity::Entity() :
@@ -24,14 +33,19 @@ void Entity::_notification(int p_what) {
 	}
 }
 
-void Entity::add_component(StringName p_component_name) {
-	// TODO
+void Entity::add_component_data(StringName p_component_name) {
+	ERR_FAIL_COND_MSG(Engine::get_singleton()->is_editor_hint() == false, "This function can only be called on Editor, probably you need to use `add_component`.");
+	ERR_FAIL_COND(components_data.has(p_component_name));
+	components_data[p_component_name] = Variant();
 }
 
-const LocalVector<StringName> &get_components() const {
-	// TODO all just a test
-	static LocalVector<StringName> test;
-	return test;
+void Entity::remove_component_data(StringName p_component_name) {
+	ERR_FAIL_COND_MSG(Engine::get_singleton()->is_editor_hint() == false, "This function can only be called on Editor, probably you need to use `add_component`.");
+	components_data.erase(p_component_name);
+}
+
+const Dictionary &Entity::get_components_data() const {
+	return components_data;
 }
 
 void Entity::update_world() {
@@ -40,7 +54,8 @@ void Entity::update_world() {
 		// If the pipeline is not null the entity_id is not null.
 		CRASH_COND(entity_id.is_null());
 #endif
-		ecs_world->get_pipeline().destroy_entity(entity_id);
+		// TODO this is not working.
+		//ecs_world->get_pipeline().destroy_entity(entity_id);
 		entity_id = EntityID();
 	}
 
@@ -67,4 +82,7 @@ void Entity::update_world() {
 		// TODO this is just a test to measure performances
 		ecs_world->get_pipeline().add_component(entity_id, TransformComponent());
 	}
+}
+
+void Entity::update_component_data() {
 }
