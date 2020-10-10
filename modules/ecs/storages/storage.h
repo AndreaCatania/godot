@@ -1,9 +1,5 @@
 
 
-
-
-
-
 /* Author: AndreaCatania */
 
 #ifndef STORAGE_H
@@ -35,20 +31,28 @@ public:
 		return false;
 	}
 
-#pragma warning( push )
-#pragma warning( disable: 4172) // Disable warning for local address return.
+#ifdef WINDOWS_ENABLED
+#pragma warning(push)
+#pragma warning(disable : 4172) // Disable warning for local address return.
+#endif
 
 	virtual const T &get(EntityID p_entity) const {
 		CRASH_NOW_MSG("Override this function.");
+#ifdef WINDOWS_ENABLED
 		return T();
+#endif
 	}
 
 	virtual T &get(EntityID p_entity) {
 		CRASH_NOW_MSG("Override this function.");
+#ifdef WINDOWS_ENABLED
 		return T();
+#endif
 	}
 
-#pragma warning( pop ) 
+#ifdef WINDOWS_ENABLED
+#pragma warning(pop)
+#endif
 };
 
 #endif
