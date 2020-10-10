@@ -1,3 +1,9 @@
+
+
+
+
+
+
 /* Author: AndreaCatania */
 
 #ifndef STORAGE_H
@@ -26,15 +32,23 @@ public:
 
 	virtual bool has(EntityID p_entity) const {
 		CRASH_NOW_MSG("Override this function.");
+		return false;
 	}
+
+#pragma warning( push )
+#pragma warning( disable: 4172) // Disable warning for local address return.
 
 	virtual const T &get(EntityID p_entity) const {
 		CRASH_NOW_MSG("Override this function.");
+		return T();
 	}
 
 	virtual T &get(EntityID p_entity) {
 		CRASH_NOW_MSG("Override this function.");
+		return T();
 	}
+
+#pragma warning( pop ) 
 };
 
 #endif
