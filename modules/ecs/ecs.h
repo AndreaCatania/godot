@@ -3,6 +3,7 @@
 /* Author: AndreaCatania */
 
 #include "core/local_vector.h"
+#include "core/oa_hash_map.h"
 #include "core/object.h"
 
 #define ECSCLASS(m_class)                             \
@@ -56,6 +57,10 @@ public:
 	}
 };
 
+struct ComponentInfo {
+	OAHashMap<StringName, PropertyInfo> *(*get_properties)();
+};
+
 class ECS : public Object {
 	GDCLASS(ECS, Object);
 
@@ -63,6 +68,7 @@ class ECS : public Object {
 
 	static ECS *singleton;
 	static LocalVector<StringName> components;
+	static LocalVector<ComponentInfo> components_info;
 	static LocalVector<StringName> resources;
 
 public:
@@ -70,6 +76,7 @@ public:
 	static void register_component();
 
 	static const LocalVector<StringName> &get_registered_components();
+	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(StringName p_component_name);
 
 	template <class C>
 	static void register_resource();
@@ -98,6 +105,9 @@ void ECS::register_component() {
 	C::component_id = components.size();
 	C::_bind_properties();
 	components.push_back(component_name);
+	components_info.push_back(
+			ComponentInfo{
+					&C::get_properties_static });
 }
 
 template <class R>

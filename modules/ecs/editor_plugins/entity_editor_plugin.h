@@ -30,6 +30,7 @@ public:
 
 	void create_editors();
 	void update_editors();
+	void create_component_inspector(StringName p_component_name, VBoxContainer *p_container);
 	void _add_component_pressed(uint32_t p_component_id);
 	void _remove_component_pressed(StringName p_component_name);
 };
