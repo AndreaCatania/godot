@@ -17,7 +17,7 @@ class EntityEditor : public VBoxContainer {
 	EditorInspectorPluginEntity *editor_plugin;
 
 	Entity *entity;
-	OAHashMap<StringName, EditorProperty *> components_properties;
+	OAHashMap<StringName, OAHashMap<StringName, EditorProperty *>> components_properties;
 
 	// Add new component HUD objects.
 	MenuButton *add_component_menu = nullptr;

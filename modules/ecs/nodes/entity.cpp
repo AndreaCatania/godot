@@ -16,6 +16,26 @@ void Entity::set_components_data(Dictionary p_data) {
 	update_component_data();
 }
 
+bool Entity::_set(const StringName &p_name, const Variant &p_value) {
+	const Vector<String> names = String(p_name).split("/");
+	ERR_FAIL_COND_V(names.size() < 2, false);
+	const String component_name = names[0];
+	const String property_name = names[1];
+
+	set_component_data_value(component_name, property_name, p_value);
+	return true;
+}
+
+bool Entity::_get(const StringName &p_name, Variant &r_ret) const {
+	const Vector<String> names = String(p_name).split("/");
+	ERR_FAIL_COND_V(names.size() < 2, false);
+	const String component_name = names[0];
+	const String property_name = names[1];
+
+	r_ret = get_component_data_value(component_name, property_name);
+	return true;
+}
+
 Entity::Entity() :
 		Node() {}
 

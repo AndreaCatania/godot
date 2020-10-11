@@ -20,7 +20,8 @@ protected:
 	static void _bind_methods();
 	void set_components_data(Dictionary p_data);
 
-	integrate set and get so the EditorProperty can be automatically updated;
+	bool _set(const StringName &p_name, const Variant &p_value);
+	bool _get(const StringName &p_name, Variant &r_ret) const;
 
 public:
 	Entity();
