@@ -21,6 +21,7 @@ public:
 
 template <class T>
 class TypedStorage : public Storage {
+	static inline T phantom_data;
 public:
 	virtual void insert(EntityID p_entity, T p_data) {
 		CRASH_NOW_MSG("Override this function.");
@@ -31,28 +32,15 @@ public:
 		return false;
 	}
 
-#ifdef WINDOWS_ENABLED
-#pragma warning(push)
-#pragma warning(disable : 4172) // Disable warning for local address return.
-#endif
-
 	virtual const T &get(EntityID p_entity) const {
 		CRASH_NOW_MSG("Override this function.");
-#ifdef WINDOWS_ENABLED
-		return T();
-#endif
+		return phantom_data;
 	}
 
 	virtual T &get(EntityID p_entity) {
 		CRASH_NOW_MSG("Override this function.");
-#ifdef WINDOWS_ENABLED
-		return T();
-#endif
+		return phantom_data;
 	}
-
-#ifdef WINDOWS_ENABLED
-#pragma warning(pop)
-#endif
 };
 
 #endif
