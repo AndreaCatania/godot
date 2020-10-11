@@ -16,6 +16,26 @@ void Entity::set_components_data(Dictionary p_data) {
 	update_component_data();
 }
 
+bool Entity::_set(const StringName &p_name, const Variant &p_value) {
+	const Vector<String> names = String(p_name).split("/");
+	ERR_FAIL_COND_V(names.size() < 2, false);
+	const String component_name = names[0];
+	const String property_name = names[1];
+
+	set_component_data_value(component_name, property_name, p_value);
+	return true;
+}
+
+bool Entity::_get(const StringName &p_name, Variant &r_ret) const {
+	const Vector<String> names = String(p_name).split("/");
+	ERR_FAIL_COND_V(names.size() < 2, false);
+	const String component_name = names[0];
+	const String property_name = names[1];
+
+	r_ret = get_component_data_value(component_name, property_name);
+	return true;
+}
+
 Entity::Entity() :
 		Node() {}
 
@@ -46,6 +66,23 @@ void Entity::remove_component_data(StringName p_component_name) {
 
 const Dictionary &Entity::get_components_data() const {
 	return components_data;
+}
+
+void Entity::set_component_data_value(StringName p_component_name, StringName p_property_name, const Variant &p_value) {
+	ERR_FAIL_COND(components_data.has(p_component_name) == false);
+	if (components_data[p_component_name].get_type() != Variant::DICTIONARY) {
+		components_data[p_component_name] = Dictionary();
+	}
+	(components_data[p_component_name].operator Dictionary())[p_property_name] = p_value;
+}
+
+Variant Entity::get_component_data_value(StringName p_component_name, StringName p_property_name) const {
+	ERR_FAIL_COND_V(components_data.has(p_component_name) == false, Variant());
+	if (components_data[p_component_name].get_type() != Variant::DICTIONARY) {
+		return Variant();
+	} else {
+		return (components_data[p_component_name].operator Dictionary())[p_property_name];
+	}
 }
 
 void Entity::update_world() {
