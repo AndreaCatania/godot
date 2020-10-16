@@ -594,6 +594,8 @@ EntityEditorPlugin::EntityEditorPlugin(EditorNode *p_node) {
 	Ref<EditorInspectorPluginEntity> entity_plugin;
 	entity_plugin.instance();
 	entity_plugin->editor = p_node;
-
 	EditorInspector::add_inspector_plugin(entity_plugin);
+
+	gizmo_plugin.instance();
+	add_spatial_gizmo_plugin(gizmo_plugin);
 }

@@ -4,7 +4,7 @@
 #define ENTITY_EDITOR_PLUGIN_H
 
 #include "editor/editor_node.h"
-#include "editor/editor_plugin.h"
+#include "editor/node_3d_editor_gizmos.h"
 
 class EntityEditorPlugin;
 class EditorInspectorPluginEntity;
@@ -50,10 +50,15 @@ public:
 	virtual void parse_begin(Object *p_object) override;
 };
 
+class EntityGizmoPlugin : public EditorNode3DGizmoPlugin {
+	virtual bool has_gizmo(Node3D *p_spatial);
+};
+
 class EntityEditorPlugin : public EditorPlugin {
 	GDCLASS(EntityEditorPlugin, EditorPlugin);
 
 	EditorNode *editor;
+	Ref<EntityGizmoPlugin> gizmo_plugin;
 
 public:
 	EntityEditorPlugin(EditorNode *p_editor);
