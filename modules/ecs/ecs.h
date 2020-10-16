@@ -6,61 +6,14 @@
 #include "core/oa_hash_map.h"
 #include "core/object.h"
 
-#define ECSCLASS(m_class)                             \
-private:                                              \
-	friend class ECS;                                 \
-                                                      \
-public:                                               \
-	virtual String get_class() const override {       \
-		return String(#m_class);                      \
-	}                                                 \
-	static _FORCE_INLINE_ String get_class_static() { \
-		return String(#m_class);                      \
-	}                                                 \
-                                                      \
-private:
-
-class ECSClass {
-public:
-	virtual ~ECSClass(){}
-	virtual String get_class() const {
-		return "ECSClass";
-	}
-};
-
-class EntityID {
-	uint32_t id = UINT32_MAX;
-
-public:
-	EntityID() :
-			id(UINT32_MAX) {}
-
-	EntityID(uint32_t p_index) :
-			id(p_index) {}
-
-	bool is_null() const {
-		return id == UINT32_MAX;
-	}
-
-	bool operator==(const EntityID &p_other) const {
-		return id == p_other.id;
-	}
-
-	bool operator==(uint32_t p_naked_index) const {
-		return id == p_naked_index;
-	}
-
-	operator uint32_t() const {
-		return id;
-	}
-};
+class Pipeline;
 
 struct ComponentInfo {
 	OAHashMap<StringName, PropertyInfo> *(*get_properties)();
 };
 
 class ECS : public Object {
-	GDCLASS(ECS, Object);
+	GDCLASS(ECS, Object)
 
 	friend class Entity;
 
@@ -68,6 +21,8 @@ class ECS : public Object {
 	static LocalVector<StringName> components;
 	static LocalVector<ComponentInfo> components_info;
 	static LocalVector<StringName> resources;
+
+	Pipeline *active_pipeline;
 
 public:
 	template <class C>
@@ -88,8 +43,15 @@ public:
 	static void __set_singleton(ECS *p_singleton);
 	static ECS *get_singleton();
 
+public:
 	ECS();
 	virtual ~ECS();
+
+	/// Set the active pipeline. If there is already an active pipeline an error
+	/// is generated.
+	void set_active_pipeline(Pipeline *p_pipeline);
+	bool has_active_pipeline() const;
+	const Pipeline *get_pipeline_controller() const;
 
 private:
 	void ecs_init();

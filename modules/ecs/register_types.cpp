@@ -44,7 +44,7 @@ void test_system(TestResource &p_res, Query<TransformComponent, const MeshCompon
 
 void register_ecs_types() {
 	ClassDB::register_class<ECS>();
-	ClassDB::register_class<ECSWorld>();
+	ClassDB::register_class<WorldECS>();
 	ClassDB::register_class<Entity>();
 	ClassDB::register_class<TestNode>(); // TODO Just test
 

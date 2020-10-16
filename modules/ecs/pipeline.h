@@ -5,7 +5,7 @@
 */
 
 #include "core/local_vector.h"
-#include "ecs.h"
+#include "ecs_types.h"
 #include "modules/ecs/storages/storage.h"
 #include "systems/system.h"
 
