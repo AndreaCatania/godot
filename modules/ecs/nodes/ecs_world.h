@@ -5,20 +5,23 @@
 #include "modules/ecs/pipeline.h"
 #include "scene/main/node.h"
 
-class ECSWorld : public Node {
-	GDCLASS(ECSWorld, Node);
+class WorldECS : public Node {
+	GDCLASS(WorldECS, Node)
 
-	Pipeline pipeline;
+	Pipeline *pipeline = nullptr;
 
 protected:
 	static void _bind_methods();
 
 public:
-	ECSWorld();
-	virtual ~ECSWorld();
+	WorldECS();
+	virtual ~WorldECS();
 
 	void _notification(int p_what);
 
-	Pipeline &get_pipeline();
-	const Pipeline &get_pipeline() const;
+	String get_configuration_warning() const override;
+
+private:
+	void active_pipeline();
+	void unactive_pipeline();
 };

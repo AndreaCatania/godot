@@ -2,6 +2,7 @@
 #include "ecs.h"
 
 #include "core/message_queue.h"
+#include "pipeline.h"
 #include "scene/main/scene_tree.h"
 
 ECS *ECS::singleton = nullptr;
@@ -10,6 +11,9 @@ LocalVector<ComponentInfo> ECS::components_info;
 LocalVector<StringName> ECS::resources;
 
 void ECS::_bind_methods() {
+	ADD_SIGNAL(MethodInfo("pipeline_loaded"));
+	ADD_SIGNAL(MethodInfo("pipeline_pre_unload"));
+	ADD_SIGNAL(MethodInfo("pipeline_unloaded"));
 }
 
 ECS::ECS() :
@@ -47,6 +51,30 @@ void ECS::__set_singleton(ECS *p_singleton) {
 		ERR_FAIL_COND_MSG(singleton != nullptr, "There is already a singleton, make sure to remove that first.");
 		singleton = p_singleton;
 	}
+}
+
+void ECS::set_active_pipeline(Pipeline *p_pipeline) {
+	if (active_pipeline != nullptr) {
+		if (p_pipeline == nullptr) {
+			emit_signal("pipeline_pre_unload");
+		} else {
+			ERR_FAIL_COND("Before adding a new pipeline it's necessary remove the current one by calling `set_active_pipeline(nullptr);`.");
+		}
+	}
+
+	active_pipeline = p_pipeline;
+
+	if (active_pipeline != nullptr) {
+		// The pipeline is just loaded.
+		emit_signal("pipeline_loaded");
+	} else {
+		// The pipeline is just unloaded.
+		emit_signal("pipeline_unloaded");
+	}
+}
+
+bool ECS::has_active_pipeline() const {
+	return active_pipeline != nullptr;
 }
 
 void ECS::ecs_init() {

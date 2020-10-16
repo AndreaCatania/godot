@@ -3,7 +3,8 @@
 /* Author: AndreaCatania */
 
 #include "core/oa_hash_map.h"
-#include "modules/ecs/ecs.h"
+#include "core/object.h"
+#include "modules/ecs/ecs_types.h"
 
 #define RESOURCE(m_class)                                                                      \
 	ECSCLASS(m_class)                                                                          \
@@ -34,7 +35,7 @@ private:                                                                        
 private:
 
 class ECSResource : public ECSClass {
-	ECSCLASS(ECSResource);
+	ECSCLASS(ECSResource)
 
 public:
 	ECSResource();

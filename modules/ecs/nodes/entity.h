@@ -6,7 +6,7 @@
 #include "modules/ecs/component.h"
 #include "scene/main/node.h"
 
-class ECSWorld;
+class WorldECS;
 
 class Entity : public Node {
 	GDCLASS(Entity, Node);
@@ -14,7 +14,7 @@ class Entity : public Node {
 	EntityID entity_id;
 	Dictionary components_data;
 
-	ECSWorld *ecs_world = nullptr;
+	WorldECS *ecs_world = nullptr;
 
 protected:
 	static void _bind_methods();

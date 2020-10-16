@@ -44,6 +44,9 @@ Entity::~Entity() {
 
 void Entity::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_READY:
+
+			break;
 		case NOTIFICATION_PARENTED:
 			update_world();
 			break;
@@ -98,10 +101,10 @@ void Entity::update_world() {
 
 	ecs_world = nullptr;
 
-	// Search the ECSWorld.
+	// Search the WorldECS.
 	for (Node *p = get_parent(); p != nullptr; p = p->get_parent()) {
-		if (Object::cast_to<ECSWorld>(p) != nullptr) {
-			ecs_world = static_cast<ECSWorld *>(p);
+		if (Object::cast_to<WorldECS>(p) != nullptr) {
+			ecs_world = static_cast<WorldECS *>(p);
 			break;
 		}
 	}
@@ -111,14 +114,14 @@ void Entity::update_world() {
 		// ecs_world=ECS::get_singleton()->main_world();
 	}
 
-	if (ecs_world != nullptr) { // TODO consider remove this `IF` when the main world is added
-		entity_id = ecs_world->get_pipeline().create_entity();
+	//if (ecs_world != nullptr) { // TODO consider remove this `IF` when the main world is added
+	//	entity_id = ecs_world->get_pipeline().create_entity();
 
-		// TODO add components.
+	//	// TODO add components.
 
-		// TODO this is just a test to measure performances
-		ecs_world->get_pipeline().add_component(entity_id, TransformComponent());
-	}
+	//	// TODO this is just a test to measure performances
+	//	ecs_world->get_pipeline().add_component(entity_id, TransformComponent());
+	//}
 }
 
 void Entity::update_component_data() {
