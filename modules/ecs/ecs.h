@@ -22,13 +22,14 @@ private:
 
 class ECSClass {
 public:
+	virtual ~ECSClass(){}
 	virtual String get_class() const {
 		return "ECSClass";
 	}
 };
 
 class EntityID {
-	uint32_t id;
+	uint32_t id = UINT32_MAX;
 
 public:
 	EntityID() :
@@ -36,9 +37,6 @@ public:
 
 	EntityID(uint32_t p_index) :
 			id(p_index) {}
-
-	EntityID(const EntityID &p_other) :
-			id(p_other.id) {}
 
 	bool is_null() const {
 		return id == UINT32_MAX;
