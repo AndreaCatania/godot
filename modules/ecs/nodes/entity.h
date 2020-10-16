@@ -37,6 +37,7 @@ public:
 	Variant get_component_data_value(StringName p_component_name, StringName p_property_name) const;
 
 private:
-	void update_world();
+	void create_entity();
+	void destroy_entity();
 	void update_component_data();
 };

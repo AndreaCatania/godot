@@ -77,5 +77,12 @@ bool ECS::has_active_pipeline() const {
 	return active_pipeline != nullptr;
 }
 
+PipelineCommands *ECS::get_commands() {
+	// TODO make sure this returns nullptr when the pipeline is dispatched.
+	ERR_FAIL_COND_V_MSG(active_pipeline == nullptr, nullptr, "No active WorldsECS.");
+	commands.pipeline = active_pipeline;
+	return &commands;
+}
+
 void ECS::ecs_init() {
 }

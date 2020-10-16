@@ -5,6 +5,7 @@
 #include "core/local_vector.h"
 #include "core/oa_hash_map.h"
 #include "core/object.h"
+#include "pipeline_commands.h"
 
 class Pipeline;
 
@@ -22,7 +23,8 @@ class ECS : public Object {
 	static LocalVector<ComponentInfo> components_info;
 	static LocalVector<StringName> resources;
 
-	Pipeline *active_pipeline;
+	Pipeline *active_pipeline = nullptr;
+	PipelineCommands commands;
 
 public:
 	template <class C>
@@ -51,7 +53,12 @@ public:
 	/// is generated.
 	void set_active_pipeline(Pipeline *p_pipeline);
 	bool has_active_pipeline() const;
-	const Pipeline *get_pipeline_controller() const;
+
+	/// Returns a command object that can be used to spawn entities, add
+	/// components.
+	/// This function returns nullptr when the pipeline is dispatched because
+	/// it's unsafe interact during that phase.
+	PipelineCommands *get_commands();
 
 private:
 	void ecs_init();
