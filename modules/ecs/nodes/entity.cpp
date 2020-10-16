@@ -45,13 +45,22 @@ Entity::~Entity() {
 void Entity::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_READY:
-
+			if (Engine::get_singleton()->is_editor_hint() == false) {
+#ifdef TOOLS_ENABLED
+				// At this point the entity is never created.
+				CRASH_COND(entity_id.is_null() == false);
+#endif
+				ECS::get_singleton()->connect("pipeline_loaded", callable_mp(this, &Entity::create_entity));
+				ECS::get_singleton()->connect("pipeline_pre_unload", callable_mp(this, &Entity::destroy_entity));
+				create_entity();
+			}
 			break;
-		case NOTIFICATION_PARENTED:
-			update_world();
-			break;
-		case NOTIFICATION_UNPARENTED:
-			update_world();
+		case NOTIFICATION_EXIT_TREE:
+			if (Engine::get_singleton()->is_editor_hint() == false) {
+				ECS::get_singleton()->disconnect("pipeline_loaded", callable_mp(this, &Entity::create_entity));
+				ECS::get_singleton()->disconnect("pipeline_pre_unload", callable_mp(this, &Entity::destroy_entity));
+				destroy_entity();
+			}
 			break;
 	}
 }
@@ -88,40 +97,31 @@ Variant Entity::get_component_data_value(StringName p_component_name, StringName
 	}
 }
 
-void Entity::update_world() {
-	if (ecs_world != nullptr) {
-#ifdef DEBUG_ENABLED
-		// If the pipeline is not null the entity_id is not null.
-		CRASH_COND(entity_id.is_null());
-#endif
-		// TODO this is not working.
-		//ecs_world->get_pipeline().destroy_entity(entity_id);
+void Entity::create_entity() {
+	if (entity_id.is_null() == false) {
+		// Nothing to do.
+		return;
+	}
+
+	if (ECS::get_singleton()->has_active_pipeline()) {
+		// It's safe dereference command because this function is always called
+		// when the pipeline is not dispatching.
+		entity_id = ECS::get_singleton()->get_commands()->create_entity();
+	}
+}
+
+void Entity::destroy_entity() {
+	if (entity_id.is_null()) {
+		// Nothing to do.
+		return;
+	}
+
+	if (ECS::get_singleton()->has_active_pipeline()) {
+		// It's safe dereference command because this function is always called
+		// when the pipeline is not dispatching.
+		ECS::get_singleton()->get_commands()->destroy_entity(entity_id);
 		entity_id = EntityID();
 	}
-
-	ecs_world = nullptr;
-
-	// Search the WorldECS.
-	for (Node *p = get_parent(); p != nullptr; p = p->get_parent()) {
-		if (Object::cast_to<WorldECS>(p) != nullptr) {
-			ecs_world = static_cast<WorldECS *>(p);
-			break;
-		}
-	}
-
-	if (ecs_world == nullptr) {
-		// TODO fallback to the main scene one.
-		// ecs_world=ECS::get_singleton()->main_world();
-	}
-
-	//if (ecs_world != nullptr) { // TODO consider remove this `IF` when the main world is added
-	//	entity_id = ecs_world->get_pipeline().create_entity();
-
-	//	// TODO add components.
-
-	//	// TODO this is just a test to measure performances
-	//	ecs_world->get_pipeline().add_component(entity_id, TransformComponent());
-	//}
 }
 
 void Entity::update_component_data() {
