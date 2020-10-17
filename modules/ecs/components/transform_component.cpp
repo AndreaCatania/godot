@@ -17,5 +17,8 @@ const Transform &TransformComponent::get_transform() const {
 }
 
 void TransformComponent::_bind_properties() {
-	add_property(PropertyInfo(Variant::TRANSFORM, "transform"), "set_transform", "get_transform");
+	//add_method("set_transform", &TransformComponent::set_transform);
+	//add_method("get_transform", &TransformComponent::get_transform);
+
+	add_property(PropertyInfo(Variant::TRANSFORM, "transform"), &TransformComponent::set_transform, &TransformComponent::get_transform);
 }

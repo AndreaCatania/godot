@@ -11,6 +11,7 @@ class Pipeline;
 
 struct ComponentInfo {
 	OAHashMap<StringName, PropertyInfo> *(*get_properties)();
+	// This functions is implemented by the `COMPONENT` macro.
 	void (*add_component_by_name)(Pipeline *, EntityID, const Variant &);
 };
 
