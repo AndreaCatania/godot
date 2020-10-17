@@ -94,5 +94,15 @@ PipelineCommands *ECS::get_commands() {
 	return &commands;
 }
 
+bool ECS::dispatch_active_pipeline() {
+	if (likely(active_pipeline)) {
+		active_pipeline->dispatch();
+	}
+
+	// TODO add a way to terminate, from a system, the engine execution
+	// returning true. (Hint: use a resource).
+	return false;
+}
+
 void ECS::ecs_init() {
 }
