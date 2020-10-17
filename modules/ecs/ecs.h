@@ -18,6 +18,8 @@ struct ComponentInfo {
 class ECS : public Object {
 	GDCLASS(ECS, Object)
 
+	friend class Main;
+
 	static ECS *singleton;
 	static LocalVector<StringName> components;
 	static LocalVector<ComponentInfo> components_info;
@@ -62,6 +64,7 @@ public:
 	PipelineCommands *get_commands();
 
 private:
+	bool dispatch_active_pipeline();
 	void ecs_init();
 };
 

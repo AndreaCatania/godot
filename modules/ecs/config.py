@@ -5,3 +5,6 @@ def can_build(env, platform):
 def configure(env):
     pass
 
+
+def has_custom_iterator():
+	return True
