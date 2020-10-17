@@ -24,7 +24,7 @@
 class REP : public Object {
 public:
 	void register_editor_plugins() {
-		if(EditorNode::get_singleton() != nullptr){
+		if (EditorNode::get_singleton() != nullptr) {
 			EditorNode::get_singleton()->add_editor_plugin(memnew(EntityEditorPlugin(EditorNode::get_singleton())));
 		}
 	}
