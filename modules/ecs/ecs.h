@@ -11,12 +11,11 @@ class Pipeline;
 
 struct ComponentInfo {
 	OAHashMap<StringName, PropertyInfo> *(*get_properties)();
+	void (*add_component_by_name)(Pipeline *, EntityID, const Variant &);
 };
 
 class ECS : public Object {
 	GDCLASS(ECS, Object)
-
-	friend class Entity;
 
 	static ECS *singleton;
 	static LocalVector<StringName> components;
@@ -32,6 +31,7 @@ public:
 
 	static const LocalVector<StringName> &get_registered_components();
 	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(StringName p_component_name);
+	static void add_component_by_name(Pipeline *p_pipeline, EntityID p_entity, StringName p_component_name, const Variant &p_data);
 
 	template <class C>
 	static void register_resource();
@@ -74,7 +74,8 @@ void ECS::register_component() {
 	components.push_back(component_name);
 	components_info.push_back(
 			ComponentInfo{
-					&C::get_properties_static });
+					&C::get_properties_static,
+					&C::add_component_by_name });
 }
 
 template <class R>

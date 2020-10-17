@@ -107,6 +107,16 @@ void Entity::create_entity() {
 		// It's safe dereference command because this function is always called
 		// when the pipeline is not dispatching.
 		entity_id = ECS::get_singleton()->get_commands()->create_entity();
+
+		for (
+				const Variant *key = components_data.next(nullptr);
+				key != nullptr;
+				key = components_data.next(key)) {
+			ECS::get_singleton()->get_commands()->add_component(
+					entity_id,
+					*key,
+					*components_data.getptr(*key));
+		}
 	}
 }
 

@@ -5,6 +5,7 @@
 */
 
 #include "core/local_vector.h"
+#include "core/string_name.h"
 #include "ecs_types.h"
 #include "modules/ecs/storages/storage.h"
 #include "systems/system.h"
@@ -87,6 +88,11 @@ public:
 	/// specific Entity.
 	template <class C>
 	void add_component(EntityID p_entity, const C &p_data);
+
+	/// Adds a new component using the name of the component and Variant data to
+	/// initialize it. Usually this function is used to initialize the component
+	/// from GDScript data.
+	void add_component(EntityID p_entity, StringName p_component_name, const Variant &p_data);
 
 	/// Returns the constant storage pointer.
 	/// If the storage doesn't exist, returns null.

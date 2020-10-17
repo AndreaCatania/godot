@@ -31,8 +31,18 @@ const LocalVector<StringName> &ECS::get_registered_components() {
 
 const OAHashMap<StringName, PropertyInfo> *ECS::get_component_properties(StringName p_component_name) {
 	const int64_t id = components.find(p_component_name);
-	ERR_FAIL_COND_V(id == -1, nullptr);
+	ERR_FAIL_COND_V_MSG(id == -1, nullptr, "The component " + p_component_name + " doesn't exist or it's not registered.");
 	return components_info[id].get_properties();
+}
+
+void ECS::add_component_by_name(
+		Pipeline *p_pipeline,
+		EntityID p_entity,
+		StringName p_component_name,
+		const Variant &p_data) {
+	const int64_t id = components.find(p_component_name);
+	ERR_FAIL_COND_MSG(id == -1, "The component " + p_component_name + " doesn't exist or it's not registered.");
+	components_info[id].add_component_by_name(p_pipeline, p_entity, p_data);
 }
 
 const LocalVector<StringName> &ECS::get_registered_resources() {
