@@ -541,6 +541,9 @@ if selected_platform in platform_list:
                 env.module_icons_paths.append(path + "/" + "icons")
             modules_enabled[name] = path
 
+            if getattr(config, "has_custom_iterator", False) and config.has_custom_iterator():
+                 env.Append(CPPDEFINES=["CUSTOM_ITERATOR"])
+
         sys.path.remove(path)
         sys.modules.pop("config")
 
