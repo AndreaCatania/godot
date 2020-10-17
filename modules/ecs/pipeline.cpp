@@ -1,6 +1,8 @@
 
 #include "pipeline.h"
 
+#include "ecs.h"
+
 EntityBuilder::EntityBuilder(Pipeline *p_pipeline) :
 		pipeline(p_pipeline) {
 }
@@ -29,6 +31,10 @@ EntityID Pipeline::get_last_entity_id() const {
 	} else {
 		return EntityID(entity_count - 1);
 	}
+}
+
+void Pipeline::add_component(EntityID p_entity, StringName p_component_name, const Variant &p_data) {
+	ECS::add_component_by_name(this, p_entity, p_component_name, p_data);
 }
 
 // Unset the macro defined into the `pipeline.h` so to properly point the method
