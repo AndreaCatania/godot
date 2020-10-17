@@ -2342,6 +2342,7 @@ bool Main::is_iterating() {
 	return iterating > 0;
 }
 
+#ifndef CUSTOM_ITERATOR
 // For performance metrics.
 static uint64_t physics_process_max = 0;
 static uint64_t idle_process_max = 0;
@@ -2505,6 +2506,7 @@ bool Main::iteration() {
 
 	return exit || auto_quit;
 }
+#endif
 
 void Main::force_redraw() {
 	force_redraw_requested = true;
