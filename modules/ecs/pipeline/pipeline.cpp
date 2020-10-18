@@ -1,7 +1,7 @@
 
 #include "pipeline.h"
 
-#include "ecs.h"
+#include "modules/ecs/ecs.h"
 
 EntityBuilder::EntityBuilder(Pipeline *p_pipeline) :
 		pipeline(p_pipeline) {
