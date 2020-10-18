@@ -2,7 +2,6 @@
 #include "entity.h"
 
 #include "ecs_world.h"
-#include "modules/ecs/components/transform_component.h" // TODO remove
 
 void Entity::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_set_components_data"), &Entity::set_components_data);
