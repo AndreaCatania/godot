@@ -6,9 +6,9 @@
 
 #include "core/local_vector.h"
 #include "core/string_name.h"
-#include "ecs_types.h"
+#include "modules/ecs/ecs_types.h"
 #include "modules/ecs/storages/storage.h"
-#include "systems/system.h"
+#include "modules/ecs/systems/system.h"
 
 class Storage;
 class Pipeline;

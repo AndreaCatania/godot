@@ -2,7 +2,7 @@
 #include "ecs.h"
 
 #include "core/message_queue.h"
-#include "pipeline.h"
+#include "pipeline/pipeline.h"
 #include "scene/main/scene_tree.h"
 
 ECS *ECS::singleton = nullptr;

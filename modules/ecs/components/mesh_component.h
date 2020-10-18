@@ -1,9 +1,9 @@
-/* Author: AndreaCatania */
+/** @author: AndreaCatania */
 
 #ifndef MESH_COMPONENT_H
 #define MESH_COMPONENT_H
 
-#include "modules/ecs/component.h"
+#include "component.h"
 
 class MeshComponent : public Component {
 	COMPONENT(MeshComponent, DenseVector)

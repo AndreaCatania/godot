@@ -5,7 +5,7 @@
 #include "core/local_vector.h"
 #include "core/oa_hash_map.h"
 #include "core/object.h"
-#include "pipeline_commands.h"
+#include "pipeline/pipeline_commands.h"
 
 class Pipeline;
 

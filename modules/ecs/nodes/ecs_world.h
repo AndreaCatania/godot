@@ -2,7 +2,7 @@
 
 /* Author: AndreaCatania */
 
-#include "modules/ecs/pipeline.h"
+#include "modules/ecs/pipeline/pipeline.h"
 #include "scene/main/node.h"
 
 class WorldECS : public Node {

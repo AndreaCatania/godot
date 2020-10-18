@@ -4,7 +4,7 @@
 	@author AndreaCatania
 */
 
-#include "ecs_types.h"
+#include "modules/ecs/ecs_types.h"
 #include "pipeline.h"
 
 /// Via this class is possible to spawn or destroy entities, add or remove
