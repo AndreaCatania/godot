@@ -3,7 +3,7 @@
 #ifndef TRANSFOMR_COMPONENT_H
 #define TRANSFOMR_COMPONENT_H
 
-#include "modules/ecs/component.h"
+#include "component.h"
 
 class TransformComponent : public Component {
 	COMPONENT(TransformComponent, DenseVector)

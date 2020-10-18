@@ -4,8 +4,8 @@
 
 #include "core/oa_hash_map.h"
 #include "core/object.h"
-#include "ecs.h"
-#include "storages/dense_vector.h"
+#include "modules/ecs/ecs.h"
+#include "modules/ecs/storages/dense_vector.h"
 
 struct SetMethodHandleBase {
 	virtual ~SetMethodHandleBase() {}

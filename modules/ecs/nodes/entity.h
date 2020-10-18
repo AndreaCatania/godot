@@ -3,7 +3,7 @@
 /* Author: AndreaCatania */
 
 #include "core/local_vector.h"
-#include "modules/ecs/component.h"
+#include "modules/ecs/components/component.h"
 #include "scene/main/node.h"
 
 class WorldECS;
