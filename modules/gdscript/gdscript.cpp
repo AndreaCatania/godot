@@ -799,7 +799,7 @@ Error GDScript::reload(bool p_keep_state) {
 		if (!source_path.is_empty()) {
 			MutexLock lock(GDScriptCache::singleton->lock);
 			if (!GDScriptCache::singleton->shallow_gdscript_cache.has(source_path)) {
-				GDScriptCache::singleton->shallow_gdscript_cache[source_path] = this;
+				GDScriptCache::singleton->shallow_gdscript_cache[source_path] = Ref<GDScript>(this);
 			}
 		}
 	}
