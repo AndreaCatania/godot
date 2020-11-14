@@ -163,8 +163,13 @@ public:
 				} break;
 				case SCRIPT:
 				case GDSCRIPT: {
-					info.type = Variant::OBJECT;
-					info.class_name = script_type->get_instance_base_type();
+					if (script_type == nullptr) {
+						info.type = Variant::NIL;
+						info.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
+					} else {
+						info.type = Variant::OBJECT;
+						info.class_name = script_type->get_instance_base_type();
+					}
 				} break;
 			}
 		} else {
