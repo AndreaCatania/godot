@@ -3,7 +3,7 @@
 #ifndef DENSE_VECTOR_H
 #define DENSE_VECTOR_H
 
-#include "core/local_vector.h"
+#include "core/templates/local_vector.h"
 #include "modules/ecs/ecs.h"
 #include "storage.h"
 

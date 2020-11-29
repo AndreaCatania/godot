@@ -2,20 +2,20 @@
 
 /* Author: AndreaCatania */
 
-#include "core/oa_hash_map.h"
-#include "core/object.h"
+#include "core/object/object.h"
+#include "core/templates/oa_hash_map.h"
 #include "modules/ecs/ecs_types.h"
 
 #define RESOURCE(m_class)                                                                      \
 	ECSCLASS(m_class)                                                                          \
 	friend class Pipeline;                                                                     \
-                                                                                               \
+																							   \
 private:                                                                                       \
 	static inline uint32_t resource_id = UINT32_MAX;                                           \
-                                                                                               \
+																							   \
 public:                                                                                        \
 	static uint32_t get_resource_id() { return resource_id; }                                  \
-                                                                                               \
+																							   \
 private:                                                                                       \
 	static inline OAHashMap<StringName, PropertyInfo> property_map;                            \
 	static void add_property(const PropertyInfo &p_info, StringName p_set, StringName p_get) { \
@@ -31,7 +31,7 @@ private:                                                                        
 	virtual OAHashMap<StringName, PropertyInfo> *get_properties() const override {             \
 		return get_properties_static();                                                        \
 	}                                                                                          \
-                                                                                               \
+																							   \
 private:
 
 class ECSResource : public ECSClass {

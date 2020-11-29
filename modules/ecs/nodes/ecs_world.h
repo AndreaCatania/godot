@@ -8,6 +8,7 @@
 class WorldECS : public Node {
 	GDCLASS(WorldECS, Node)
 
+	bool pipeline_build_in_progress = false;
 	Pipeline *pipeline = nullptr;
 	bool is_active = false;
 
@@ -29,6 +30,7 @@ public:
 	String get_configuration_warning() const override;
 
 private:
+	void build_pipeline();
 	void active_pipeline();
 	void unactive_pipeline();
 };

@@ -2,8 +2,9 @@
 
 /* Author: AndreaCatania */
 
-#include "core/oa_hash_map.h"
-#include "core/object.h"
+#include "core/object/class_db.h"
+#include "core/object/object.h"
+#include "core/templates/oa_hash_map.h"
 #include "modules/ecs/ecs.h"
 #include "modules/ecs/storages/dense_vector.h"
 

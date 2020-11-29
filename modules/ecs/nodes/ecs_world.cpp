@@ -6,11 +6,10 @@
 #include "modules/ecs/ecs.h"
 
 void WorldECS::_bind_methods() {
+	ClassDB::add_virtual_method("_build_pipeline", MethodInfo(), true);
 }
 
 void WorldECS::_notification(int p_what) {
-	// TODO this is just a test, because the pipeline will be dispatched into
-	// the Main.
 	switch (p_what) {
 		case NOTIFICATION_READY:
 			add_to_group("_world_ecs");
@@ -22,7 +21,7 @@ void WorldECS::_notification(int p_what) {
 			if (Engine::get_singleton()->is_editor_hint() == false) {
 				unactive_pipeline();
 			}
-			add_to_group("_world_ecs");
+			remove_from_group("_world_ecs");
 			break;
 	}
 }
@@ -59,6 +58,13 @@ String WorldECS::get_configuration_warning() const {
 	}
 
 	return warning;
+}
+
+void WorldECS::build_pipeline() {
+	// TODO add a way to retrigger pipeline rebuild from GDScript.
+	pipeline_build_in_progress = true;
+	call("_build_pipeline");
+	pipeline_build_in_progress = false;
 }
 
 void WorldECS::active_pipeline() {

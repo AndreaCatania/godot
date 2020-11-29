@@ -1,7 +1,7 @@
 
 #include "ecs.h"
 
-#include "core/message_queue.h"
+#include "core/object/message_queue.h"
 #include "pipeline/pipeline.h"
 #include "scene/main/scene_tree.h"
 

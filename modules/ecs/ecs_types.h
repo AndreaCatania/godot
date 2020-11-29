@@ -2,12 +2,12 @@
 
 /* Author: AndreaCatania */
 
-#include "core/ustring.h"
+#include "core/string/ustring.h"
 
 #define ECSCLASS(m_class)                             \
 private:                                              \
 	friend class ECS;                                 \
-                                                      \
+													  \
 public:                                               \
 	virtual String get_class() const override {       \
 		return String(#m_class);                      \
@@ -15,7 +15,7 @@ public:                                               \
 	static _FORCE_INLINE_ String get_class_static() { \
 		return String(#m_class);                      \
 	}                                                 \
-                                                      \
+													  \
 private:
 
 class ECSClass {

@@ -4,8 +4,8 @@
 	@author AndreaCatania
 */
 
-#include "core/local_vector.h"
-#include "core/string_name.h"
+#include "core/string/string_name.h"
+#include "core/templates/local_vector.h"
 #include "modules/ecs/ecs_types.h"
 #include "modules/ecs/storages/storage.h"
 #include "modules/ecs/systems/system.h"

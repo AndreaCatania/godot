@@ -3,12 +3,13 @@
 
 #include "components/mesh_component.h"
 #include "components/transform_component.h"
-#include "core/engine.h"
-#include "core/message_queue.h"
+#include "core/config/engine.h"
+#include "core/object/message_queue.h"
 #include "ecs.h"
 #include "nodes/ecs_world.h"
 #include "nodes/entity.h"
 
+#include "editor_plugins/editor_world_ecs.h"
 #include "editor_plugins/entity_editor_plugin.h"
 
 // TODO improve this workflow once the new pipeline is integrated.
@@ -17,6 +18,7 @@ public:
 	void register_editor_plugins() {
 		if (EditorNode::get_singleton() != nullptr) {
 			EditorNode::get_singleton()->add_editor_plugin(memnew(EntityEditorPlugin(EditorNode::get_singleton())));
+			EditorNode::get_singleton()->add_editor_plugin(memnew(WorldECSEditorPlugin(EditorNode::get_singleton())));
 		}
 	}
 } rep;

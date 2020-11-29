@@ -5,8 +5,8 @@
 
 #include "main/main.h"
 
-#include "core/engine.h"
-#include "core/message_queue.h"
+#include "core/config/engine.h"
+#include "core/object/message_queue.h"
 #include "core/os/os.h"
 #include "ecs.h"
 #include "main/main_timer_sync.h"
