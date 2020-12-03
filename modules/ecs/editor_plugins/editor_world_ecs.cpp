@@ -14,6 +14,24 @@ EditorWorldECS::EditorWorldECS() {
 	border->set_default_margin(MARGIN_BOTTOM, 5 * EDSCALE);
 	border->set_default_margin(MARGIN_TOP, 5 * EDSCALE);
 	add_theme_style_override("panel", border);
+
+	HBoxContainer *main_hb = memnew(HBoxContainer);
+	main_hb->set_anchor(Margin::MARGIN_LEFT, 0.0);
+	main_hb->set_anchor(Margin::MARGIN_TOP, 0.0);
+	main_hb->set_anchor(Margin::MARGIN_RIGHT, 1.0);
+	main_hb->set_anchor(Margin::MARGIN_BOTTOM, 1.0);
+	main_hb->set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+	main_hb->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+	main_hb->set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+	add_child(main_hb);
+
+	Label *lbl = memnew(Label);
+	lbl->set_text("aa");
+	add_child(lbl);
+
+	lbl = memnew(Label);
+	lbl->set_text("bb");
+	add_child(lbl);
 }
 
 WorldECSEditorPlugin::WorldECSEditorPlugin(EditorNode *p_node) :

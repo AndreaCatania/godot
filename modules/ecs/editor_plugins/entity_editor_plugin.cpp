@@ -586,8 +586,13 @@ void EditorInspectorPluginEntity::parse_begin(Object *p_object) {
 	Entity *entity = Object::cast_to<Entity>(p_object);
 	ERR_FAIL_COND(!entity);
 
-	EntityEditor *entity_editor = memnew(EntityEditor(this, editor, entity));
+	entity_editor = memnew(EntityEditor(this, editor, entity));
 	add_custom_control(entity_editor);
+}
+
+void EditorInspectorPluginEntity::parse_end() {
+	memdelete(entity_editor);
+	entity_editor = nullptr;
 }
 
 EntityEditorPlugin::EntityEditorPlugin(EditorNode *p_node) {
