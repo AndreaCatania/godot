@@ -44,12 +44,10 @@ class EditorInspectorPluginEntity : public EditorInspectorPlugin {
 	friend class EntityEditorPlugin;
 
 	EditorNode *editor;
-	EntityEditor *entity_editor = nullptr;
 
 public:
 	virtual bool can_handle(Object *p_object) override;
 	virtual void parse_begin(Object *p_object) override;
-	virtual void parse_end() override;
 };
 
 class EntityEditorPlugin : public EditorPlugin {

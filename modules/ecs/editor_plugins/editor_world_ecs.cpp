@@ -67,7 +67,8 @@ void SystemInfoBox::add_component(const String &p_name, bool is_write) {
 }
 
 Point2 SystemInfoBox::name_global_transform() const {
-	return system_name->get_global_position() + Vector2(0.0, system_name->get_size().y / 2.0);
+	Control *nc = static_cast<Control *>(system_name->get_parent());
+	return nc->get_global_position() + Vector2(0.0, nc->get_size().y / 2.0);
 }
 
 DrawLayer::DrawLayer() {
@@ -217,10 +218,10 @@ void EditorWorldECS::set_world_ecs(WorldECS *p_world) {
 		node_name_lbl->set_text(world_ecs->get_name());
 
 		// TODO try SystemInfo.
-		pipeline_add_system(memnew(SystemInfoBox(editor, "System 1")));
-		pipeline_add_system(memnew(SystemInfoBox(editor, "System 2")));
-		pipeline_add_system(memnew(SystemInfoBox(editor, "System 3")));
-		pipeline_add_system(memnew(SystemInfoBox(editor, "System 4")));
+		pipeline_add_system(memnew(SystemInfoBox(editor, "TransformSystem")));
+		pipeline_add_system(memnew(SystemInfoBox(editor, "BulletSystem")));
+		pipeline_add_system(memnew(SystemInfoBox(editor, "AASystem1")));
+		pipeline_add_system(memnew(SystemInfoBox(editor, "Chasdqwe")));
 
 		is_ui_dirty = true;
 
@@ -238,7 +239,7 @@ void EditorWorldECS::draw(DrawLayer *p_draw_layer) {
 	draw_layer = p_draw_layer;
 
 	pipeline_draw_batch(0, 1);
-	pipeline_draw_batch(1, 3);
+	pipeline_draw_batch(2, 3);
 
 	draw_layer = nullptr;
 }
@@ -264,14 +265,15 @@ void EditorWorldECS::pipeline_draw_batch(uint32_t p_start_system, uint32_t p_end
 	ERR_FAIL_COND(p_end_system >= pipeline_systems.size());
 
 	const Point2 this_pos = draw_layer->get_global_position();
-	const Point2 point_offset(-10.0, 10.0);
+	const Point2 point_offset(-15.0, 0.0);
 	const Point2 circle_offset(5.0, 0.0);
 
 	Point2 prev;
 
 	// Draw the points
 	for (uint32_t i = p_start_system; i <= p_end_system; i += 1) {
-		const Point2 current_point = pipeline_systems[i]->name_global_transform() - this_pos + point_offset;
+		const Point2 current_point = (pipeline_systems[i]->name_global_transform() - this_pos) + point_offset;
+
 		if (i != p_start_system) {
 			draw_layer->draw_line(prev, current_point, Color(1.0, 1.0, 1.0, 0.4), 2.0);
 		}
