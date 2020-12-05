@@ -453,7 +453,7 @@ void EditorWorldECS::add_sys_update(const String &p_search) {
 
 		TreeItem *item = add_sys_tree->create_item(native_root);
 		item->set_text(0, name);
-		item->set_meta("system_name", info.name);
+		item->set_meta("system_link", info.name);
 		item->set_meta("desc", info.description);
 	}
 
@@ -508,7 +508,7 @@ void EditorWorldECS::add_sys_add() {
 		return;
 	}
 
-	print_line("Add system: " + selected->get_text(0));
+	world_ecs->insert_system(selected->get_meta("system_link"));
 }
 
 void EditorWorldECS::create_sys_show() {
