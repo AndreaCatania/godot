@@ -219,12 +219,12 @@ EditorWorldECS::EditorWorldECS(EditorNode *p_editor) :
 		button_container->set_v_size_flags(0);
 		main_container->add_child(button_container);
 
-		Button *builtin_show_btn_add_sys = memnew(Button);
-		builtin_show_btn_add_sys->set_text(TTR("Add BuiltIn System"));
-		builtin_show_btn_add_sys->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
-		builtin_show_btn_add_sys->set_v_size_flags(0);
-		builtin_show_btn_add_sys->connect("pressed", callable_mp(this, &EditorWorldECS::add_sys_show));
-		button_container->add_child(builtin_show_btn_add_sys);
+		Button *show_btn_add_sys = memnew(Button);
+		show_btn_add_sys->set_text(TTR("Add System"));
+		show_btn_add_sys->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		show_btn_add_sys->set_v_size_flags(0);
+		show_btn_add_sys->connect("pressed", callable_mp(this, &EditorWorldECS::add_sys_show));
+		button_container->add_child(show_btn_add_sys);
 
 		Button *create_sys_btn = memnew(Button);
 		create_sys_btn->set_icon(editor->get_theme_base()->get_theme_icon("New", "EditorIcons"));
@@ -257,6 +257,7 @@ EditorWorldECS::EditorWorldECS(EditorNode *p_editor) :
 		add_sys_tree = memnew(Tree);
 		add_sys_tree->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
 		add_sys_tree->set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		add_sys_tree->set_hide_root(true);
 		vert_container->add_child(add_sys_tree);
 	}
 
@@ -415,17 +416,17 @@ void EditorWorldECS::add_sys_update(const String &p_search) {
 	root->set_text(0, "Systems");
 	root->set_selectable(0, false);
 
-	// Builtin
-	TreeItem *builtin_root = add_sys_tree->create_item(root);
-	builtin_root->set_text(0, "Builtin Systems");
-	builtin_root->set_selectable(0, false);
+	// Native systems
+	TreeItem *native_root = add_sys_tree->create_item(root);
+	native_root->set_text(0, "Native Systems");
+	native_root->set_selectable(0, false);
 
 	for (uint32_t i = 0; i < 2; i += 1) {
-		TreeItem *item = add_sys_tree->create_item(builtin_root);
+		TreeItem *item = add_sys_tree->create_item(native_root);
 		item->set_text(0, "System " + itos(i));
 	}
 
-	// Scripts
+	// Scripts systems
 	TreeItem *script_root = add_sys_tree->create_item(root);
 	script_root->set_text(0, "Script Systems");
 	script_root->set_selectable(0, false);
