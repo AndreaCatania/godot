@@ -4,6 +4,7 @@
 
 #include "editor/editor_node.h"
 #include "editor/editor_scale.h"
+#include "modules/ecs/ecs.h"
 #include "modules/ecs/nodes/ecs_world.h"
 #include "scene/gui/color_rect.h"
 
@@ -258,7 +259,22 @@ EditorWorldECS::EditorWorldECS(EditorNode *p_editor) :
 		add_sys_tree->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
 		add_sys_tree->set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
 		add_sys_tree->set_hide_root(true);
+		add_sys_tree->connect("item_selected", callable_mp(this, &EditorWorldECS::add_sys_update_desc));
 		vert_container->add_child(add_sys_tree);
+
+		add_sys_desc = memnew(TextEdit);
+		add_sys_desc->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		add_sys_desc->set_v_size_flags(0);
+		add_sys_desc->set_custom_minimum_size(Size2i(0, 50));
+		add_sys_desc->set_h_scroll(true);
+		add_sys_desc->set_v_scroll(false);
+		add_sys_desc->set_context_menu_enabled(false);
+		add_sys_desc->set_shortcut_keys_enabled(false);
+		add_sys_desc->set_virtual_keyboard_enabled(false);
+		add_sys_desc->set_focus_mode(FOCUS_NONE);
+		add_sys_desc->set_readonly(true);
+		add_sys_desc->add_theme_color_override("font_color_readonly", Color(1.0, 1.0, 1.0));
+		vert_container->add_child(add_sys_desc);
 	}
 
 	// ~~ Create script system window ~~
@@ -297,8 +313,6 @@ EditorWorldECS::EditorWorldECS(EditorNode *p_editor) :
 		create_sys_error_lbl->add_theme_color_override("font_color", Color(1.0, 0.0, 0.0));
 		vert_container->add_child(create_sys_error_lbl);
 	}
-
-	add_sys_update();
 }
 
 void EditorWorldECS::_notification(int p_what) {
@@ -398,6 +412,7 @@ void EditorWorldECS::add_sys_show() {
 	const Vector2i modal_pos = (Vector2i(get_viewport_rect().size) - add_sys_window->get_size()) / 2.0;
 	add_sys_window->set_position(modal_pos);
 	add_sys_window->set_visible(true);
+	add_sys_update();
 }
 
 void EditorWorldECS::add_sys_hide() {
@@ -417,23 +432,72 @@ void EditorWorldECS::add_sys_update(const String &p_search) {
 	root->set_selectable(0, false);
 
 	// Native systems
-	TreeItem *native_root = add_sys_tree->create_item(root);
-	native_root->set_text(0, "Native Systems");
-	native_root->set_selectable(0, false);
+	TreeItem *native_root = nullptr;
 
-	for (uint32_t i = 0; i < 2; i += 1) {
+	for (uint32_t i = 0; i < ECS::get_systems_count(); i += 1) {
+		const SystemInfo &info = ECS::get_system_info(i);
+
+		const String name(info.name);
+		if (p_search.empty() == false && name.find(p_search) != 0) {
+			// System filtered.
+			continue;
+		}
+
+		if (native_root == nullptr) {
+			// Add only if needed.
+			native_root = add_sys_tree->create_item(root);
+			native_root->set_text(0, "Native Systems");
+			native_root->set_selectable(0, false);
+			native_root->set_custom_color(0, Color(0.0, 0.9, 0.3));
+		}
+
 		TreeItem *item = add_sys_tree->create_item(native_root);
-		item->set_text(0, "System " + itos(i));
+		item->set_text(0, name);
+		item->set_meta("system_name", info.name);
+		item->set_meta("desc", info.description);
 	}
 
 	// Scripts systems
-	TreeItem *script_root = add_sys_tree->create_item(root);
-	script_root->set_text(0, "Script Systems");
-	script_root->set_selectable(0, false);
+	TreeItem *script_root = nullptr;
 
-	for (uint32_t i = 0; i < 2; i += 1) {
+	Array sys_scripts = ProjectSettings::get_singleton()->get_setting("ECS/system_scripts");
+	for (int i = 0; i < sys_scripts.size(); i += 1) {
+		String sys_link = sys_scripts[i];
+		Vector<String> v = sys_link.split("::");
+
+		// Make sure there are exactly 2 items. The link is: `/path/to/script::func_name`.
+		ERR_CONTINUE(v.size() != 2);
+
+		if (p_search.empty() == false && v[1].find(p_search) != 0) {
+			// System filtered.
+			continue;
+		}
+
+		if (script_root == nullptr) {
+			// Add only if needed.
+			script_root = add_sys_tree->create_item(root);
+			script_root->set_text(0, "Script Systems");
+			script_root->set_selectable(0, false);
+			script_root->set_custom_color(0, Color(0.0, 0.3, 0.9));
+		}
+
 		TreeItem *item = add_sys_tree->create_item(script_root);
-		item->set_text(0, "System " + itos(i));
+		item->set_text(0, v[1]);
+		item->set_meta("system_link", sys_link);
+		item->set_meta("desc", "GDScript: " + v[0]);
+	}
+
+	add_sys_update_desc();
+}
+
+void EditorWorldECS::add_sys_update_desc() {
+	TreeItem *selected = add_sys_tree->get_selected();
+	if (selected == nullptr) {
+		// Nothing selected.
+		add_sys_desc->set_text("");
+	} else {
+		const String desc = selected->get_meta("desc");
+		add_sys_desc->set_text(desc);
 	}
 }
 

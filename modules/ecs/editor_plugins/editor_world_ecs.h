@@ -55,6 +55,7 @@ class EditorWorldECS : public PanelContainer {
 	ConfirmationDialog *add_sys_window = nullptr;
 	LineEdit *add_sys_search = nullptr;
 	class Tree *add_sys_tree = nullptr;
+	class TextEdit *add_sys_desc = nullptr;
 
 	// Create script system window.
 	ConfirmationDialog *create_script_sys_window = nullptr;
@@ -86,6 +87,7 @@ public:
 	void add_sys_show();
 	void add_sys_hide();
 	void add_sys_update(const String &p_search = String());
+	void add_sys_update_desc();
 	void add_sys_add();
 
 	void create_sys_show();
