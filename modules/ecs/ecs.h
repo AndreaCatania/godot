@@ -8,6 +8,9 @@
 #include "core/templates/oa_hash_map.h"
 #include "pipeline/pipeline_commands.h"
 
+#include "modules/ecs/systems/system.h"
+#include "modules/ecs/systems/system_builder.h"
+
 class Pipeline;
 
 struct ComponentInfo {
@@ -24,7 +27,11 @@ class ECS : public Object {
 	static ECS *singleton;
 	static LocalVector<StringName> components;
 	static LocalVector<ComponentInfo> components_info;
+
 	static LocalVector<StringName> resources;
+
+	static LocalVector<StringName> systems;
+	static LocalVector<SystemInfo> systems_info;
 
 	Pipeline *active_pipeline = nullptr;
 	PipelineCommands commands;
@@ -41,6 +48,28 @@ public:
 	static void register_resource();
 
 	static const LocalVector<StringName> &get_registered_resources();
+
+	static void register_system(get_system_info_func p_get_info_func, StringName p_name, String p_description = "");
+
+// This macro save the user the need to pass a `SystemInfo`, indeed it wraps
+// the passed function with a labda function that creates a `SystemInfo`.
+// By defining the same name of the method, the IDE autocomplete shows the method
+// name `register_system`, properly + it's impossible use the function directly
+// by mistake.
+#define register_system(func, name, desc)                                  \
+	register_system([]() -> SystemInfo {                                   \
+		SystemInfo i = SystemBuilder::get_system_info_from_function(func); \
+		i.system_func = [](Pipeline *p_pipeline) {                         \
+			SystemBuilder::system_exec_func(p_pipeline, func);             \
+		};                                                                 \
+		return i;                                                          \
+	},                                                                     \
+			name, desc)
+
+	/// Returns the system id or UINT32_MAX if not found.
+	static uint32_t find_system_id(StringName p_name);
+	static uint32_t get_systems_count();
+	static const SystemInfo &get_system_info(uint32_t p_system_id);
 
 protected:
 	static void _bind_methods();

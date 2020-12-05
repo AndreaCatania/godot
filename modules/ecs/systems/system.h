@@ -9,6 +9,8 @@ class Pipeline;
 typedef void (*system_execute)(Pipeline *p_pipeline);
 
 struct SystemInfo {
+	StringName name;
+	String description;
 	LocalVector<uint32_t> mutable_components;
 	LocalVector<uint32_t> immutable_components;
 	LocalVector<uint32_t> mutable_resources;

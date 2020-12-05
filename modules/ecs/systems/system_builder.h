@@ -57,9 +57,9 @@ SystemInfo get_system_info_from_function(void (*system_func)(RCs...)) {
 	return si;
 }
 
-// This is an utility used to convert the type to a reference.
-// The keyword `auto` doesn't take into account the reference `&`, so it's
-// necessary wrap the type to preserve the reference.
+// This is an utility used to convert the type to a reference (`&`).
+// The keyword `auto` doesn't take into account the reference (`&`), so it's
+// necessary to wrap the type to preserve the reference.
 template <class C>
 struct Container {
 	C inner;

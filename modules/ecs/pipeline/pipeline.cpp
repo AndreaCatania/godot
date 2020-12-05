@@ -37,19 +37,22 @@ void Pipeline::add_component(EntityID p_entity, StringName p_component_name, con
 	ECS::add_component_by_name(this, p_entity, p_component_name, p_data);
 }
 
-// Unset the macro defined into the `pipeline.h` so to properly point the method
-// definition.
-#undef add_system
-void Pipeline::add_system(get_system_info_func p_get_info_func) {
-	const SystemInfo info = p_get_info_func();
-	CRASH_COND_MSG(info.system_func == nullptr, "At this point `info.system_func` is supposed to be not null. To add a system use the following syntax: `add_system(function_name);`");
-
+void Pipeline::add_native_system(const SystemInfo &p_system_info) {
+	CRASH_COND_MSG(p_system_info.system_func == nullptr, "At this point `info.system_func` is supposed to be not null. To add a system use the following syntax: `add_system(function_name);` or use the `ECS` class to get the `SystemInfo` if it's a registered system.");
 	//print_line(
 	//		"Added function that has " + itos(info.mutable_components.size()) +
 	//		" mut comp, " + itos(info.immutable_components.size()) + " immutable comp");
 
 	// TODO compose the pipeline
-	systems.push_back(info.system_func);
+	systems.push_back(p_system_info.system_func);
+}
+
+// Unset the macro defined into the `pipeline.h` so to properly point the method
+// definition.
+#undef add_system
+void Pipeline::add_system(get_system_info_func p_get_info_func) {
+	const SystemInfo info = p_get_info_func();
+	add_native_system(info);
 }
 
 void Pipeline::dispatch() {

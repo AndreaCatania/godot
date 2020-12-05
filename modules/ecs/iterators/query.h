@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "modules/ecs/pipeline.h"
+#include "modules/ecs/pipeline/pipeline.h"
 #include "modules/ecs/storages/storage.h"
 #include <tuple>
 

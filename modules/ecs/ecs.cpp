@@ -9,6 +9,8 @@ ECS *ECS::singleton = nullptr;
 LocalVector<StringName> ECS::components;
 LocalVector<ComponentInfo> ECS::components_info;
 LocalVector<StringName> ECS::resources;
+LocalVector<StringName> ECS::systems;
+LocalVector<SystemInfo> ECS::systems_info;
 
 void ECS::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("pipeline_loaded"));
@@ -47,6 +49,32 @@ void ECS::add_component_by_name(
 
 const LocalVector<StringName> &ECS::get_registered_resources() {
 	return resources;
+}
+
+// Undefine the macro defined into `ecs.h` so we can define the method properly.
+#undef register_system
+void ECS::register_system(get_system_info_func p_get_info_func, StringName p_name, String p_description) {
+	SystemInfo info = p_get_info_func();
+	info.name = p_name;
+	info.description = p_description;
+
+	systems.push_back(p_name);
+	systems_info.push_back(info);
+}
+
+uint32_t ECS::find_system_id(StringName p_name) {
+	const int64_t index = systems.find(p_name);
+	return index >= 0 ? uint32_t(index) : UINT32_MAX;
+}
+
+uint32_t ECS::get_systems_count() {
+	return systems.size();
+}
+
+static const SystemInfo invalid_system_info;
+const SystemInfo &ECS::get_system_info(uint32_t p_system_id) {
+	ERR_FAIL_INDEX_V_MSG(p_system_id, systems_info.size(), invalid_system_info, "The SystemID: " + itos(p_system_id) + " doesn't exists.");
+	return systems_info[p_system_id];
 }
 
 ECS *ECS::get_singleton() {

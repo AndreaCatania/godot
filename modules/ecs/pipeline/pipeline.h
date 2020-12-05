@@ -106,6 +106,12 @@ public:
 	template <class C>
 	TypedStorage<C> *get_storage();
 
+	/// Add a system that is registered via `ECS`, usually this function is used
+	/// to construct the pipeline using the `ECS` class.
+	/// This only difference with `add_system` is the argument type.
+	void add_native_system(const SystemInfo &p_system_info);
+
+	/// Add a system that is not registered via `ECS`.
 	void add_system(get_system_info_func p_get_info_func);
 
 	/// Adds a new resource or updates it if already exists.
@@ -235,6 +241,8 @@ void Pipeline::destroy_storage() {
 	C::destroy_storage(storages[id]);
 }
 
+// This macro save the user the need to pass a `SystemInfo`, indeed it wraps
+// the passed function with a labda function that creates a `SystemInfo`.
 // By defining the same name of the method, the IDE autocomplete shows the method
 // name `add_system`, properly + it's impossible use the function directly
 // by mistake.
