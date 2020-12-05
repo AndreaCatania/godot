@@ -93,7 +93,20 @@ void DrawLayer::_notification(int p_what) {
 	}
 }
 
-EditorWorldECS::EditorWorldECS() {
+EditorWorldECS::EditorWorldECS(EditorNode *p_editor) :
+		editor(p_editor) {
+	//set_anchors_and_margins_preset(Control::PRESET_WIDE);
+	set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+	set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+	set_anchor(MARGIN_LEFT, 0.0);
+	set_anchor(MARGIN_TOP, 0.0);
+	set_anchor(MARGIN_RIGHT, 1.0);
+	set_anchor(MARGIN_BOTTOM, 1.0);
+	set_margin(MARGIN_LEFT, 0.0);
+	set_margin(MARGIN_TOP, 0.0);
+	set_margin(MARGIN_RIGHT, 0.0);
+	set_margin(MARGIN_BOTTOM, 0.0);
+
 	HBoxContainer *main_hb = memnew(HBoxContainer);
 	main_hb->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
 	main_hb->set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
@@ -201,13 +214,105 @@ EditorWorldECS::EditorWorldECS() {
 		pipeline_panel->set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
 		wrapper->add_child(pipeline_panel);
 
-		Button *add_system_btn = memnew(Button);
-		add_system_btn->set_text(TTR("Add System"));
-		main_container->add_child(add_system_btn);
+		HBoxContainer *button_container = memnew(HBoxContainer);
+		button_container->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		button_container->set_v_size_flags(0);
+		main_container->add_child(button_container);
+
+		Button *builtin_show_btn_add_sys = memnew(Button);
+		builtin_show_btn_add_sys->set_text(TTR("Add BuiltIn System"));
+		builtin_show_btn_add_sys->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		builtin_show_btn_add_sys->set_v_size_flags(0);
+		builtin_show_btn_add_sys->connect("pressed", callable_mp(this, &EditorWorldECS::add_sys_show));
+		button_container->add_child(builtin_show_btn_add_sys);
+
+		Button *create_sys_btn = memnew(Button);
+		create_sys_btn->set_icon(editor->get_theme_base()->get_theme_icon("New", "EditorIcons"));
+		create_sys_btn->set_h_size_flags(0.0);
+		create_sys_btn->set_v_size_flags(0.0);
+		create_sys_btn->connect("pressed", callable_mp(this, &EditorWorldECS::create_sys_show));
+		button_container->add_child(create_sys_btn);
 	}
+
+	// ~~ Add system window ~~
+	{
+		add_sys_window = memnew(ConfirmationDialog);
+		add_sys_window->set_min_size(Size2i(500, 500));
+		add_sys_window->set_title(TTR("Add System"));
+		add_sys_window->get_ok()->set_text(TTR("Add"));
+		add_sys_window->connect("confirmed", callable_mp(this, &EditorWorldECS::add_sys_add));
+		add_child(add_sys_window);
+
+		VBoxContainer *vert_container = memnew(VBoxContainer);
+		vert_container->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		vert_container->set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		add_sys_window->add_child(vert_container);
+
+		add_sys_search = memnew(LineEdit);
+		add_sys_search->set_placeholder(TTR("Search"));
+		add_sys_search->connect("text_changed", callable_mp(this, &EditorWorldECS::add_sys_update));
+		add_sys_search->connect("text_changed", callable_mp(this, &EditorWorldECS::add_sys_update));
+		vert_container->add_child(add_sys_search);
+
+		add_sys_tree = memnew(Tree);
+		add_sys_tree->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		add_sys_tree->set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		vert_container->add_child(add_sys_tree);
+	}
+
+	// ~~ Create script system window ~~
+	{
+		create_script_sys_window = memnew(ConfirmationDialog);
+		create_script_sys_window->set_min_size(Size2i(500, 200));
+		create_script_sys_window->set_title(TTR("Create system"));
+		create_script_sys_window->set_hide_on_ok(false);
+		create_script_sys_window->get_ok()->set_text(TTR("Create"));
+		create_script_sys_window->connect("confirmed", callable_mp(this, &EditorWorldECS::create_sys_do));
+		add_child(create_script_sys_window);
+
+		VBoxContainer *vert_container = memnew(VBoxContainer);
+		vert_container->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		vert_container->set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		create_script_sys_window->add_child(vert_container);
+
+		Label *lbl = memnew(Label);
+		lbl->set_text("Script path");
+		vert_container->add_child(lbl);
+
+		create_sys_path = memnew(LineEdit);
+		create_sys_path->set_placeholder(TTR("Script path"));
+		vert_container->add_child(create_sys_path);
+
+		lbl = memnew(Label);
+		lbl->set_text("Function name");
+		vert_container->add_child(lbl);
+
+		create_sys_func = memnew(LineEdit);
+		create_sys_func->set_placeholder(TTR("function name"));
+		vert_container->add_child(create_sys_func);
+
+		create_sys_error_lbl = memnew(Label);
+		create_sys_error_lbl->hide();
+		create_sys_error_lbl->add_theme_color_override("font_color", Color(1.0, 0.0, 0.0));
+		vert_container->add_child(create_sys_error_lbl);
+	}
+
+	add_sys_update();
 }
 
 void EditorWorldECS::_notification(int p_what) {
+}
+
+void EditorWorldECS::show_editor() {
+	show();
+	add_sys_hide();
+	create_sys_hide();
+}
+
+void EditorWorldECS::hide_editor() {
+	hide();
+	add_sys_hide();
+	create_sys_hide();
 }
 
 void EditorWorldECS::set_world_ecs(WorldECS *p_world) {
@@ -287,14 +392,121 @@ void EditorWorldECS::pipeline_draw_batch(uint32_t p_start_system, uint32_t p_end
 	}
 }
 
+void EditorWorldECS::add_sys_show() {
+	// Display the modal window centered.
+	const Vector2i modal_pos = (Vector2i(get_viewport_rect().size) - add_sys_window->get_size()) / 2.0;
+	add_sys_window->set_position(modal_pos);
+	add_sys_window->set_visible(true);
+}
+
+void EditorWorldECS::add_sys_hide() {
+	add_sys_window->set_visible(false);
+}
+
+void EditorWorldECS::add_sys_update(const String &p_search) {
+	String search = p_search;
+	if (search.empty()) {
+		search = add_sys_search->get_text();
+	}
+
+	add_sys_tree->clear();
+
+	TreeItem *root = add_sys_tree->create_item();
+	root->set_text(0, "Systems");
+	root->set_selectable(0, false);
+
+	// Builtin
+	TreeItem *builtin_root = add_sys_tree->create_item(root);
+	builtin_root->set_text(0, "Builtin Systems");
+	builtin_root->set_selectable(0, false);
+
+	for (uint32_t i = 0; i < 2; i += 1) {
+		TreeItem *item = add_sys_tree->create_item(builtin_root);
+		item->set_text(0, "System " + itos(i));
+	}
+
+	// Scripts
+	TreeItem *script_root = add_sys_tree->create_item(root);
+	script_root->set_text(0, "Script Systems");
+	script_root->set_selectable(0, false);
+
+	for (uint32_t i = 0; i < 2; i += 1) {
+		TreeItem *item = add_sys_tree->create_item(script_root);
+		item->set_text(0, "System " + itos(i));
+	}
+}
+
+void EditorWorldECS::add_sys_add() {
+	TreeItem *selected = add_sys_tree->get_selected();
+	if (selected == nullptr) {
+		// Nothing selected, so nothing to do.
+		return;
+	}
+
+	print_line("Add system: " + selected->get_text(0));
+}
+
+void EditorWorldECS::create_sys_show() {
+	// Display the modal window centered.
+	const Vector2i modal_pos = (Vector2i(get_viewport_rect().size) - create_script_sys_window->get_size()) / 2.0;
+	create_script_sys_window->set_position(modal_pos);
+	create_script_sys_window->set_visible(true);
+	create_sys_error_lbl->hide();
+}
+
+void EditorWorldECS::create_sys_hide() {
+	create_script_sys_window->set_visible(false);
+}
+
+void EditorWorldECS::create_sys_do() {
+	// Test creating script system list.
+
+	const String script_path = create_sys_path->get_text();
+	const String func_name = create_sys_func->get_text();
+
+	// Check the script path.
+	if (false == false) {
+		create_sys_error_lbl->set_text(TTR("The script path is not valid."));
+		create_sys_error_lbl->show();
+		return;
+	}
+
+	// Check if the function exists.
+	if (false == false) {
+		create_sys_error_lbl->set_text(TTR("The function doesn't exist."));
+		create_sys_error_lbl->show();
+		return;
+	}
+
+	// Check if the function is a valid system.
+	if (false == false) {
+		create_sys_error_lbl->set_text(TTR("The function " + func_name + " is not a valid system."));
+		create_sys_error_lbl->show();
+		return;
+	}
+
+	// The script and functions are ok.
+	Array sys_scripts = ProjectSettings::get_singleton()->get_setting("ECS/system_scripts");
+
+	// Check if this system already exists.
+	const String script_system_link = script_path + "::" + func_name;
+
+	if (sys_scripts.find(script_system_link) >= 0) {
+		create_sys_error_lbl->set_text(TTR("The function " + func_name + " is already registered as system."));
+		create_sys_error_lbl->show();
+		return;
+	}
+
+	sys_scripts.push_back(script_system_link);
+
+	ProjectSettings::get_singleton()->set_setting("ECS/system_scripts", sys_scripts);
+}
+
 WorldECSEditorPlugin::WorldECSEditorPlugin(EditorNode *p_node) :
 		editor(p_node) {
-	ecs_editor = memnew(EditorWorldECS);
-	ecs_editor->editor = p_node;
-	ecs_editor->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+	ecs_editor = memnew(EditorWorldECS(p_node));
 	editor->get_viewport()->add_child(ecs_editor);
-	ecs_editor->set_anchors_and_margins_preset(Control::PRESET_WIDE);
-	ecs_editor->hide();
+	ecs_editor->hide_editor();
 }
 
 WorldECSEditorPlugin::~WorldECSEditorPlugin() {
@@ -315,9 +527,9 @@ bool WorldECSEditorPlugin::handles(Object *p_object) const {
 
 void WorldECSEditorPlugin::make_visible(bool p_visible) {
 	if (p_visible) {
-		ecs_editor->show();
+		ecs_editor->show_editor();
 	} else {
-		ecs_editor->hide();
+		ecs_editor->hide_editor();
 		ecs_editor->set_world_ecs(nullptr);
 	}
 }

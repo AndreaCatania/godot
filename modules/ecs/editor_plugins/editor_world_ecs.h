@@ -50,14 +50,29 @@ class EditorWorldECS : public PanelContainer {
 	DrawLayer *draw_layer = nullptr;
 	Label *node_name_lbl = nullptr;
 	VBoxContainer *pipeline_panel = nullptr;
+
+	// Add system window.
+	ConfirmationDialog *add_sys_window = nullptr;
+	LineEdit *add_sys_search = nullptr;
+	class Tree *add_sys_tree = nullptr;
+
+	// Create script system window.
+	ConfirmationDialog *create_script_sys_window = nullptr;
+	LineEdit *create_sys_path = nullptr;
+	LineEdit *create_sys_func = nullptr;
+	Label *create_sys_error_lbl = nullptr;
+
 	LocalVector<SystemInfoBox *> pipeline_systems;
 
 	bool is_ui_dirty = false;
 
 public:
-	EditorWorldECS();
+	EditorWorldECS(EditorNode *p_editor);
 
 	void _notification(int p_what);
+
+	void show_editor();
+	void hide_editor();
 
 	void set_world_ecs(WorldECS *p_world);
 
@@ -67,6 +82,15 @@ public:
 	void pipeline_clear();
 
 	void pipeline_draw_batch(uint32_t p_start_system, uint32_t p_end_system);
+
+	void add_sys_show();
+	void add_sys_hide();
+	void add_sys_update(const String &p_search = String());
+	void add_sys_add();
+
+	void create_sys_show();
+	void create_sys_hide();
+	void create_sys_do();
 };
 
 class WorldECSEditorPlugin : public EditorPlugin {
