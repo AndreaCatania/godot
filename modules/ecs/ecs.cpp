@@ -31,10 +31,20 @@ const LocalVector<StringName> &ECS::get_registered_components() {
 	return components;
 }
 
+StringName ECS::get_component_name(uint32_t p_component_id) {
+	ERR_FAIL_INDEX_V_MSG(p_component_id, components.size(), "", "The `component_id` is invalid: " + itos(p_component_id));
+	return components[p_component_id];
+}
+
+const OAHashMap<StringName, PropertyInfo> *ECS::get_component_properties(uint32_t p_component_id) {
+	ERR_FAIL_INDEX_V_MSG(p_component_id, components.size(), nullptr, "The `component_id` is invalid: " + itos(p_component_id));
+	return components_info[p_component_id].get_properties();
+}
+
 const OAHashMap<StringName, PropertyInfo> *ECS::get_component_properties(StringName p_component_name) {
 	const int64_t id = components.find(p_component_name);
 	ERR_FAIL_COND_V_MSG(id == -1, nullptr, "The component " + p_component_name + " doesn't exist or it's not registered.");
-	return components_info[id].get_properties();
+	return get_component_properties(id);
 }
 
 void ECS::add_component_by_name(
@@ -49,6 +59,11 @@ void ECS::add_component_by_name(
 
 const LocalVector<StringName> &ECS::get_registered_resources() {
 	return resources;
+}
+
+StringName ECS::get_resource_name(uint32_t p_resource_id) {
+	ERR_FAIL_INDEX_V_MSG(p_resource_id, resources.size(), "", "The `resource_id` is invalid: " + itos(p_resource_id));
+	return resources[p_resource_id];
 }
 
 // Undefine the macro defined into `ecs.h` so we can define the method properly.

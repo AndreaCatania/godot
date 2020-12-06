@@ -80,8 +80,8 @@ DrawLayer::DrawLayer() {
 void DrawLayer::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_INTERNAL_PROCESS: {
-			if (editor->is_pipeline_system_list_dirty) {
-				editor->is_pipeline_system_list_dirty = false;
+			if (editor->is_pipeline_panel_dirty) {
+				editor->is_pipeline_panel_dirty = false;
 				update();
 			}
 		} break;
@@ -379,7 +379,7 @@ void EditorWorldECS::set_world_ecs(WorldECS *p_world) {
 	}
 
 	world_ecs = p_world;
-	pipeline_clear();
+	pipeline_panel_clear();
 
 	if (world_ecs != nullptr) {
 		world_ecs->add_change_receptor(this);
@@ -388,7 +388,6 @@ void EditorWorldECS::set_world_ecs(WorldECS *p_world) {
 	}
 
 	pipeline_list_update();
-	is_pipeline_system_list_dirty = true;
 }
 
 void EditorWorldECS::set_pipeline(Ref<PipelineECS> p_pipeline) {
@@ -402,7 +401,7 @@ void EditorWorldECS::set_pipeline(Ref<PipelineECS> p_pipeline) {
 		pipeline->add_change_receptor(this);
 	}
 
-	is_pipeline_system_list_dirty = true;
+	pipeline_panel_update();
 }
 
 void EditorWorldECS::draw(DrawLayer *p_draw_layer) {
@@ -413,53 +412,10 @@ void EditorWorldECS::draw(DrawLayer *p_draw_layer) {
 	// Setting this value here, so I can avoid to pass this pointer to each func.
 	draw_layer = p_draw_layer;
 
-	pipeline_draw_batch(0, 1);
-	pipeline_draw_batch(2, 3);
+	pipeline_panel_draw_batch(0, 1);
+	pipeline_panel_draw_batch(2, 3);
 
 	draw_layer = nullptr;
-}
-
-void EditorWorldECS::pipeline_add_system(SystemInfoBox *p_system) {
-	p_system->add_component("Test write", true);
-	p_system->add_component("Test read", false);
-	pipeline_systems.push_back(p_system);
-	pipeline_panel->add_child(p_system);
-}
-
-void EditorWorldECS::pipeline_clear() {
-	for (int i = pipeline_panel->get_child_count() - 1; i >= 0; i -= 1) {
-		Node *n = pipeline_panel->get_child(i);
-		pipeline_panel->get_child(i)->remove_and_skip();
-		memdelete(n);
-	}
-	pipeline_systems.clear();
-}
-
-void EditorWorldECS::pipeline_draw_batch(uint32_t p_start_system, uint32_t p_end_system) {
-	ERR_FAIL_COND(p_start_system > p_end_system);
-	ERR_FAIL_COND(p_end_system >= pipeline_systems.size());
-
-	const Point2 this_pos = draw_layer->get_global_position();
-	const Point2 point_offset(-15.0, 0.0);
-	const Point2 circle_offset(5.0, 0.0);
-
-	Point2 prev;
-
-	// Draw the points
-	for (uint32_t i = p_start_system; i <= p_end_system; i += 1) {
-		const Point2 current_point = (pipeline_systems[i]->name_global_transform() - this_pos) + point_offset;
-
-		if (i != p_start_system) {
-			draw_layer->draw_line(prev, current_point, Color(1.0, 1.0, 1.0, 0.4), 2.0);
-		}
-
-		draw_layer->draw_circle(
-				current_point + circle_offset,
-				4.0,
-				Color(1.0, 1.0, 1.0, 0.4));
-
-		prev = current_point;
-	}
 }
 
 void EditorWorldECS::pipeline_change_name(const String &p_name) {
@@ -472,16 +428,6 @@ void EditorWorldECS::pipeline_change_name(const String &p_name) {
 	editor->get_undo_redo()->add_do_method(pipeline.ptr(), "set_pipeline_name", p_name);
 	editor->get_undo_redo()->add_undo_method(pipeline.ptr(), "set_pipeline_name", pipeline->get_pipeline_name());
 	editor->get_undo_redo()->commit_action();
-}
-
-void EditorWorldECS::pipeline_focus_changed() {
-	if (pipeline.is_null()) {
-		pip_name_ledit->set_text("");
-	} else {
-		pip_name_ledit->set_text(pipeline->get_pipeline_name());
-	}
-	// Always position the cursor at the end.
-	pip_name_ledit->set_cursor_position(INT32_MAX);
 }
 
 void EditorWorldECS::pipeline_list_update() {
@@ -515,7 +461,14 @@ void EditorWorldECS::pipeline_on_menu_select(int p_index) {
 	} else {
 		set_pipeline(Ref<PipelineECS>());
 	}
-	pipeline_focus_changed();
+	if (pipeline.is_null()) {
+		pip_name_ledit->set_text("");
+	} else {
+		pip_name_ledit->set_text(pipeline->get_pipeline_name());
+	}
+	// Always position the cursor at the end.
+	pip_name_ledit->set_cursor_position(INT32_MAX);
+	pipeline_panel_update();
 }
 
 void EditorWorldECS::pipeline_add() {
@@ -564,6 +517,71 @@ void EditorWorldECS::pipeline_remove() {
 	editor->get_undo_redo()->add_do_method(world_ecs, "remove_pipeline", pipeline);
 	editor->get_undo_redo()->add_undo_method(world_ecs, "add_pipeline", pipeline);
 	editor->get_undo_redo()->commit_action();
+}
+
+void EditorWorldECS::pipeline_panel_update() {
+	is_pipeline_panel_dirty = true;
+	pipeline_panel_clear();
+
+	if (pipeline.is_null()) {
+		// Nothing more to do.
+		return;
+	}
+
+	Array systems = pipeline->get_system_links();
+	for (int i = 0; i < systems.size(); i += 1) {
+		SystemInfoBox *info_box = pipeline_panel_add_system();
+
+		const String system_link = systems[i];
+		Vector<String> s = system_link.split("::");
+
+		if (s.size() == 2) {
+			// Init a script system.
+			info_box->set_system_name(s[1]);
+			// TODO add script system components
+
+		} else {
+			// Init a native system.
+			const uint32_t system_id = ECS::find_system_id(system_link);
+			if (system_id == UINT32_MAX) {
+				info_box->set_system_name(system_link + "[INVALID]");
+			} else {
+				const SystemInfo &system_info = ECS::get_system_info(system_id);
+
+				info_box->set_system_name(system_info.name);
+
+				// Draw immutable components.
+				for (uint32_t u = 0; u < system_info.immutable_components.size(); u += 1) {
+					info_box->add_component(
+							ECS::get_component_name(system_info.immutable_components[u]),
+							false);
+				}
+
+				// Draw mutable components.
+				for (uint32_t u = 0; u < system_info.mutable_components.size(); u += 1) {
+					info_box->add_component(
+							ECS::get_component_name(system_info.mutable_components[u]),
+							true);
+				}
+
+				// Draw immutable resources.
+				for (uint32_t u = 0; u < system_info.immutable_resources.size(); u += 1) {
+					info_box->add_component(
+							String(ECS::get_resource_name(system_info.immutable_resources[u])) + " [res]",
+							false);
+				}
+
+				// Draw immutable resources.
+				for (uint32_t u = 0; u < system_info.mutable_resources.size(); u += 1) {
+					info_box->add_component(
+							String(ECS::get_resource_name(system_info.mutable_resources[u])) + " [res]",
+							true);
+				}
+			}
+		}
+	}
+
+	// TODO now draw the batches using `pipeline_panel_draw_batch();`
 }
 
 void EditorWorldECS::add_sys_show() {
@@ -762,10 +780,53 @@ void EditorWorldECS::_changed_callback(Object *p_changed, const char *p_prop) {
 		if (String("pipeline_name") == p_prop) {
 			pipeline_list_update();
 		} else {
-			is_pipeline_system_list_dirty = true;
+			pipeline_panel_update();
 		}
 	} else {
 		// Not sure what changed, at this point.
+	}
+}
+
+SystemInfoBox *EditorWorldECS::pipeline_panel_add_system() {
+	SystemInfoBox *info_box = memnew(SystemInfoBox(editor));
+	pipeline_systems.push_back(info_box);
+	pipeline_panel->add_child(info_box);
+	return info_box;
+}
+
+void EditorWorldECS::pipeline_panel_clear() {
+	for (int i = pipeline_panel->get_child_count() - 1; i >= 0; i -= 1) {
+		Node *n = pipeline_panel->get_child(i);
+		pipeline_panel->get_child(i)->remove_and_skip();
+		memdelete(n);
+	}
+	pipeline_systems.clear();
+}
+
+void EditorWorldECS::pipeline_panel_draw_batch(uint32_t p_start_system, uint32_t p_end_system) {
+	ERR_FAIL_COND(p_start_system > p_end_system);
+	ERR_FAIL_COND(p_end_system >= pipeline_systems.size());
+
+	const Point2 this_pos = draw_layer->get_global_position();
+	const Point2 point_offset(-15.0, 0.0);
+	const Point2 circle_offset(5.0, 0.0);
+
+	Point2 prev;
+
+	// Draw the points
+	for (uint32_t i = p_start_system; i <= p_end_system; i += 1) {
+		const Point2 current_point = (pipeline_systems[i]->name_global_transform() - this_pos) + point_offset;
+
+		if (i != p_start_system) {
+			draw_layer->draw_line(prev, current_point, Color(1.0, 1.0, 1.0, 0.4), 2.0);
+		}
+
+		draw_layer->draw_circle(
+				current_point + circle_offset,
+				4.0,
+				Color(1.0, 1.0, 1.0, 0.4));
+
+		prev = current_point;
 	}
 }
 

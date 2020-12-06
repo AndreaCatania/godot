@@ -37,18 +37,24 @@ class ECS : public Object {
 	WorldCommands commands;
 
 public:
+	// ~~ Components ~~
 	template <class C>
 	static void register_component();
 
 	static const LocalVector<StringName> &get_registered_components();
+	static StringName get_component_name(uint32_t p_component_id);
+	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(uint32_t p_component_id);
 	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(StringName p_component_name);
 	static void add_component_by_name(World *p_world, EntityID p_entity, StringName p_component_name, const Variant &p_data);
 
+	// ~~ Resources ~~
 	template <class C>
 	static void register_resource();
 
 	static const LocalVector<StringName> &get_registered_resources();
+	static StringName get_resource_name(uint32_t p_resource_id);
 
+	// ~~ Systems ~~
 	static void register_system(get_system_info_func p_get_info_func, StringName p_name, String p_description = "");
 
 // This macro save the user the need to pass a `SystemInfo`, indeed it wraps

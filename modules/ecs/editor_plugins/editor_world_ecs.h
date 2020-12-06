@@ -70,7 +70,7 @@ class EditorWorldECS : public PanelContainer {
 
 	LocalVector<SystemInfoBox *> pipeline_systems;
 
-	bool is_pipeline_system_list_dirty = false;
+	bool is_pipeline_panel_dirty = false;
 
 public:
 	EditorWorldECS(EditorNode *p_editor);
@@ -85,18 +85,13 @@ public:
 
 	void draw(DrawLayer *p_draw_layer);
 
-	void pipeline_add_system(SystemInfoBox *p_system);
-	void pipeline_clear();
-
-	void pipeline_draw_batch(uint32_t p_start_system, uint32_t p_end_system);
-
 	void pipeline_change_name(const String &p_name);
-	void pipeline_focus_changed();
 	void pipeline_list_update();
 	void pipeline_on_menu_select(int p_index);
 	void pipeline_add();
 	void pipeline_remove_show_confirmation();
 	void pipeline_remove();
+	void pipeline_panel_update();
 
 	void add_sys_show();
 	void add_sys_hide();
@@ -110,6 +105,10 @@ public:
 
 protected:
 	void _changed_callback(Object *p_changed, const char *p_prop) override;
+
+	SystemInfoBox *pipeline_panel_add_system();
+	void pipeline_panel_clear();
+	void pipeline_draw_batch(uint32_t p_start_system, uint32_t p_end_system);
 };
 
 class WorldECSEditorPlugin : public EditorPlugin {
