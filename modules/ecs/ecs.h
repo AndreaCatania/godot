@@ -6,17 +6,17 @@
 #include "core/object/object.h"
 #include "core/templates/local_vector.h"
 #include "core/templates/oa_hash_map.h"
-#include "pipeline/pipeline_commands.h"
+#include "modules/ecs/world/world_commands.h"
 
 #include "modules/ecs/systems/system.h"
 #include "modules/ecs/systems/system_builder.h"
 
-class Pipeline;
+class World;
 
 struct ComponentInfo {
 	OAHashMap<StringName, PropertyInfo> *(*get_properties)();
 	// This functions is implemented by the `COMPONENT` macro.
-	void (*add_component_by_name)(Pipeline *, EntityID, const Variant &);
+	void (*add_component_by_name)(World *, EntityID, const Variant &);
 };
 
 class ECS : public Object {
@@ -33,8 +33,8 @@ class ECS : public Object {
 	static LocalVector<StringName> systems;
 	static LocalVector<SystemInfo> systems_info;
 
-	Pipeline *active_pipeline = nullptr;
-	PipelineCommands commands;
+	World *active_world = nullptr;
+	WorldCommands commands;
 
 public:
 	template <class C>
@@ -42,7 +42,7 @@ public:
 
 	static const LocalVector<StringName> &get_registered_components();
 	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(StringName p_component_name);
-	static void add_component_by_name(Pipeline *p_pipeline, EntityID p_entity, StringName p_component_name, const Variant &p_data);
+	static void add_component_by_name(World *p_world, EntityID p_entity, StringName p_component_name, const Variant &p_data);
 
 	template <class C>
 	static void register_resource();
@@ -59,8 +59,8 @@ public:
 #define register_system(func, name, desc)                                  \
 	register_system([]() -> SystemInfo {                                   \
 		SystemInfo i = SystemBuilder::get_system_info_from_function(func); \
-		i.system_func = [](Pipeline *p_pipeline) {                         \
-			SystemBuilder::system_exec_func(p_pipeline, func);             \
+		i.system_func = [](World *p_world) {                               \
+			SystemBuilder::system_exec_func(p_world, func);                \
 		};                                                                 \
 		return i;                                                          \
 	},                                                                     \
@@ -82,19 +82,19 @@ public:
 	ECS();
 	virtual ~ECS();
 
-	/// Set the active pipeline. If there is already an active pipeline an error
+	/// Set the active world. If there is already an active world an error
 	/// is generated.
-	void set_active_pipeline(Pipeline *p_pipeline);
-	bool has_active_pipeline() const;
+	void set_active_world(World *p_world);
+	bool has_active_world() const;
 
 	/// Returns a command object that can be used to spawn entities, add
 	/// components.
-	/// This function returns nullptr when the pipeline is dispatched because
+	/// This function returns nullptr when the world is dispatched because
 	/// it's unsafe interact during that phase.
-	PipelineCommands *get_commands();
+	WorldCommands *get_commands();
 
 private:
-	bool dispatch_active_pipeline();
+	bool dispatch_active_world();
 	void ecs_init();
 };
 

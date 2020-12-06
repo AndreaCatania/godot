@@ -2,14 +2,14 @@
 
 #pragma once
 
-#include "modules/ecs/pipeline/pipeline.h"
 #include "modules/ecs/storages/storage.h"
+#include "modules/ecs/world/world.h"
 #include <tuple>
 
 template <class... Cs>
 class QueryStorage {
 public:
-	QueryStorage(Pipeline *p_pipeline) {}
+	QueryStorage(World *p_world) {}
 
 	bool has_data(EntityID p_entity) const { return true; }
 	std::tuple<Cs &...> get() const { return std::tuple(); }
@@ -22,9 +22,9 @@ class QueryStorage<C, Cs...> : QueryStorage<Cs...> {
 	TypedStorage<C> *storage = nullptr;
 
 public:
-	QueryStorage(Pipeline *p_pipeline) :
-			QueryStorage<Cs...>(p_pipeline) {
-		storage = p_pipeline->get_storage<C>();
+	QueryStorage(World *p_world) :
+			QueryStorage<Cs...>(p_world) {
+		storage = p_world->get_storage<C>();
 		ERR_FAIL_COND_MSG(storage == nullptr, "The storage" + String(typeid(TypedStorage<C>).name()) + " is null.");
 	}
 
@@ -63,13 +63,13 @@ public:
 
 template <class... Cs>
 class Query {
-	Pipeline *pipeline;
+	World *world;
 	uint32_t id = UINT32_MAX;
 	QueryStorage<std::remove_reference_t<Cs>...> q;
 
 public:
-	Query(Pipeline *p_pipeline) :
-			pipeline(p_pipeline), q(p_pipeline) {
+	Query(World *p_world) :
+			world(p_world), q(p_world) {
 		id = 0;
 		if (q.has_data(0) == false) {
 			next_entity();
@@ -94,7 +94,7 @@ public:
 	}
 
 	void next_entity() {
-		const uint32_t last_id = pipeline->get_last_entity_id();
+		const uint32_t last_id = world->get_last_entity_id();
 		if (unlikely(id == UINT32_MAX || last_id == UINT32_MAX)) {
 			id = UINT32_MAX;
 			return;

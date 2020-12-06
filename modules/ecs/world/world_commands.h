@@ -5,24 +5,24 @@
 */
 
 #include "modules/ecs/ecs_types.h"
-#include "pipeline.h"
+#include "world.h"
 
 /// Via this class is possible to spawn or destroy entities, add or remove
 /// components.
 // TODO make this also a resource so it can be queried
 // TODO make this also a GDScript object so it can be also used to query.
-class PipelineCommands {
+class WorldCommands {
 	friend class ECS;
 
-	Pipeline *pipeline = nullptr;
+	World *world = nullptr;
 
 public:
 	/// Creates a new Entity id and returns an `EntityBuilder`.
 	/// You can use the `EntityBuilder` in this way:
 	/// ```
-	///	Pipeline pipeline;
+	///	World world;
 	///
-	///	pipeline.create_entity()
+	///	world.create_entity()
 	///			.with(TransformComponent())
 	///			.with(MeshComponent());
 	/// ```
@@ -30,7 +30,7 @@ public:
 	/// It's possible to get the `EntityID` just by assining the `EntityBuilder`
 	/// to an `EntityID`.
 	/// ```
-	///	EntityID entity = pipeline.create_entity()
+	///	EntityID entity = world.create_entity()
 	///			.with(MeshComponent());
 	/// ```
 	///
@@ -38,7 +38,7 @@ public:
 	/// It's undefined behavior use it in any other way than the above one.
 	const EntityBuilder &create_entity();
 
-	/// Remove the entity from this Pipeline.
+	/// Remove the entity from this World.
 	void destroy_entity(EntityID p_entity);
 
 	/// Adds a new component (or sets the default if already exists) to a
@@ -53,6 +53,6 @@ public:
 };
 
 template <class C>
-void PipelineCommands::add_component(EntityID p_entity, const C &p_data) {
-	pipeline->add_component<C>(p_entity, p_data);
+void WorldCommands::add_component(EntityID p_entity, const C &p_data) {
+	world->add_component<C>(p_entity, p_data);
 }

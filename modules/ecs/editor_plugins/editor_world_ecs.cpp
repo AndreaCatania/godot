@@ -80,8 +80,8 @@ DrawLayer::DrawLayer() {
 void DrawLayer::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_INTERNAL_PROCESS: {
-			if (editor->is_ui_dirty) {
-				editor->is_ui_dirty = false;
+			if (editor->is_pipeline_system_list_dirty) {
+				editor->is_pipeline_system_list_dirty = false;
 				update();
 			}
 		} break;
@@ -96,7 +96,6 @@ void DrawLayer::_notification(int p_what) {
 
 EditorWorldECS::EditorWorldECS(EditorNode *p_editor) :
 		editor(p_editor) {
-	//set_anchors_and_margins_preset(Control::PRESET_WIDE);
 	set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
 	set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
 	set_anchor(MARGIN_LEFT, 0.0);
@@ -138,28 +137,42 @@ EditorWorldECS::EditorWorldECS(EditorNode *p_editor) :
 		main_container->set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
 		main_hb->add_child(main_container);
 
-		// ~~ Info box ~~
+		// ~~ Action box ~~
 		{
-			HBoxContainer *title_box = memnew(HBoxContainer);
-			title_box->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
-			title_box->set_v_size_flags(0);
-			main_container->add_child(title_box);
-
-			Label *title = memnew(Label);
-			title->set_text(TTR("ECS Node:"));
-			title->set_valign(Label::VALIGN_CENTER);
-			title->set_h_size_flags(0);
-			title->set_v_size_flags(0);
-			title_box->add_child(title);
+			HBoxContainer *hori_box = memnew(HBoxContainer);
+			hori_box->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+			hori_box->set_v_size_flags(0);
+			main_container->add_child(hori_box);
 
 			node_name_lbl = memnew(Label);
-			node_name_lbl->set_valign(Label::VALIGN_CENTER);
-			node_name_lbl->set_h_size_flags(0);
-			node_name_lbl->set_v_size_flags(0);
 			node_name_lbl->add_theme_color_override("font_color", Color(0.0, 0.5, 1.0));
-			title_box->add_child(node_name_lbl);
+			hori_box->add_child(node_name_lbl);
 
-			// TODO populate with other info here.
+			pipeline_menu = memnew(OptionButton);
+			pipeline_menu->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+			pipeline_menu->connect("item_selected", callable_mp(this, &EditorWorldECS::pipeline_on_menu_select));
+			hori_box->add_child(pipeline_menu);
+
+			Button *new_pipeline_btn = memnew(Button);
+			new_pipeline_btn->set_h_size_flags(0);
+			new_pipeline_btn->set_icon(editor->get_theme_base()->get_theme_icon("New", "EditorIcons"));
+			new_pipeline_btn->set_text(TTR("Add pipeline"));
+			new_pipeline_btn->connect("pressed", callable_mp(this, &EditorWorldECS::pipeline_add));
+			hori_box->add_child(new_pipeline_btn);
+
+			Button *remove_pipeline_btn = memnew(Button);
+			remove_pipeline_btn->set_h_size_flags(0);
+			remove_pipeline_btn->set_icon(editor->get_theme_base()->get_theme_icon("Remove", "EditorIcons"));
+			remove_pipeline_btn->connect("pressed", callable_mp(this, &EditorWorldECS::pipeline_remove_show_confirmation));
+			hori_box->add_child(remove_pipeline_btn);
+
+			pipeline_confirm_remove = memnew(ConfirmationDialog);
+			pipeline_confirm_remove->set_min_size(Size2i(200, 80));
+			pipeline_confirm_remove->set_title(TTR("Confirm removal"));
+			pipeline_confirm_remove->get_label()->set_text(TTR("Do you want to drop the selected pipeline?"));
+			pipeline_confirm_remove->get_ok()->set_text(TTR("Confirm"));
+			pipeline_confirm_remove->connect("confirmed", callable_mp(this, &EditorWorldECS::pipeline_remove));
+			add_child(pipeline_confirm_remove);
 		}
 
 		// ~~ Resources box ~~
@@ -183,12 +196,22 @@ EditorWorldECS::EditorWorldECS(EditorNode *p_editor) :
 		main_container->set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
 		main_hb->add_child(main_container);
 
+		HBoxContainer *title_container = memnew(HBoxContainer);
+		title_container->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		title_container->set_v_size_flags(0);
+		main_container->add_child(title_container);
+
 		Label *title = memnew(Label);
 		title->set_text(TTR("Pipeline"));
-		title->set_valign(Label::VALIGN_CENTER);
-		title->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
-		title->set_v_size_flags(0);
-		main_container->add_child(title);
+		title->set_h_size_flags(0);
+		title->set_v_size_flags(SIZE_FILL | SIZE_EXPAND);
+		title_container->add_child(title);
+
+		pip_name_ledit = memnew(LineEdit);
+		pip_name_ledit->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
+		pip_name_ledit->set_v_size_flags(0);
+		pip_name_ledit->connect("text_changed", callable_mp(this, &EditorWorldECS::pipeline_change_name));
+		title_container->add_child(pip_name_ledit);
 
 		Panel *panel = memnew(Panel);
 		panel->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
@@ -251,7 +274,6 @@ EditorWorldECS::EditorWorldECS(EditorNode *p_editor) :
 
 		add_sys_search = memnew(LineEdit);
 		add_sys_search->set_placeholder(TTR("Search"));
-		add_sys_search->connect("text_changed", callable_mp(this, &EditorWorldECS::add_sys_update));
 		add_sys_search->connect("text_changed", callable_mp(this, &EditorWorldECS::add_sys_update));
 		vert_container->add_child(add_sys_search);
 
@@ -319,9 +341,28 @@ void EditorWorldECS::_notification(int p_what) {
 }
 
 void EditorWorldECS::show_editor() {
-	show();
+	if (world_ecs == nullptr ||
+			pipeline.is_null() ||
+			// If the given pipeline is not own by the current `WorldECS`.
+			world_ecs->get_pipelines().find(pipeline) == -1) {
+		// Reset the assigned pipeline.
+		if (world_ecs == nullptr || world_ecs->get_pipelines().empty()) {
+			set_pipeline(Ref<PipelineECS>());
+		} else {
+			set_pipeline(world_ecs->get_pipelines()[0]);
+		}
+	}
+
+	if (world_ecs != nullptr) {
+		show();
+	} else {
+		hide();
+	}
 	add_sys_hide();
 	create_sys_hide();
+	pipeline_confirm_remove->set_visible(false);
+
+	pipeline_list_update();
 }
 
 void EditorWorldECS::hide_editor() {
@@ -331,23 +372,37 @@ void EditorWorldECS::hide_editor() {
 }
 
 void EditorWorldECS::set_world_ecs(WorldECS *p_world) {
+	if (world_ecs != nullptr) {
+		world_ecs->remove_change_receptor(this);
+		node_name_lbl->set_text("");
+		set_pipeline(Ref<PipelineECS>());
+	}
+
 	world_ecs = p_world;
 	pipeline_clear();
 
 	if (world_ecs != nullptr) {
+		world_ecs->add_change_receptor(this);
 		node_name_lbl->set_text(world_ecs->get_name());
-
-		// TODO try SystemInfo.
-		pipeline_add_system(memnew(SystemInfoBox(editor, "TransformSystem")));
-		pipeline_add_system(memnew(SystemInfoBox(editor, "BulletSystem")));
-		pipeline_add_system(memnew(SystemInfoBox(editor, "AASystem1")));
-		pipeline_add_system(memnew(SystemInfoBox(editor, "Chasdqwe")));
-
-		is_ui_dirty = true;
-
-	} else {
-		node_name_lbl->set_text("");
+		show();
 	}
+
+	pipeline_list_update();
+	is_pipeline_system_list_dirty = true;
+}
+
+void EditorWorldECS::set_pipeline(Ref<PipelineECS> p_pipeline) {
+	if (pipeline.is_valid()) {
+		pipeline->remove_change_receptor(this);
+	}
+
+	pipeline = p_pipeline;
+
+	if (pipeline.is_valid()) {
+		pipeline->add_change_receptor(this);
+	}
+
+	is_pipeline_system_list_dirty = true;
 }
 
 void EditorWorldECS::draw(DrawLayer *p_draw_layer) {
@@ -407,6 +462,110 @@ void EditorWorldECS::pipeline_draw_batch(uint32_t p_start_system, uint32_t p_end
 	}
 }
 
+void EditorWorldECS::pipeline_change_name(const String &p_name) {
+	if (pipeline.is_null()) {
+		// Nothing to do.
+		return;
+	}
+
+	editor->get_undo_redo()->create_action(TTR("Change pipeline name"));
+	editor->get_undo_redo()->add_do_method(pipeline.ptr(), "set_pipeline_name", p_name);
+	editor->get_undo_redo()->add_undo_method(pipeline.ptr(), "set_pipeline_name", pipeline->get_pipeline_name());
+	editor->get_undo_redo()->commit_action();
+}
+
+void EditorWorldECS::pipeline_focus_changed() {
+	if (pipeline.is_null()) {
+		pip_name_ledit->set_text("");
+	} else {
+		pip_name_ledit->set_text(pipeline->get_pipeline_name());
+	}
+	// Always position the cursor at the end.
+	pip_name_ledit->set_cursor_position(INT32_MAX);
+}
+
+void EditorWorldECS::pipeline_list_update() {
+	pipeline_menu->clear();
+
+	if (world_ecs == nullptr) {
+		pipeline_on_menu_select(-1);
+		return;
+	}
+
+	const Vector<Ref<PipelineECS>> &pipelines = world_ecs->get_pipelines();
+	int select = -1;
+	for (int i = 0; i < pipelines.size(); i += 1) {
+		pipeline_menu->add_item(pipelines[i]->get_pipeline_name());
+		if (pipelines[i] == pipeline) {
+			select = i;
+		}
+	}
+
+	if (select != -1) {
+		pipeline_menu->select(select);
+		pipeline_on_menu_select(select);
+	} else {
+		pipeline_on_menu_select(0);
+	}
+}
+
+void EditorWorldECS::pipeline_on_menu_select(int p_index) {
+	if (world_ecs && p_index >= 0 && p_index < world_ecs->get_pipelines().size()) {
+		set_pipeline(world_ecs->get_pipelines()[p_index]);
+	} else {
+		set_pipeline(Ref<PipelineECS>());
+	}
+	pipeline_focus_changed();
+}
+
+void EditorWorldECS::pipeline_add() {
+	if (world_ecs == nullptr) {
+		// Nothing to do.
+		return;
+	}
+
+	// Find the proper name for this new pipeline.
+	uint32_t default_count = 0;
+	Vector<Ref<PipelineECS>> &v = world_ecs->get_pipelines();
+	for (int i = 0; i < v.size(); i += 1) {
+		if (v[i].is_null()) {
+			continue;
+		}
+		if (String(v[i]->get_pipeline_name()).find("Default") >= 0) {
+			default_count += 1;
+		}
+	}
+
+	StringName name = "Default" + itos(default_count);
+
+	Ref<PipelineECS> pip;
+	pip.instance();
+	pip->set_pipeline_name(name);
+	set_pipeline(pip);
+
+	editor->get_undo_redo()->create_action(TTR("Add pipeline"));
+	editor->get_undo_redo()->add_do_method(world_ecs, "add_pipeline", pip);
+	editor->get_undo_redo()->add_undo_method(world_ecs, "remove_pipeline", pip);
+	editor->get_undo_redo()->commit_action();
+}
+
+void EditorWorldECS::pipeline_remove_show_confirmation() {
+	const Vector2i modal_pos = (Vector2i(get_viewport_rect().size) - pipeline_confirm_remove->get_size()) / 2.0;
+	pipeline_confirm_remove->set_position(modal_pos);
+	pipeline_confirm_remove->set_visible(true);
+}
+
+void EditorWorldECS::pipeline_remove() {
+	if (world_ecs == nullptr || pipeline.is_null()) {
+		return;
+	}
+
+	editor->get_undo_redo()->create_action(TTR("Pipeline remove"));
+	editor->get_undo_redo()->add_do_method(world_ecs, "remove_pipeline", pipeline);
+	editor->get_undo_redo()->add_undo_method(world_ecs, "add_pipeline", pipeline);
+	editor->get_undo_redo()->commit_action();
+}
+
 void EditorWorldECS::add_sys_show() {
 	// Display the modal window centered.
 	const Vector2i modal_pos = (Vector2i(get_viewport_rect().size) - add_sys_window->get_size()) / 2.0;
@@ -460,31 +619,33 @@ void EditorWorldECS::add_sys_update(const String &p_search) {
 	// Scripts systems
 	TreeItem *script_root = nullptr;
 
-	Array sys_scripts = ProjectSettings::get_singleton()->get_setting("ECS/system_scripts");
-	for (int i = 0; i < sys_scripts.size(); i += 1) {
-		String sys_link = sys_scripts[i];
-		Vector<String> v = sys_link.split("::");
+	if (ProjectSettings::get_singleton()->has_setting("ECS/system_scripts")) {
+		Array sys_scripts = ProjectSettings::get_singleton()->get_setting("ECS/system_scripts");
+		for (int i = 0; i < sys_scripts.size(); i += 1) {
+			String sys_link = sys_scripts[i];
+			Vector<String> v = sys_link.split("::");
 
-		// Make sure there are exactly 2 items. The link is: `/path/to/script::func_name`.
-		ERR_CONTINUE(v.size() != 2);
+			// Make sure there are exactly 2 items. The link is: `/path/to/script::func_name`.
+			ERR_CONTINUE(v.size() != 2);
 
-		if (p_search.empty() == false && v[1].find(p_search) != 0) {
-			// System filtered.
-			continue;
+			if (p_search.empty() == false && v[1].find(p_search) != 0) {
+				// System filtered.
+				continue;
+			}
+
+			if (script_root == nullptr) {
+				// Add only if needed.
+				script_root = add_sys_tree->create_item(root);
+				script_root->set_text(0, "Script Systems");
+				script_root->set_selectable(0, false);
+				script_root->set_custom_color(0, Color(0.0, 0.3, 0.9));
+			}
+
+			TreeItem *item = add_sys_tree->create_item(script_root);
+			item->set_text(0, v[1]);
+			item->set_meta("system_link", sys_link);
+			item->set_meta("desc", "GDScript: " + v[0]);
 		}
-
-		if (script_root == nullptr) {
-			// Add only if needed.
-			script_root = add_sys_tree->create_item(root);
-			script_root->set_text(0, "Script Systems");
-			script_root->set_selectable(0, false);
-			script_root->set_custom_color(0, Color(0.0, 0.3, 0.9));
-		}
-
-		TreeItem *item = add_sys_tree->create_item(script_root);
-		item->set_text(0, v[1]);
-		item->set_meta("system_link", sys_link);
-		item->set_meta("desc", "GDScript: " + v[0]);
 	}
 
 	add_sys_update_desc();
@@ -502,13 +663,36 @@ void EditorWorldECS::add_sys_update_desc() {
 }
 
 void EditorWorldECS::add_sys_add() {
+	if (world_ecs == nullptr) {
+		// Nothing to do.
+		return;
+	}
+
 	TreeItem *selected = add_sys_tree->get_selected();
 	if (selected == nullptr) {
 		// Nothing selected, so nothing to do.
 		return;
 	}
 
-	world_ecs->insert_system(selected->get_meta("system_link"));
+	if (pipeline.is_null()) {
+		if (world_ecs->get_pipelines().empty()) {
+			// No pipelines, just create the default one.
+			Ref<PipelineECS> def_pip;
+			def_pip.instance();
+			def_pip->set_pipeline_name("Default");
+			world_ecs->get_pipelines().push_back(def_pip);
+			world_ecs->_change_notify();
+		}
+		set_pipeline(world_ecs->get_pipelines()[0]);
+		pipeline_list_update();
+	}
+
+	editor->get_undo_redo()->create_action(TTR("Add system"));
+	editor->get_undo_redo()->add_do_method(pipeline.ptr(), "insert_system", selected->get_meta("system_link"));
+	// Undo by resetting the `system_links` because the `insert_system` changes
+	// the array not trivially.
+	editor->get_undo_redo()->add_undo_method(pipeline.ptr(), "set_system_links", pipeline->get_system_links());
+	editor->get_undo_redo()->commit_action();
 }
 
 void EditorWorldECS::create_sys_show() {
@@ -565,6 +749,24 @@ void EditorWorldECS::create_sys_do() {
 	sys_scripts.push_back(script_system_link);
 
 	ProjectSettings::get_singleton()->set_setting("ECS/system_scripts", sys_scripts);
+}
+
+void EditorWorldECS::_changed_callback(Object *p_changed, const char *p_prop) {
+	if (p_changed == world_ecs) {
+		// The world changed.
+		if (String("pipelines") == p_prop) {
+			pipeline_list_update();
+		}
+	} else if (pipeline.is_valid() && pipeline.ptr() == p_changed) {
+		// The selected pipeline changes.
+		if (String("pipeline_name") == p_prop) {
+			pipeline_list_update();
+		} else {
+			is_pipeline_system_list_dirty = true;
+		}
+	} else {
+		// Not sure what changed, at this point.
+	}
 }
 
 WorldECSEditorPlugin::WorldECSEditorPlugin(EditorNode *p_node) :

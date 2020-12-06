@@ -1,40 +1,8 @@
-
 #include "pipeline.h"
 
-#include "modules/ecs/ecs.h"
+#include "modules/ecs/world/world.h"
 
-EntityBuilder::EntityBuilder(Pipeline *p_pipeline) :
-		pipeline(p_pipeline) {
-}
-
-EntityID Pipeline::create_entity_index() {
-	return entity_count++;
-}
-
-const EntityBuilder &Pipeline::create_entity() {
-	entity_builder.entity = create_entity_index();
-	return entity_builder;
-}
-
-void Pipeline::destroy_entity(EntityID p_entity) {
-	// Removes the components assigned to this entity.
-	for (uint32_t i = 0; i < storages.size(); i += 1) {
-		storages[i]->remove(p_entity);
-	}
-
-	// TODO consider to reuse this ID.
-}
-
-EntityID Pipeline::get_last_entity_id() const {
-	if (entity_count == 0) {
-		return EntityID();
-	} else {
-		return EntityID(entity_count - 1);
-	}
-}
-
-void Pipeline::add_component(EntityID p_entity, StringName p_component_name, const Variant &p_data) {
-	ECS::add_component_by_name(this, p_entity, p_component_name, p_data);
+Pipeline::Pipeline() {
 }
 
 void Pipeline::add_native_system(const SystemInfo &p_system_info) {
@@ -55,8 +23,8 @@ void Pipeline::add_system(get_system_info_func p_get_info_func) {
 	add_native_system(info);
 }
 
-void Pipeline::dispatch() {
+void Pipeline::dispatch(World *p_world) {
 	for (uint32_t i = 0; i < systems.size(); i += 1) {
-		systems[i](this);
+		systems[i](p_world);
 	}
 }

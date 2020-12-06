@@ -2,48 +2,40 @@
 
 /* Author: AndreaCatania */
 
-#include "modules/ecs/pipeline/pipeline.h"
 #include "scene/main/node.h"
 
-// TODO the World is the thing that contains the resources and the storages,
-// though I need a way to allow fast pipeline swap while keeping the resources
-// and storages.
-// Maybe making the pipeline a world resource? Though, how the
-// customization works?? Maybe we can keep the current editor and so customize
-// the resource set.
+class Pipeline;
+class World;
 
-class WorldECS : public Node {
-	GDCLASS(WorldECS, Node)
+/// The `PipelineECS` is a resource that holds the `Pipeline` object, and the
+/// info to build it.
+/// The `Pipeline` is the class that holds the systems and dispatch them on the
+/// given `WorldECS`.
+class PipelineECS : public Resource {
+	GDCLASS(PipelineECS, Resource)
+	/// This name is used to reference this pipeline.
+	StringName pipeline_name;
 
-	bool pipeline_build_in_progress = false;
+	Array system_links;
+	// TODO add the physics stage
+
+	// This is just a cache value so to avoid rebuild the pipeline each time
+	// it's activated.
 	Pipeline *pipeline = nullptr;
-	bool is_active = false;
-
-	Array pipeline_system_links;
 
 protected:
 	static void _bind_methods();
 
 public:
-	WorldECS();
-	virtual ~WorldECS();
+	void set_pipeline_name(StringName p_name);
+	StringName get_pipeline_name() const;
 
-	void _notification(int p_what);
-
-	/// Returns the pipeline only if this is not an active world.
-	/// If this is an active world and you need to interact with the pipeline is
-	/// possible to do it via the commands object that you can take using:
-	/// `ECS::get_singleton()->get_commands()`
-	Pipeline *get_pipeline() const;
-
-	String get_configuration_warning() const override;
-
-	/// Get the stored systems count.
-	uint32_t get_systems_count() const;
+	void set_system_links(Array p_system_links);
+	Array get_system_links() const;
 
 	/// Insert a new system into the world. This `System` is not immediately
-	/// added to the pipeline. This function is mainly used by the editor to
-	/// compose the pipeline.
+	/// added to the world. This function is mainly used by the editor to
+	/// compose the world.
 	///
 	/// @param `p_system_link` Can be a native system name (`TransformSystem`)
 	///                        or a script system (`res://path/to/script.gd::system_func_name`)
@@ -52,16 +44,63 @@ public:
 	///
 	/// If the `p_system_link` is already defined it's position is updated.
 	///
-	/// Note: Add and Remove a `system` will cause pipeline rebuild, which
-	/// should be avoided by using more pipelines and activating them when
+	/// Note: Add and Remove a `system` will cause world rebuild, which
+	/// should be avoided by using more worlds and activating them when
 	/// needed.
 	void insert_system(const String &p_system_link, uint32_t p_pos = UINT32_MAX);
+};
 
-	void set_pipeline_system_links(Array p_links);
-	Array get_pipeline_system_links() const;
+/// The `WorldECS` class holds the `World` information that is where all the
+/// component storages and the resource storages are stored.
+///
+/// The `WorldECS` can have many `PipelineECS`, but only one can be active.
+/// Pipeline switch can be done only before the pipeline is dispatched TODO explain better how.
+///
+/// The game can have many phases:
+/// - Game Loading, You want to display a loading screen.
+/// - Game Running, You want to perform the gamplay logic.
+/// Define one pipeline for each stage allow to perform only the needed job
+/// for that particular pahase and save computation.
+class WorldECS : public Node {
+	GDCLASS(WorldECS, Node)
+
+	bool world_build_in_progress = false;
+	World *world = nullptr;
+	bool is_active = false;
+
+	Vector<Ref<PipelineECS>> pipelines;
+
+protected:
+	static void _bind_methods();
+	bool _set(const StringName &p_name, const Variant &p_value);
+	bool _get(const StringName &p_name, Variant &r_ret) const;
+	void _get_property_list(List<PropertyInfo> *p_list) const;
+
+public:
+	WorldECS();
+	virtual ~WorldECS();
+
+	void _notification(int p_what);
+
+	/// Returns the world only if this is not an active world.
+	/// If this is an active world and you need to interact with the world is
+	/// possible to do it via the commands object that you can take using:
+	/// `ECS::get_singleton()->get_commands()`
+	World *get_world() const;
+
+	String get_configuration_warning() const override;
+
+	void set_pipelines(Vector<Ref<PipelineECS>> p_pipelines);
+	const Vector<Ref<PipelineECS>> &get_pipelines() const;
+	Vector<Ref<PipelineECS>> &get_pipelines();
+
+	void add_pipeline(Ref<PipelineECS> p_pipeline);
+	void remove_pipeline(Ref<PipelineECS> p_pipeline);
+
+	Ref<PipelineECS> find_pipeline(StringName p_name);
+	int find_pipeline_index(StringName p_name) const;
 
 private:
-	void build_pipeline();
-	void active_pipeline();
-	void unactive_pipeline();
+	void active_world();
+	void unactive_world();
 };

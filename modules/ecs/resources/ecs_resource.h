@@ -8,7 +8,7 @@
 
 #define RESOURCE(m_class)                                                                      \
 	ECSCLASS(m_class)                                                                          \
-	friend class Pipeline;                                                                     \
+	friend class World;                                                                        \
 																							   \
 private:                                                                                       \
 	static inline uint32_t resource_id = UINT32_MAX;                                           \

@@ -2,8 +2,8 @@
 #include "ecs.h"
 
 #include "core/object/message_queue.h"
-#include "pipeline/pipeline.h"
 #include "scene/main/scene_tree.h"
+#include "world/world.h"
 
 ECS *ECS::singleton = nullptr;
 LocalVector<StringName> ECS::components;
@@ -13,9 +13,9 @@ LocalVector<StringName> ECS::systems;
 LocalVector<SystemInfo> ECS::systems_info;
 
 void ECS::_bind_methods() {
-	ADD_SIGNAL(MethodInfo("pipeline_loaded"));
-	ADD_SIGNAL(MethodInfo("pipeline_pre_unload"));
-	ADD_SIGNAL(MethodInfo("pipeline_unloaded"));
+	ADD_SIGNAL(MethodInfo("world_loaded"));
+	ADD_SIGNAL(MethodInfo("world_pre_unload"));
+	ADD_SIGNAL(MethodInfo("world_unloaded"));
 }
 
 ECS::ECS() :
@@ -38,13 +38,13 @@ const OAHashMap<StringName, PropertyInfo> *ECS::get_component_properties(StringN
 }
 
 void ECS::add_component_by_name(
-		Pipeline *p_pipeline,
+		World *p_world,
 		EntityID p_entity,
 		StringName p_component_name,
 		const Variant &p_data) {
 	const int64_t id = components.find(p_component_name);
 	ERR_FAIL_COND_MSG(id == -1, "The component " + p_component_name + " doesn't exist or it's not registered.");
-	components_info[id].add_component_by_name(p_pipeline, p_entity, p_data);
+	components_info[id].add_component_by_name(p_world, p_entity, p_data);
 }
 
 const LocalVector<StringName> &ECS::get_registered_resources() {
@@ -91,40 +91,40 @@ void ECS::__set_singleton(ECS *p_singleton) {
 	}
 }
 
-void ECS::set_active_pipeline(Pipeline *p_pipeline) {
-	if (active_pipeline != nullptr) {
-		if (p_pipeline == nullptr) {
-			emit_signal("pipeline_pre_unload");
+void ECS::set_active_world(World *p_world) {
+	if (active_world != nullptr) {
+		if (p_world == nullptr) {
+			emit_signal("world_pre_unload");
 		} else {
-			ERR_FAIL_COND("Before adding a new pipeline it's necessary remove the current one by calling `set_active_pipeline(nullptr);`.");
+			ERR_FAIL_COND("Before adding a new world it's necessary remove the current one by calling `set_active_world(nullptr);`.");
 		}
 	}
 
-	active_pipeline = p_pipeline;
+	active_world = p_world;
 
-	if (active_pipeline != nullptr) {
-		// The pipeline is just loaded.
-		emit_signal("pipeline_loaded");
+	if (active_world != nullptr) {
+		// The world is just loaded.
+		emit_signal("world_loaded");
 	} else {
-		// The pipeline is just unloaded.
-		emit_signal("pipeline_unloaded");
+		// The world is just unloaded.
+		emit_signal("world_unloaded");
 	}
 }
 
-bool ECS::has_active_pipeline() const {
-	return active_pipeline != nullptr;
+bool ECS::has_active_world() const {
+	return active_world != nullptr;
 }
 
-PipelineCommands *ECS::get_commands() {
-	// TODO make sure this returns nullptr when the pipeline is dispatched.
-	ERR_FAIL_COND_V_MSG(active_pipeline == nullptr, nullptr, "No active WorldsECS.");
-	commands.pipeline = active_pipeline;
+WorldCommands *ECS::get_commands() {
+	// TODO make sure this returns nullptr when the world is dispatched.
+	ERR_FAIL_COND_V_MSG(active_world == nullptr, nullptr, "No active WorldsECS.");
+	commands.world = active_world;
 	return &commands;
 }
 
-bool ECS::dispatch_active_pipeline() {
-	if (likely(active_pipeline)) {
-		active_pipeline->dispatch();
+bool ECS::dispatch_active_world() {
+	if (likely(active_world)) {
+		active_world->dispatch();
 	}
 
 	// TODO add a way to terminate, from a system, the engine execution

@@ -31,6 +31,7 @@ void test_system(Query<TransformComponent> &p_query) {
 void register_ecs_types() {
 	ClassDB::register_class<ECS>();
 	ClassDB::register_class<WorldECS>();
+	ClassDB::register_class<PipelineECS>();
 	ClassDB::register_class<Entity>();
 
 	// Create and register singleton

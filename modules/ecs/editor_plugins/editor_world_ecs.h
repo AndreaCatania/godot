@@ -7,6 +7,7 @@
 
 class EditorNode;
 class WorldECS;
+class PipelineECS;
 class EditorWorldECS;
 
 class SystemInfoBox : public MarginContainer {
@@ -46,10 +47,14 @@ class EditorWorldECS : public PanelContainer {
 
 	EditorNode *editor = nullptr;
 	WorldECS *world_ecs = nullptr;
+	Ref<PipelineECS> pipeline;
 
 	DrawLayer *draw_layer = nullptr;
 	Label *node_name_lbl = nullptr;
+	LineEdit *pip_name_ledit = nullptr;
 	VBoxContainer *pipeline_panel = nullptr;
+	OptionButton *pipeline_menu = nullptr;
+	ConfirmationDialog *pipeline_confirm_remove = nullptr;
 
 	// Add system window.
 	ConfirmationDialog *add_sys_window = nullptr;
@@ -65,7 +70,7 @@ class EditorWorldECS : public PanelContainer {
 
 	LocalVector<SystemInfoBox *> pipeline_systems;
 
-	bool is_ui_dirty = false;
+	bool is_pipeline_system_list_dirty = false;
 
 public:
 	EditorWorldECS(EditorNode *p_editor);
@@ -76,6 +81,7 @@ public:
 	void hide_editor();
 
 	void set_world_ecs(WorldECS *p_world);
+	void set_pipeline(Ref<PipelineECS> p_pipeline);
 
 	void draw(DrawLayer *p_draw_layer);
 
@@ -83,6 +89,14 @@ public:
 	void pipeline_clear();
 
 	void pipeline_draw_batch(uint32_t p_start_system, uint32_t p_end_system);
+
+	void pipeline_change_name(const String &p_name);
+	void pipeline_focus_changed();
+	void pipeline_list_update();
+	void pipeline_on_menu_select(int p_index);
+	void pipeline_add();
+	void pipeline_remove_show_confirmation();
+	void pipeline_remove();
 
 	void add_sys_show();
 	void add_sys_hide();
@@ -93,6 +107,9 @@ public:
 	void create_sys_show();
 	void create_sys_hide();
 	void create_sys_do();
+
+protected:
+	void _changed_callback(Object *p_changed, const char *p_prop) override;
 };
 
 class WorldECSEditorPlugin : public EditorPlugin {

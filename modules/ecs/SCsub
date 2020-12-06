@@ -12,6 +12,7 @@ ecs.add_source_files(env.modules_sources, "storages/*.cpp")
 ecs.add_source_files(env.modules_sources, "components/*.cpp")
 ecs.add_source_files(env.modules_sources, "systems/*.cpp")
 ecs.add_source_files(env.modules_sources, "resources/*.cpp")
+ecs.add_source_files(env.modules_sources, "world/*.cpp")
 ecs.add_source_files(env.modules_sources, "pipeline/*.cpp")
 ecs.add_source_files(env.modules_sources, "*.cpp")
 

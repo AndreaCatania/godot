@@ -38,7 +38,7 @@ struct GetMethodHandle : public GetMethodHandleBase {
 
 #define COMPONENT(m_class, m_storage_class)                                                                            \
 	ECSCLASS(m_class)                                                                                                  \
-	friend class Pipeline;                                                                                             \
+	friend class World;                                                                                                \
 	friend class Component;                                                                                            \
 																													   \
 private:                                                                                                               \
@@ -53,13 +53,13 @@ private:                                                                        
 	/* Components */                                                                                                   \
 	static inline uint32_t component_id = UINT32_MAX;                                                                  \
 																													   \
-	static void add_component_by_name(Pipeline *p_pipeline, EntityID entity_id, const Variant &p_data) {               \
+	static void add_component_by_name(World *p_world, EntityID entity_id, const Variant &p_data) {                     \
 		m_class component;                                                                                             \
 		Dictionary dic = p_data;                                                                                       \
 		for (const Variant *key = dic.next(nullptr); key != nullptr; key = dic.next(key)) {                            \
 			component.set(*key, dic.get_valid(*key));                                                                  \
 		}                                                                                                              \
-		p_pipeline->add_component(                                                                                     \
+		p_world->add_component(                                                                                        \
 				entity_id,                                                                                             \
 				component);                                                                                            \
 	}                                                                                                                  \

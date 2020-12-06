@@ -49,15 +49,15 @@ void Entity::_notification(int p_what) {
 				// At this point the entity is never created.
 				CRASH_COND(entity_id.is_null() == false);
 #endif
-				ECS::get_singleton()->connect("pipeline_loaded", callable_mp(this, &Entity::create_entity));
-				ECS::get_singleton()->connect("pipeline_pre_unload", callable_mp(this, &Entity::destroy_entity));
+				ECS::get_singleton()->connect("world_loaded", callable_mp(this, &Entity::create_entity));
+				ECS::get_singleton()->connect("world_pre_unload", callable_mp(this, &Entity::destroy_entity));
 				create_entity();
 			}
 			break;
 		case NOTIFICATION_EXIT_TREE:
 			if (Engine::get_singleton()->is_editor_hint() == false) {
-				ECS::get_singleton()->disconnect("pipeline_loaded", callable_mp(this, &Entity::create_entity));
-				ECS::get_singleton()->disconnect("pipeline_pre_unload", callable_mp(this, &Entity::destroy_entity));
+				ECS::get_singleton()->disconnect("world_loaded", callable_mp(this, &Entity::create_entity));
+				ECS::get_singleton()->disconnect("world_pre_unload", callable_mp(this, &Entity::destroy_entity));
 				destroy_entity();
 			}
 			break;
@@ -102,9 +102,9 @@ void Entity::create_entity() {
 		return;
 	}
 
-	if (ECS::get_singleton()->has_active_pipeline()) {
+	if (ECS::get_singleton()->has_active_world()) {
 		// It's safe dereference command because this function is always called
-		// when the pipeline is not dispatching.
+		// when the world is not dispatching.
 		entity_id = ECS::get_singleton()->get_commands()->create_entity();
 
 		for (
@@ -125,9 +125,9 @@ void Entity::destroy_entity() {
 		return;
 	}
 
-	if (ECS::get_singleton()->has_active_pipeline()) {
+	if (ECS::get_singleton()->has_active_world()) {
 		// It's safe dereference command because this function is always called
-		// when the pipeline is not dispatching.
+		// when the world is not dispatching.
 		ECS::get_singleton()->get_commands()->destroy_entity(entity_id);
 		entity_id = EntityID();
 	}

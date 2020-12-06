@@ -2,11 +2,12 @@
 
 #pragma once
 
+#include "core/string/string_name.h"
 #include "core/templates/local_vector.h"
 
-class Pipeline;
+class World;
 
-typedef void (*system_execute)(Pipeline *p_pipeline);
+typedef void (*system_execute)(World *p_world);
 
 struct SystemInfo {
 	StringName name;

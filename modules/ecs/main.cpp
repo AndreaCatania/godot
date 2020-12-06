@@ -55,7 +55,7 @@ bool Main::iteration() {
 	}
 
 	MessageQueue::get_singleton()->flush();
-	if (ECS::get_singleton()->dispatch_active_pipeline()) {
+	if (ECS::get_singleton()->dispatch_active_world()) {
 		exit = true;
 	}
 
