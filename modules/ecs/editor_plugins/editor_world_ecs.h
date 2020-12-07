@@ -108,7 +108,7 @@ protected:
 
 	SystemInfoBox *pipeline_panel_add_system();
 	void pipeline_panel_clear();
-	void pipeline_draw_batch(uint32_t p_start_system, uint32_t p_end_system);
+	void pipeline_panel_draw_batch(uint32_t p_start_system, uint32_t p_end_system);
 };
 
 class WorldECSEditorPlugin : public EditorPlugin {
