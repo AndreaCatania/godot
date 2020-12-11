@@ -38,11 +38,7 @@ Array PipelineECS::get_system_links() const {
 }
 
 void PipelineECS::insert_system(const String &p_system_link, uint32_t p_pos) {
-	if (p_system_link.find("::") >= 0) {
-		// This is a script system.
-		const Vector<String> ssd = p_system_link.split("::");
-		ERR_FAIL_COND_MSG(ssd.size() != 2, "This system link is malformed.");
-	} else {
+	if (p_system_link.is_resource_file() == false) {
 		// This is a Native system.
 		ERR_FAIL_COND_MSG(ECS::find_system_id(p_system_link) == UINT32_MAX, "This system is not known.");
 	}
@@ -53,6 +49,7 @@ void PipelineECS::insert_system(const String &p_system_link, uint32_t p_pos) {
 	system_links.erase(p_system_link);
 
 	if (p_pos == UINT32_MAX) {
+		// Just push back.
 		system_links.push_back(p_system_link);
 	} else {
 		ERR_FAIL_INDEX_MSG(int(p_pos), system_links.size() + 1, "The pipeline is not so big, this system: " + p_system_link + " can't be insert at this position: " + itos(p_pos));

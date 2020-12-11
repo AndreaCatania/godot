@@ -8,6 +8,8 @@
 #include "modules/ecs/ecs.h"
 #include "modules/ecs/storages/dense_vector.h"
 
+namespace godex {
+
 struct SetMethodHandleBase {
 	virtual ~SetMethodHandleBase() {}
 	virtual void set(void *p_object, const Variant &p_data) = 0;
@@ -70,17 +72,17 @@ public:                                                                         
 	/* Properties */                                                                                                   \
 private:                                                                                                               \
 	static inline OAHashMap<StringName, PropertyInfo> property_map;                                                    \
-	static inline OAHashMap<StringName, SetMethodHandleBase *> set_map;                                                \
-	static inline OAHashMap<StringName, GetMethodHandleBase *> get_map;                                                \
+	static inline OAHashMap<StringName, godex::SetMethodHandleBase *> set_map;                                         \
+	static inline OAHashMap<StringName, godex::GetMethodHandleBase *> get_map;                                         \
 	template <class M1, class M2>                                                                                      \
 	static void add_property(const PropertyInfo &p_info, M1 p_set, M2 p_get) {                                         \
 		property_map.insert(p_info.name, p_info);                                                                      \
 																													   \
-		SetMethodHandle<m_class, M1> *handle_set = new SetMethodHandle<m_class, M1>;                                   \
+		godex::SetMethodHandle<m_class, M1> *handle_set = new godex::SetMethodHandle<m_class, M1>;                     \
 		handle_set->method = p_set;                                                                                    \
 		set_map.insert(p_info.name, handle_set);                                                                       \
 																													   \
-		GetMethodHandle<m_class, M2> *handle_get = new GetMethodHandle<m_class, M2>;                                   \
+		godex::GetMethodHandle<m_class, M2> *handle_get = new godex::GetMethodHandle<m_class, M2>;                     \
 		handle_get->method = p_get;                                                                                    \
 		get_map.insert(p_info.name, handle_get);                                                                       \
 	}                                                                                                                  \
@@ -94,12 +96,12 @@ private:                                                                        
 		return get_properties_static();                                                                                \
 	}                                                                                                                  \
 	virtual void set(StringName p_name, Variant p_data) override {                                                     \
-		SetMethodHandleBase **b = set_map.lookup_ptr(p_name);                                                          \
+		godex::SetMethodHandleBase **b = set_map.lookup_ptr(p_name);                                                   \
 		ERR_FAIL_COND_MSG(b == nullptr, "The parameter " + p_name + " doesn't exist in this component.");              \
 		(*b)->set(this, p_data);                                                                                       \
 	}                                                                                                                  \
 	virtual Variant get(StringName p_name) const override {                                                            \
-		GetMethodHandleBase **b = get_map.lookup_ptr(p_name);                                                          \
+		godex::GetMethodHandleBase **b = get_map.lookup_ptr(p_name);                                                   \
 		ERR_FAIL_COND_V_MSG(b == nullptr, Variant(), "The parameter " + p_name + " doesn't exist in this component."); \
 		return (*b)->get(this);                                                                                        \
 	}                                                                                                                  \
@@ -118,3 +120,5 @@ public:
 	virtual void set(StringName p_name, Variant p_data);
 	virtual Variant get(StringName p_name) const;
 };
+
+} // namespace godex

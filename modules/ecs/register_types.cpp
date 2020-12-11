@@ -8,6 +8,7 @@
 #include "ecs.h"
 #include "nodes/ecs_world.h"
 #include "nodes/entity.h"
+#include "nodes/scripts.h"
 
 #include "editor_plugins/editor_world_ecs.h"
 #include "editor_plugins/entity_editor_plugin.h"
@@ -33,6 +34,8 @@ void register_ecs_types() {
 	ClassDB::register_class<WorldECS>();
 	ClassDB::register_class<PipelineECS>();
 	ClassDB::register_class<Entity>();
+	ClassDB::register_class<Component>();
+	ClassDB::register_class<System>();
 
 	// Create and register singleton
 	ECS *ecs = memnew(ECS);

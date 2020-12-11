@@ -2,10 +2,12 @@
 
 #include "editor_world_ecs.h"
 
+#include "core/io/resource_loader.h"
 #include "editor/editor_node.h"
 #include "editor/editor_scale.h"
 #include "modules/ecs/ecs.h"
 #include "modules/ecs/nodes/ecs_world.h"
+#include "modules/ecs/nodes/scripts.h"
 #include "scene/gui/color_rect.h"
 
 SystemInfoBox::SystemInfoBox(EditorNode *p_editor) :
@@ -301,39 +303,31 @@ EditorWorldECS::EditorWorldECS(EditorNode *p_editor) :
 
 	// ~~ Create script system window ~~
 	{
-		create_script_sys_window = memnew(ConfirmationDialog);
-		create_script_sys_window->set_min_size(Size2i(500, 200));
-		create_script_sys_window->set_title(TTR("Create system"));
-		create_script_sys_window->set_hide_on_ok(false);
-		create_script_sys_window->get_ok()->set_text(TTR("Create"));
-		create_script_sys_window->connect("confirmed", callable_mp(this, &EditorWorldECS::create_sys_do));
-		add_child(create_script_sys_window);
+		add_script_window = memnew(ConfirmationDialog);
+		add_script_window->set_min_size(Size2i(500, 180));
+		add_script_window->set_title(TTR("Add script System / Component / Resource"));
+		add_script_window->set_hide_on_ok(false);
+		add_script_window->get_ok()->set_text(TTR("Create"));
+		add_script_window->connect("confirmed", callable_mp(this, &EditorWorldECS::add_script_do));
+		add_child(add_script_window);
 
 		VBoxContainer *vert_container = memnew(VBoxContainer);
 		vert_container->set_h_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
 		vert_container->set_v_size_flags(SizeFlags::SIZE_FILL | SizeFlags::SIZE_EXPAND);
-		create_script_sys_window->add_child(vert_container);
+		add_script_window->add_child(vert_container);
 
 		Label *lbl = memnew(Label);
 		lbl->set_text("Script path");
 		vert_container->add_child(lbl);
 
-		create_sys_path = memnew(LineEdit);
-		create_sys_path->set_placeholder(TTR("Script path"));
-		vert_container->add_child(create_sys_path);
+		add_script_path = memnew(LineEdit);
+		add_script_path->set_placeholder(TTR("Script path"));
+		vert_container->add_child(add_script_path);
 
-		lbl = memnew(Label);
-		lbl->set_text("Function name");
-		vert_container->add_child(lbl);
-
-		create_sys_func = memnew(LineEdit);
-		create_sys_func->set_placeholder(TTR("function name"));
-		vert_container->add_child(create_sys_func);
-
-		create_sys_error_lbl = memnew(Label);
-		create_sys_error_lbl->hide();
-		create_sys_error_lbl->add_theme_color_override("font_color", Color(1.0, 0.0, 0.0));
-		vert_container->add_child(create_sys_error_lbl);
+		add_script_error_lbl = memnew(Label);
+		add_script_error_lbl->hide();
+		add_script_error_lbl->add_theme_color_override("font_color", Color(1.0, 0.0, 0.0));
+		vert_container->add_child(add_script_error_lbl);
 	}
 }
 
@@ -412,8 +406,9 @@ void EditorWorldECS::draw(DrawLayer *p_draw_layer) {
 	// Setting this value here, so I can avoid to pass this pointer to each func.
 	draw_layer = p_draw_layer;
 
-	pipeline_panel_draw_batch(0, 1);
-	pipeline_panel_draw_batch(2, 3);
+	// TODO now draw the batches using `pipeline_panel_draw_batch();`
+	//pipeline_panel_draw_batch(0, 1);
+	//pipeline_panel_draw_batch(2, 3);
 
 	draw_layer = nullptr;
 }
@@ -533,11 +528,10 @@ void EditorWorldECS::pipeline_panel_update() {
 		SystemInfoBox *info_box = pipeline_panel_add_system();
 
 		const String system_link = systems[i];
-		Vector<String> s = system_link.split("::");
 
-		if (s.size() == 2) {
+		if (system_link.is_resource_file()) {
 			// Init a script system.
-			info_box->set_system_name(s[1]);
+			info_box->set_system_name(system_link.get_file());
 			// TODO add script system components
 
 		} else {
@@ -580,8 +574,6 @@ void EditorWorldECS::pipeline_panel_update() {
 			}
 		}
 	}
-
-	// TODO now draw the batches using `pipeline_panel_draw_batch();`
 }
 
 void EditorWorldECS::add_sys_show() {
@@ -637,16 +629,13 @@ void EditorWorldECS::add_sys_update(const String &p_search) {
 	// Scripts systems
 	TreeItem *script_root = nullptr;
 
-	if (ProjectSettings::get_singleton()->has_setting("ECS/system_scripts")) {
-		Array sys_scripts = ProjectSettings::get_singleton()->get_setting("ECS/system_scripts");
+	if (ProjectSettings::get_singleton()->has_setting("ECS/System/scripts")) {
+		Array sys_scripts = ProjectSettings::get_singleton()->get_setting("ECS/System/scripts");
 		for (int i = 0; i < sys_scripts.size(); i += 1) {
-			String sys_link = sys_scripts[i];
-			Vector<String> v = sys_link.split("::");
+			const String sys_script_path = sys_scripts[i];
+			const String system_name = sys_script_path.get_file();
 
-			// Make sure there are exactly 2 items. The link is: `/path/to/script::func_name`.
-			ERR_CONTINUE(v.size() != 2);
-
-			if (p_search.empty() == false && v[1].find(p_search) != 0) {
+			if (p_search.empty() == false && system_name.find(p_search) != 0) {
 				// System filtered.
 				continue;
 			}
@@ -660,9 +649,9 @@ void EditorWorldECS::add_sys_update(const String &p_search) {
 			}
 
 			TreeItem *item = add_sys_tree->create_item(script_root);
-			item->set_text(0, v[1]);
-			item->set_meta("system_link", sys_link);
-			item->set_meta("desc", "GDScript: " + v[0]);
+			item->set_text(0, system_name);
+			item->set_meta("system_link", sys_script_path);
+			item->set_meta("desc", "GDScript: " + sys_script_path);
 		}
 	}
 
@@ -715,58 +704,73 @@ void EditorWorldECS::add_sys_add() {
 
 void EditorWorldECS::create_sys_show() {
 	// Display the modal window centered.
-	const Vector2i modal_pos = (Vector2i(get_viewport_rect().size) - create_script_sys_window->get_size()) / 2.0;
-	create_script_sys_window->set_position(modal_pos);
-	create_script_sys_window->set_visible(true);
-	create_sys_error_lbl->hide();
+	const Vector2i modal_pos = (Vector2i(get_viewport_rect().size) - add_script_window->get_size()) / 2.0;
+	add_script_window->set_position(modal_pos);
+	add_script_window->set_visible(true);
+	add_script_error_lbl->hide();
 }
 
 void EditorWorldECS::create_sys_hide() {
-	create_script_sys_window->set_visible(false);
+	add_script_window->set_visible(false);
 }
 
-void EditorWorldECS::create_sys_do() {
+void EditorWorldECS::add_script_do() {
 	// Test creating script system list.
 
-	const String script_path = create_sys_path->get_text();
-	const String func_name = create_sys_func->get_text();
+	const String script_path = add_script_path->get_text().strip_edges();
 
+	Ref<Script> script = ResourceLoader::load(script_path);
 	// Check the script path.
-	if (false == false) {
-		create_sys_error_lbl->set_text(TTR("The script path is not valid."));
-		create_sys_error_lbl->show();
+	if (script.is_null()) {
+		add_script_error_lbl->set_text(TTR("The script path [") + script_path + TTR("] doesn't point to a script."));
+		add_script_error_lbl->show();
 		return;
 	}
 
-	// Check if the function exists.
-	if (false == false) {
-		create_sys_error_lbl->set_text(TTR("The function doesn't exist."));
-		create_sys_error_lbl->show();
+	if (script->is_valid() == false) {
+		add_script_error_lbl->set_text(TTR("The script [") + script_path + TTR("] has some errors, fix these."));
+		add_script_error_lbl->show();
 		return;
 	}
 
-	// Check if the function is a valid system.
-	if (false == false) {
-		create_sys_error_lbl->set_text(TTR("The function " + func_name + " is not a valid system."));
-		create_sys_error_lbl->show();
+	String err = "";
+	if ("System" == script->get_instance_base_type()) {
+		err = System::validate_script(script);
+	} else if ("Component" == script->get_instance_base_type()) {
+		err = Component::validate_script(script);
+	} else if ("Resource" == script->get_instance_base_type()) {
+		err = resource_validate_script(script);
+	} else {
+		err = TTR("The script must extend a `System` a `Component` or a `Resource`.");
+	}
+
+	if (err != "") {
+		add_script_error_lbl->set_text(TTR("The script [") + script_path + TTR("] validation failed: ") + err);
+		add_script_error_lbl->show();
 		return;
 	}
 
-	// The script and functions are ok.
-	Array sys_scripts = ProjectSettings::get_singleton()->get_setting("ECS/system_scripts");
+	// The script is valid, store it.
+	const String script_setting_path = "ECS/" + script->get_instance_base_type() + "/scripts";
+	Array scripts;
+	if (ProjectSettings::get_singleton()->has_setting(script_setting_path)) {
+		scripts = ProjectSettings::get_singleton()->get_setting(script_setting_path);
+	}
 
 	// Check if this system already exists.
-	const String script_system_link = script_path + "::" + func_name;
 
-	if (sys_scripts.find(script_system_link) >= 0) {
-		create_sys_error_lbl->set_text(TTR("The function " + func_name + " is already registered as system."));
-		create_sys_error_lbl->show();
+	if (scripts.find(script_path) >= 0) {
+		add_script_error_lbl->set_text(TTR("The") + " " + script->get_instance_base_type() + " [" + script_path + "] " + TTR("is already registered."));
+		add_script_error_lbl->show();
 		return;
 	}
 
-	sys_scripts.push_back(script_system_link);
+	scripts.push_back(script_path);
 
-	ProjectSettings::get_singleton()->set_setting("ECS/system_scripts", sys_scripts);
+	ProjectSettings::get_singleton()->set_setting(script_setting_path, scripts);
+
+	add_script_path->set_text("");
+	add_script_window->set_visible(false);
 }
 
 void EditorWorldECS::_changed_callback(Object *p_changed, const char *p_prop) {

@@ -5,7 +5,7 @@
 
 #include "component.h"
 
-class TransformComponent : public Component {
+class TransformComponent : public godex::Component {
 	COMPONENT(TransformComponent, DenseVector)
 
 	Transform transform;

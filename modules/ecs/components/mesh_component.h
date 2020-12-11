@@ -5,7 +5,7 @@
 
 #include "component.h"
 
-class MeshComponent : public Component {
+class MeshComponent : public godex::Component {
 	COMPONENT(MeshComponent, DenseVector)
 
 public:

@@ -63,10 +63,9 @@ class EditorWorldECS : public PanelContainer {
 	class TextEdit *add_sys_desc = nullptr;
 
 	// Create script system window.
-	ConfirmationDialog *create_script_sys_window = nullptr;
-	LineEdit *create_sys_path = nullptr;
-	LineEdit *create_sys_func = nullptr;
-	Label *create_sys_error_lbl = nullptr;
+	ConfirmationDialog *add_script_window = nullptr;
+	LineEdit *add_script_path = nullptr;
+	Label *add_script_error_lbl = nullptr;
 
 	LocalVector<SystemInfoBox *> pipeline_systems;
 
@@ -101,7 +100,7 @@ public:
 
 	void create_sys_show();
 	void create_sys_hide();
-	void create_sys_do();
+	void add_script_do();
 
 protected:
 	void _changed_callback(Object *p_changed, const char *p_prop) override;

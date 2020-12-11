@@ -2,6 +2,8 @@
 
 /** @author AndreaCatania */
 
+using godex::Component;
+
 Component::Component() {
 }
 
