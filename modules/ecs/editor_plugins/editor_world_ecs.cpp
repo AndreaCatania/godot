@@ -6,8 +6,8 @@
 #include "editor/editor_node.h"
 #include "editor/editor_scale.h"
 #include "modules/ecs/ecs.h"
+#include "modules/ecs/nodes/ecs_utilities.h"
 #include "modules/ecs/nodes/ecs_world.h"
-#include "modules/ecs/nodes/scripts.h"
 #include "scene/gui/color_rect.h"
 
 SystemInfoBox::SystemInfoBox(EditorNode *p_editor) :

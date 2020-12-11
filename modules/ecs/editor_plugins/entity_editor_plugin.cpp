@@ -4,6 +4,7 @@
 #include "core/io/marshalls.h"
 #include "editor/editor_properties.h"
 #include "editor/editor_properties_array_dict.h"
+#include "modules/ecs/nodes/ecs_utilities.h"
 #include "modules/ecs/nodes/entity.h"
 
 EntityEditor::EntityEditor(
@@ -32,7 +33,8 @@ void EntityEditor::create_editors() {
 	const Color section_color = get_theme_color("prop_subsection", "Editor");
 
 	add_component_menu = memnew(MenuButton);
-	add_component_menu->set_text("Add new component");
+	add_component_menu->set_text("Add component");
+	add_component_menu->set_icon(editor->get_theme_base()->get_theme_icon("New", "EditorIcons"));
 	add_component_menu->get_popup()->connect("id_pressed", callable_mp(this, &EntityEditor::_add_component_pressed));
 	add_child(add_component_menu);
 
@@ -55,7 +57,14 @@ void EntityEditor::update_editors() {
 
 		const LocalVector<StringName> &components = ECS::get_registered_components();
 		for (uint32_t i = 0; i < components.size(); i += 1) {
-			add_component_menu->get_popup()->add_item(components[i], i);
+			add_component_menu->get_popup()->add_item(components[i]);
+		}
+
+		// Make sure to load all the components.
+		ScriptECS::load_components();
+		const LocalVector<Ref<Component>> &scripts = ScriptECS::get_components();
+		for (uint32_t i = 0; i < scripts.size(); i += 1) {
+			add_component_menu->get_popup()->add_item(scripts[i]->get_name());
 		}
 	}
 
@@ -73,9 +82,9 @@ void EntityEditor::update_editors() {
 			component_section->setup("component_" + String(*key), String(*key), entity, section_color, true);
 			component_section->unfold();
 
-			// TODO would be nice put this into the EditorInspectorSection.
 			Button *del_btn = memnew(Button);
-			del_btn->set_text("Remove component");
+			del_btn->set_text("Drop");
+			del_btn->set_icon(editor->get_theme_base()->get_theme_icon("Remove", "EditorIcons"));
 			del_btn->set_flat(true);
 			del_btn->connect("pressed", callable_mp(this, &EntityEditor::_remove_component_pressed), varray(key->operator StringName()));
 			component_section->get_vbox()->add_child(del_btn);
@@ -554,8 +563,16 @@ void EntityEditor::update_component_inspector(StringName p_component_name) {
 	}
 }
 
-void EntityEditor::_add_component_pressed(uint32_t p_component_id) {
-	entity->add_component_data(ECS::get_registered_components()[p_component_id]);
+void EntityEditor::_add_component_pressed(uint32_t p_index) {
+	if (p_index < ECS::get_registered_components().size()) {
+		// This is a native component.
+		entity->add_component_data(ECS::get_registered_components()[p_index]);
+	} else {
+		// This is a GDScript component.
+		String component_name = add_component_menu->get_popup()->get_item_text(p_index);
+		entity->add_component_data(component_name);
+	}
+
 	update_editors();
 }
 

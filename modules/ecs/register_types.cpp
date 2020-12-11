@@ -6,9 +6,9 @@
 #include "core/config/engine.h"
 #include "core/object/message_queue.h"
 #include "ecs.h"
+#include "nodes/ecs_utilities.h"
 #include "nodes/ecs_world.h"
 #include "nodes/entity.h"
-#include "nodes/scripts.h"
 
 #include "editor_plugins/editor_world_ecs.h"
 #include "editor_plugins/entity_editor_plugin.h"

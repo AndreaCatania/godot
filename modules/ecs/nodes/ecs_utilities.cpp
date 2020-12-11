@@ -1,5 +1,7 @@
-#include "scripts.h"
+#include "ecs_utilities.h"
 
+#include "core/config/project_settings.h"
+#include "core/io/resource_loader.h"
 #include "core/object/script_language.h"
 
 void System::_bind_methods() {
@@ -45,6 +47,10 @@ void Component::_bind_methods() {
 }
 
 Component::Component() {
+}
+
+const String &Component::get_name() const {
+	return name;
 }
 
 String Component::validate_script(Ref<Script> p_script) {
@@ -95,3 +101,61 @@ String resource_validate_script(Ref<Script> p_script) {
 	// This script is safe to use.
 	return "Not yet implemented";
 }
+
+LocalVector<String> ScriptECS::component_names;
+LocalVector<Ref<Component>> ScriptECS::components;
+
+uint32_t ScriptECS::get_component_id(const String &p_name) {
+	const int64_t index = component_names.find(p_name);
+	return index < 0 ? UINT32_MAX : uint32_t(index);
+}
+
+void ScriptECS::load_components() {
+	if (ProjectSettings::get_singleton()->has_setting("ECS/Component/scripts") == false) {
+		return;
+	}
+
+	const Array scripts = ProjectSettings::get_singleton()->get_setting("ECS/Component/scripts");
+	for (int i = 0; i < scripts.size(); i += 1) {
+		reload_component(scripts[i]);
+	}
+}
+
+uint32_t ScriptECS::reload_component(const String &p_path) {
+	const String name = p_path.get_file();
+	uint32_t id = get_component_id(name);
+	if (id == UINT32_MAX) {
+		// Component doesn't exists.
+
+		Ref<Script> script = ResourceLoader::load(p_path);
+
+		ERR_FAIL_COND_V_MSG(script.is_null(), UINT32_MAX, "The script [" + p_path + "] can't be loaded.");
+		ERR_FAIL_COND_V_MSG(script->is_valid() == false, UINT32_MAX, "The script [" + p_path + "] is not a valid script.");
+		ERR_FAIL_COND_V_MSG("Component" != script->get_instance_base_type(), UINT32_MAX, "This script [" + p_path + "] is not extending `Component`.");
+
+		Ref<Component> component;
+		component.instance();
+		component->set_script(script);
+		component->name = name;
+
+		id = component_names.size();
+		component_names.push_back(name);
+		components.push_back(component);
+
+	} else {
+		// Update the component.
+		// TODO
+		// In case the script is changed, do I need to load it again??
+		print_line("aa");
+	}
+	return id;
+}
+
+const LocalVector<Ref<Component>> &ScriptECS::get_components() {
+	return components;
+}
+
+//String ScriptECS::get_component_name(Ref<Script> p_component_script) {
+//	ERR_FAIL_COND_V(p_component_script.is_null(), "");
+//	return p_component_script->get_path();
+//}
