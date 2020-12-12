@@ -61,7 +61,6 @@ void EntityEditor::update_editors() {
 		}
 
 		// Make sure to load all the components.
-		ScriptECS::load_components();
 		const LocalVector<Ref<Component>> &scripts = ScriptECS::get_components();
 		for (uint32_t i = 0; i < scripts.size(); i += 1) {
 			add_component_menu->get_popup()->add_item(scripts[i]->get_name());
@@ -102,8 +101,6 @@ void EntityEditor::create_component_inspector(StringName p_component_name, VBoxC
 	List<PropertyInfo> properties;
 
 	if (String(p_component_name).ends_with(".gd")) {
-		// Make sure all the `ScriptECS` component are up to date.
-		ScriptECS::load_components();
 		const uint32_t id = ScriptECS::get_component_id(p_component_name);
 		if (id != UINT32_MAX) {
 			Ref<Component> component = ScriptECS::get_component(id);

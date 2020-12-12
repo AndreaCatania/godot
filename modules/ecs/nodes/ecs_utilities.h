@@ -34,23 +34,25 @@ class Component : public Resource {
 
 	friend class ScriptECS;
 
-	String name;
+	StringName name;
 	Ref<Script> component_script;
 
 	static void _bind_methods();
 
-	void set_name(String p_name);
+	void set_name(StringName p_name);
 	void set_component_script(Ref<Script> p_script);
 
 public:
 	Component();
 	~Component();
 
-	const String &get_name() const;
+	StringName get_name() const;
 
 	void get_component_property_list(List<PropertyInfo> *p_info);
 	Variant get_property_default_value(StringName p_property_name);
 
+	/// Validate the script and returns a void string if the validation success
+	/// or the error message.
 	static String validate_script(Ref<Script> p_script);
 };
 
@@ -58,17 +60,19 @@ String resource_validate_script(Ref<Script> p_script);
 
 /// Utility that allow to handle the godot scripted Component, Resources, Systems.
 class ScriptECS {
-	static LocalVector<String> component_names;
+	static bool component_loaded;
+
+	static LocalVector<StringName> component_names;
 	static LocalVector<Ref<Component>> components;
 
 public:
-	static uint32_t get_component_id(const String &p_name);
-
 	/// Loads components.
 	static void load_components();
 
 	/// Load or Reloads a component. Retuns the component id.
 	static uint32_t reload_component(const String &p_path);
+
+	static uint32_t get_component_id(const StringName &p_name);
 
 	static const LocalVector<Ref<Component>> &get_components();
 

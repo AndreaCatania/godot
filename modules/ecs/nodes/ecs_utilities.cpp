@@ -53,7 +53,7 @@ Component::~Component() {
 	set_component_script(Ref<Script>());
 }
 
-void Component::set_name(String p_name) {
+void Component::set_name(StringName p_name) {
 	name = p_name;
 }
 
@@ -61,7 +61,7 @@ void Component::set_component_script(Ref<Script> p_script) {
 	component_script = p_script;
 }
 
-const String &Component::get_name() const {
+StringName Component::get_name() const {
 	return name;
 }
 
@@ -140,15 +140,16 @@ String resource_validate_script(Ref<Script> p_script) {
 	return "Not yet implemented";
 }
 
-LocalVector<String> ScriptECS::component_names;
+bool ScriptECS::component_loaded = false;
+LocalVector<StringName> ScriptECS::component_names;
 LocalVector<Ref<Component>> ScriptECS::components;
 
-uint32_t ScriptECS::get_component_id(const String &p_name) {
-	const int64_t index = component_names.find(p_name);
-	return index < 0 ? UINT32_MAX : uint32_t(index);
-}
-
 void ScriptECS::load_components() {
+	if (component_loaded) {
+		return;
+	}
+	component_loaded = true;
+
 	if (ProjectSettings::get_singleton()->has_setting("ECS/Component/scripts") == false) {
 		return;
 	}
@@ -160,7 +161,7 @@ void ScriptECS::load_components() {
 }
 
 uint32_t ScriptECS::reload_component(const String &p_path) {
-	const String name = p_path.get_file();
+	const StringName name = p_path.get_file();
 	uint32_t id = get_component_id(name);
 	if (id == UINT32_MAX) {
 		// Component doesn't exists.
@@ -179,20 +180,24 @@ uint32_t ScriptECS::reload_component(const String &p_path) {
 		id = component_names.size();
 		component_names.push_back(name);
 		components.push_back(component);
-
-	} else {
-		// Update the component.
-		// TODO
-		// In case the script is changed, do I need to load it again??
 	}
 	return id;
 }
 
+uint32_t ScriptECS::get_component_id(const StringName &p_name) {
+	const int64_t index = component_names.find(p_name);
+	return index < 0 ? UINT32_MAX : uint32_t(index);
+}
+
 const LocalVector<Ref<Component>> &ScriptECS::get_components() {
+	load_components();
+
 	return components;
 }
 
 Ref<Component> ScriptECS::get_component(uint32_t p_id) {
+	load_components();
+
 	return components[p_id];
 }
 
