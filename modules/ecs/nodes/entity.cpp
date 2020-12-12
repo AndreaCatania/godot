@@ -1,6 +1,7 @@
 
 #include "entity.h"
 
+#include "ecs_utilities.h"
 #include "ecs_world.h"
 
 void Entity::_bind_methods() {
@@ -88,11 +89,27 @@ void Entity::set_component_data_value(StringName p_component_name, StringName p_
 }
 
 Variant Entity::get_component_data_value(StringName p_component_name, StringName p_property_name) const {
-	ERR_FAIL_COND_V(components_data.has(p_component_name) == false, Variant());
-	if (components_data[p_component_name].get_type() != Variant::DICTIONARY) {
-		return Variant();
+	const Variant *component_properties = components_data.getptr(p_component_name);
+	ERR_FAIL_COND_V_MSG(component_properties == nullptr, Variant(), "The component " + p_component_name + " doesn't exist in this entity: " + get_path());
+
+	if (component_properties->get_type() == Variant::DICTIONARY) {
+		const Variant *value = (component_properties->operator Dictionary()).getptr(p_property_name);
+		if (value != nullptr) {
+			// Property is stored, just return it.
+			return *value;
+		}
+	}
+
+	// Property was not found, take the default one.
+	if (String(p_component_name).ends_with(".gd")) {
+		// This is a Script Component.
+		const uint32_t id = ScriptECS::get_component_id(p_component_name);
+		ERR_FAIL_COND_V_MSG(id == UINT32_MAX, Variant(), "The script component " + p_component_name + " was not found.");
+		Ref<Component> c = ScriptECS::get_component(id);
+		return c->get_property_default_value(p_property_name);
 	} else {
-		return (components_data[p_component_name].operator Dictionary())[p_property_name];
+		// This is a native Component.
+		return ECS::get_component_property_default(p_component_name, p_property_name);
 	}
 }
 

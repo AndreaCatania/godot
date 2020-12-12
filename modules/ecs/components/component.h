@@ -89,6 +89,10 @@ private:                                                                        
 	static OAHashMap<StringName, PropertyInfo> *get_properties_static() {                                              \
 		return &property_map;                                                                                          \
 	}                                                                                                                  \
+	static Variant get_property_default_static(StringName p_name) {                                                    \
+		const m_class c;                                                                                               \
+		return c.get(p_name);                                                                                          \
+	}                                                                                                                  \
 	static void clear_properties_static() {                                                                            \
 		property_map.clear();                                                                                          \
 	}                                                                                                                  \

@@ -13,9 +13,11 @@
 
 class World;
 
+// These functions are implemented by the `COMPONENT` macro and assigned during
+// component registration.
 struct ComponentInfo {
 	OAHashMap<StringName, PropertyInfo> *(*get_properties)();
-	// This functions is implemented by the `COMPONENT` macro.
+	Variant (*get_property_default)(StringName p_property_name);
 	void (*add_component_by_name)(World *, EntityID, const Variant &);
 };
 
@@ -45,6 +47,7 @@ public:
 	static StringName get_component_name(uint32_t p_component_id);
 	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(uint32_t p_component_id);
 	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(StringName p_component_name);
+	static Variant get_component_property_default(StringName p_component_name, StringName p_property_name);
 	static void add_component_by_name(World *p_world, EntityID p_entity, StringName p_component_name, const Variant &p_data);
 
 	// ~~ Resources ~~
@@ -115,6 +118,7 @@ void ECS::register_component() {
 	components_info.push_back(
 			ComponentInfo{
 					&C::get_properties_static,
+					&C::get_property_default_static,
 					&C::add_component_by_name });
 }
 

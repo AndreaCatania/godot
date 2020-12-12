@@ -31,16 +31,25 @@ VARIANT_ENUM_CAST(System::Mutability);
 
 class Component : public Resource {
 	GDCLASS(Component, Resource);
+
 	friend class ScriptECS;
 
 	String name;
+	Ref<Script> component_script;
 
 	static void _bind_methods();
 
+	void set_name(String p_name);
+	void set_component_script(Ref<Script> p_script);
+
 public:
 	Component();
+	~Component();
 
 	const String &get_name() const;
+
+	void get_component_property_list(List<PropertyInfo> *p_info);
+	Variant get_property_default_value(StringName p_property_name);
 
 	static String validate_script(Ref<Script> p_script);
 };
@@ -62,4 +71,6 @@ public:
 	static uint32_t reload_component(const String &p_path);
 
 	static const LocalVector<Ref<Component>> &get_components();
+
+	static Ref<Component> get_component(uint32_t p_id);
 };

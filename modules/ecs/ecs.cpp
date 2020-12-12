@@ -47,6 +47,12 @@ const OAHashMap<StringName, PropertyInfo> *ECS::get_component_properties(StringN
 	return get_component_properties(id);
 }
 
+Variant ECS::get_component_property_default(StringName p_component_name, StringName p_property_name) {
+	const int64_t id = components.find(p_component_name);
+	ERR_FAIL_COND_V_MSG(id == -1, Variant(), "The component " + p_component_name + " doesn't exist or it's not registered.");
+	return components_info[id].get_property_default(p_property_name);
+}
+
 void ECS::add_component_by_name(
 		World *p_world,
 		EntityID p_entity,
