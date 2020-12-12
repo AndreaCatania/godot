@@ -18,7 +18,6 @@ class Entity : public Node {
 
 protected:
 	static void _bind_methods();
-	void set_components_data(Dictionary p_data);
 
 	bool _set(const StringName &p_name, const Variant &p_value);
 	bool _get(const StringName &p_name, Variant &r_ret) const;
@@ -31,6 +30,8 @@ public:
 
 	void add_component_data(StringName p_component_name);
 	void remove_component_data(StringName p_component_name);
+
+	void set_components_data(Dictionary p_data);
 	const Dictionary &get_components_data() const;
 
 	void set_component_data_value(StringName p_component_name, StringName p_property_name, const Variant &p_value);

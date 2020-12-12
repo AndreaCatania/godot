@@ -698,7 +698,7 @@ void EditorWorldECS::add_sys_add() {
 	editor->get_undo_redo()->add_do_method(pipeline.ptr(), "insert_system", selected->get_meta("system_link"));
 	// Undo by resetting the `system_links` because the `insert_system` changes
 	// the array not trivially.
-	editor->get_undo_redo()->add_undo_method(pipeline.ptr(), "set_system_links", pipeline->get_system_links());
+	editor->get_undo_redo()->add_undo_method(pipeline.ptr(), "set_system_links", pipeline->get_system_links().duplicate(true));
 	editor->get_undo_redo()->commit_action();
 }
 

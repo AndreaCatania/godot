@@ -5,15 +5,15 @@
 #include "ecs_world.h"
 
 void Entity::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("_set_components_data"), &Entity::set_components_data);
-	ClassDB::bind_method(D_METHOD("_get_components_data"), &Entity::get_components_data);
+	ClassDB::bind_method(D_METHOD("add_component_data", "component_name"), &Entity::add_component_data);
+	ClassDB::bind_method(D_METHOD("remove_component_data", "component_name"), &Entity::remove_component_data);
 
-	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "_component_data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "_set_components_data", "_get_components_data");
-}
+	ClassDB::bind_method(D_METHOD("set_component_data_value", "component", "property", "value"), &Entity::set_component_data_value);
 
-void Entity::set_components_data(Dictionary p_data) {
-	components_data = p_data;
-	update_component_data();
+	ClassDB::bind_method(D_METHOD("__set_components_data", "data"), &Entity::set_components_data);
+	ClassDB::bind_method(D_METHOD("__get_components_data"), &Entity::get_components_data);
+
+	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "__component_data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE), "__set_components_data", "__get_components_data");
 }
 
 bool Entity::_set(const StringName &p_name, const Variant &p_value) {
@@ -69,11 +69,18 @@ void Entity::add_component_data(StringName p_component_name) {
 	ERR_FAIL_COND_MSG(Engine::get_singleton()->is_editor_hint() == false, "This function can only be called on Editor, probably you need to use `add_component`.");
 	ERR_FAIL_COND(components_data.has(p_component_name));
 	components_data[p_component_name] = Variant();
+	update_component_data();
 }
 
 void Entity::remove_component_data(StringName p_component_name) {
 	ERR_FAIL_COND_MSG(Engine::get_singleton()->is_editor_hint() == false, "This function can only be called on Editor, probably you need to use `add_component`.");
 	components_data.erase(p_component_name);
+	update_component_data();
+}
+
+void Entity::set_components_data(Dictionary p_data) {
+	components_data = p_data;
+	update_component_data();
 }
 
 const Dictionary &Entity::get_components_data() const {
@@ -86,6 +93,7 @@ void Entity::set_component_data_value(StringName p_component_name, StringName p_
 		components_data[p_component_name] = Dictionary();
 	}
 	(components_data[p_component_name].operator Dictionary())[p_property_name] = p_value;
+	update_component_data();
 }
 
 Variant Entity::get_component_data_value(StringName p_component_name, StringName p_property_name) const {

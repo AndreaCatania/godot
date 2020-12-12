@@ -23,6 +23,8 @@ class EntityEditor : public VBoxContainer {
 	MenuButton *add_component_menu = nullptr;
 	EditorInspectorSection *components_section = nullptr;
 
+	static void _bind_methods();
+
 public:
 	EntityEditor(EditorInspectorPluginEntity *p_plugin, EditorNode *p_editor, Entity *p_entity);
 	~EntityEditor();

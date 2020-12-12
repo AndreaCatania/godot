@@ -7,6 +7,10 @@
 #include "modules/ecs/nodes/ecs_utilities.h"
 #include "modules/ecs/nodes/entity.h"
 
+void EntityEditor::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("update_editors"), &EntityEditor::update_editors);
+}
+
 EntityEditor::EntityEditor(
 		EditorInspectorPluginEntity *p_plugin,
 		EditorNode *p_editor,
@@ -35,6 +39,7 @@ void EntityEditor::create_editors() {
 	add_component_menu = memnew(MenuButton);
 	add_component_menu->set_text("Add component");
 	add_component_menu->set_icon(editor->get_theme_base()->get_theme_icon("New", "EditorIcons"));
+	add_component_menu->set_flat(false);
 	add_component_menu->get_popup()->connect("id_pressed", callable_mp(this, &EntityEditor::_add_component_pressed));
 	add_child(add_component_menu);
 
@@ -43,7 +48,7 @@ void EntityEditor::create_editors() {
 	//add_child(category);
 
 	components_section = memnew(EditorInspectorSection);
-	components_section->setup("components", "Components", entity, section_color, true);
+	components_section->setup("components", "Components", entity, section_color, false);
 	add_child(components_section);
 	components_section->unfold();
 }
@@ -84,7 +89,8 @@ void EntityEditor::update_editors() {
 			Button *del_btn = memnew(Button);
 			del_btn->set_text("Drop");
 			del_btn->set_icon(editor->get_theme_base()->get_theme_icon("Remove", "EditorIcons"));
-			del_btn->set_flat(true);
+			del_btn->set_flat(false);
+			del_btn->set_text_align(Button::ALIGN_LEFT);
 			del_btn->connect("pressed", callable_mp(this, &EntityEditor::_remove_component_pressed), varray(key->operator StringName()));
 			component_section->get_vbox()->add_child(del_btn);
 
@@ -573,35 +579,46 @@ void EntityEditor::update_component_inspector(StringName p_component_name) {
 }
 
 void EntityEditor::_add_component_pressed(uint32_t p_index) {
+	StringName component_name;
 	if (p_index < ECS::get_registered_components().size()) {
 		// This is a native component.
-		entity->add_component_data(ECS::get_registered_components()[p_index]);
+		component_name = ECS::get_registered_components()[p_index];
 	} else {
 		// This is a GDScript component.
-		String component_name = add_component_menu->get_popup()->get_item_text(p_index);
-		entity->add_component_data(component_name);
+		component_name = add_component_menu->get_popup()->get_item_text(p_index);
 	}
 
-	update_editors();
+	editor->get_undo_redo()->create_action(TTR("Add component"));
+	editor->get_undo_redo()->add_do_method(entity, "add_component_data", component_name);
+	editor->get_undo_redo()->add_do_method(this, "update_editors");
+	editor->get_undo_redo()->add_undo_method(entity, "remove_component_data", component_name);
+	editor->get_undo_redo()->add_undo_method(this, "update_editors");
+	editor->get_undo_redo()->commit_action();
 }
 
 void EntityEditor::_remove_component_pressed(StringName p_component_name) {
-	entity->remove_component_data(p_component_name);
-	update_editors();
+	editor->get_undo_redo()->create_action(TTR("Drop component"));
+	editor->get_undo_redo()->add_do_method(entity, "remove_component_data", p_component_name);
+	editor->get_undo_redo()->add_do_method(this, "update_editors");
+	// Undo by setting the old component data, so to not lost the parametes.
+	editor->get_undo_redo()->add_undo_method(entity, "__set_components_data", entity->get_components_data().duplicate(true));
+	editor->get_undo_redo()->add_undo_method(this, "update_editors");
+	editor->get_undo_redo()->commit_action();
 }
 
 void EntityEditor::_property_changed(const String &p_path, const Variant &p_value, const String &p_name, bool p_changing) {
 	if (p_changing) {
 		// Nothing to do while chaning.
-		return;
+		// TODO activate this back when this PR is merged: https://github.com/godotengine/godot/pull/44326
+		//return;
 	}
 
-	const Vector<String> names = p_path.split("/");
-	ERR_FAIL_COND(names.size() < 2);
-	const String component_name = names[0];
-	const String property_name = names[1];
-
-	entity->set_component_data_value(component_name, property_name, p_value);
+	editor->get_undo_redo()->create_action(TTR("Set component value"));
+	editor->get_undo_redo()->add_do_method(entity, "set", p_path, p_value);
+	// Undo by setting the old component data, so to properly reset to previous.
+	editor->get_undo_redo()->add_undo_method(entity, "__set_components_data", entity->get_components_data().duplicate(true));
+	editor->get_undo_redo()->add_undo_method(this, "update_editors");
+	editor->get_undo_redo()->commit_action();
 }
 
 bool EditorInspectorPluginEntity::can_handle(Object *p_object) {
