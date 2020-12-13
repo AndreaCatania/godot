@@ -33,6 +33,11 @@ const LocalVector<StringName> &ECS::get_registered_components() {
 	return components;
 }
 
+uint32_t ECS::get_component_id(StringName p_component_name) {
+	const int64_t i = components.find(p_component_name);
+	return i < 0 ? UINT32_MAX : uint32_t(i);
+}
+
 StringName ECS::get_component_name(uint32_t p_component_id) {
 	ERR_FAIL_INDEX_V_MSG(p_component_id, components.size(), "", "The `component_id` is invalid: " + itos(p_component_id));
 	return components[p_component_id];

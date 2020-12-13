@@ -24,6 +24,8 @@ public:
 
 	virtual void insert(EntityID p_entity, T p_data) override;
 	virtual bool has(EntityID p_entity) const override;
+	virtual const godex::Component *get_ptr(EntityID p_entity) const;
+	virtual godex::Component *get_ptr(EntityID p_entity);
 	virtual const T &get(EntityID p_entity) const override;
 	virtual T &get(EntityID p_entity) override;
 	virtual void remove(EntityID p_entity) override;
@@ -61,6 +63,18 @@ void DenseVector<T>::insert(EntityID p_entity, T p_data) {
 template <class T>
 bool DenseVector<T>::has(EntityID p_entity) const {
 	return p_entity < entity_to_data.size() && entity_to_data[p_entity] != UINT32_MAX;
+}
+
+template <class T>
+const godex::Component *DenseVector<T>::get_ptr(EntityID p_entity) const {
+	CRASH_COND_MSG(has(p_entity) == false, "This entity doesn't have anything stored into this storage.");
+	return &data[entity_to_data[p_entity]];
+}
+
+template <class T>
+godex::Component *DenseVector<T>::get_ptr(EntityID p_entity) {
+	CRASH_COND_MSG(has(p_entity) == false, "This entity doesn't have anything stored into this storage.");
+	return &data[entity_to_data[p_entity]];
 }
 
 template <class T>

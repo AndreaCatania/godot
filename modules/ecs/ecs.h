@@ -44,6 +44,7 @@ public:
 	static void register_component();
 
 	static const LocalVector<StringName> &get_registered_components();
+	static uint32_t get_component_id(StringName p_component_name);
 	static StringName get_component_name(uint32_t p_component_id);
 	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(uint32_t p_component_id);
 	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(StringName p_component_name);
@@ -89,6 +90,7 @@ public:
 
 public:
 	ECS();
+
 	virtual ~ECS();
 
 	/// Set the active world. If there is already an active world an error

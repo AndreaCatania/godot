@@ -14,11 +14,9 @@ TEST_CASE("[Modules][ECS] Test ECS singleton validity.") {
 }
 
 TEST_CASE("[Modules][ECS] Test ECS Component ID validity.") {
-	const LocalVector<StringName> &components = ECS::get_singleton()->get_registered_components();
-
 	// Make sure the component IDs are properly registerd.
-	CHECK(String(components[TransformComponent::get_component_id()]) == TransformComponent::get_class_static());
-	CHECK(String(components[MeshComponent::get_component_id()]) == MeshComponent::get_class_static());
+	CHECK(String(ECS::get_component_name(TransformComponent::get_component_id())) == TransformComponent::get_class_static());
+	CHECK(String(ECS::get_component_name(MeshComponent::get_component_id())) == MeshComponent::get_class_static());
 }
 
 } // namespace godex_tests

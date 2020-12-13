@@ -7,6 +7,10 @@
 
 #include "modules/ecs/ecs_types.h"
 
+namespace godex {
+class Component;
+}
+
 enum class StorageType {
 	NONE,
 	DENSE_VECTOR,
@@ -17,6 +21,18 @@ public:
 	virtual ~Storage() {}
 	virtual StorageType get_type() const { return StorageType::NONE; }
 	virtual String get_type_name() const { return "Overload this function `get_type_name()` please."; }
+	virtual bool has(EntityID p_entity) const {
+		CRASH_NOW_MSG("Override this function.");
+		return false;
+	}
+	virtual const godex::Component *get_ptr(EntityID p_entity) const {
+		CRASH_NOW_MSG("Override this function.");
+		return nullptr;
+	}
+	virtual godex::Component *get_ptr(EntityID p_entity) {
+		CRASH_NOW_MSG("Override this function.");
+		return nullptr;
+	}
 	virtual void remove(EntityID p_index) {}
 };
 
@@ -27,11 +43,6 @@ class TypedStorage : public Storage {
 public:
 	virtual void insert(EntityID p_entity, T p_data) {
 		CRASH_NOW_MSG("Override this function.");
-	}
-
-	virtual bool has(EntityID p_entity) const {
-		CRASH_NOW_MSG("Override this function.");
-		return false;
 	}
 
 	virtual const T &get(EntityID p_entity) const {

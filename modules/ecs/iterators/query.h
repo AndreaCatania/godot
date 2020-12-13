@@ -57,18 +57,21 @@ public:
 	}
 };
 
-// TODO The lockup mechanism of this query must be improved to avoid any extra
-// reduntant for and avoid any cache miss.
-
+/// This query is the fastest available.
+/// Using the variadic template, is builded at compile time. Since the
+/// components must be known at compile time, this query can't by used by
+/// scripts that have to rely on the `DynamicQuery`.
 template <class... Cs>
 class Query {
 	World *world;
 	uint32_t id = UINT32_MAX;
+
 	QueryStorage<std::remove_reference_t<Cs>...> q;
 
 public:
 	Query(World *p_world) :
 			world(p_world), q(p_world) {
+		// Prepare the query: advances to the first available entity.
 		id = 0;
 		if (q.has_data(0) == false) {
 			next_entity();
@@ -107,6 +110,8 @@ public:
 		id = UINT32_MAX;
 	}
 
+	// TODO The lockup mechanism of this query must be improved to avoid any
+	// useless operation.
 	std::tuple<std::remove_reference_t<Cs> &...> get() const {
 		CRASH_COND_MSG(id == UINT32_MAX, "No entities! Please use `is_done` to correctly stop the system execution.");
 		return q.get(id);

@@ -38,6 +38,26 @@ void World::add_component(EntityID p_entity, StringName p_component_name, const 
 	ECS::add_component_by_name(this, p_entity, p_component_name, p_data);
 }
 
+const Storage *World::get_storage_by_id(uint32_t p_storage_id) const {
+	ERR_FAIL_COND_V_MSG(p_storage_id == UINT32_MAX, nullptr, "The component is not registered.");
+
+	if (p_storage_id >= storages.size() || storages[p_storage_id] == nullptr) {
+		return nullptr;
+	}
+
+	return storages[p_storage_id];
+}
+
+Storage *World::get_storage_by_id(uint32_t p_storage_id) {
+	ERR_FAIL_COND_V_MSG(p_storage_id == UINT32_MAX, nullptr, "The component is not registered.");
+
+	if (p_storage_id >= storages.size() || storages[p_storage_id] == nullptr) {
+		return nullptr;
+	}
+
+	return storages[p_storage_id];
+}
+
 void World::set_pipeline(Pipeline *p_pipeline) {
 	pipeline = p_pipeline;
 }
