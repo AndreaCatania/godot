@@ -27,6 +27,9 @@ TEST_CASE("[Modules][ECS] Test world") {
 	CHECK((entity_1_transform_component.get_transform().origin - transform_from_storage.get_transform().origin).length() < CMP_EPSILON);
 }
 
+TEST_CASE("[Modules][ECS] Test storage script component") {
+}
+
 } // namespace godex_tests
 
 #endif // TEST_ECS_WORLD_H

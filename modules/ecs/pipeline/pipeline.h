@@ -35,8 +35,8 @@ public:
 #define add_system(func)                                                   \
 	add_system([]() -> SystemInfo {                                        \
 		SystemInfo i = SystemBuilder::get_system_info_from_function(func); \
-		i.system_func = [](Pipeline *p_pipeline) {                         \
-			SystemBuilder::system_exec_func(p_pipeline, func);             \
+		i.system_func = [](World *p_world) {                               \
+			SystemBuilder::system_exec_func(p_world, func);                \
 		};                                                                 \
 		return i;                                                          \
 	})

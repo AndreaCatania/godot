@@ -12,7 +12,7 @@ public:
 	QueryStorage(World *p_world) {}
 
 	bool has_data(EntityID p_entity) const { return true; }
-	std::tuple<Cs &...> get() const { return std::tuple(); }
+	std::tuple<Cs &...> get(EntityID p_id) const { return std::tuple(); }
 
 	static void get_components(LocalVector<uint32_t> &r_mutable_components, LocalVector<uint32_t> &r_immutable_components) {}
 };
@@ -35,16 +35,15 @@ public:
 		return storage->has(p_entity) && QueryStorage<Cs...>::has_data(p_entity);
 	}
 
-	std::tuple<C &, Cs &...> get() const {
+	std::tuple<C &, Cs &...> get(EntityID p_id) const {
 #ifdef DEBUG_ENABLED
 		// This can't happen because `is_done` returns true.
 		CRASH_COND_MSG(storage == nullptr, "The storage" + String(typeid(TypedStorage<C>).name()) + " is null.");
 #endif
 
-		// TODO integrate this.
-		C &c = storage->get(EntityID(0));
+		C &c = storage->get(p_id);
 
-		return std::tuple_cat(std::tuple<C &>(c), QueryStorage<Cs...>::get());
+		return std::tuple_cat(std::tuple<C &>(c), QueryStorage<Cs...>::get(p_id));
 	}
 
 	static void get_components(LocalVector<uint32_t> &r_mutable_components, LocalVector<uint32_t> &r_immutable_components) {
@@ -80,10 +79,6 @@ public:
 		return id == UINT32_MAX;
 	}
 
-	bool has_next() const { // TODO remove this because it not a good name
-		return id != UINT32_MAX;
-	}
-
 	void operator+=(uint32_t p_i) {
 		for (uint32_t i = 0; i < p_i; i += 1) {
 			next_entity();
@@ -102,16 +97,19 @@ public:
 
 		for (uint32_t i = id + 1; i <= last_id; i += 1) {
 			if (q.has_data(i)) {
+				// This is the next entity that fulfils the query.
 				id = i;
 				return;
 			}
 		}
 
+		// No more entity
 		id = UINT32_MAX;
 	}
 
 	std::tuple<std::remove_reference_t<Cs> &...> get() const {
-		return q.get();
+		CRASH_COND_MSG(id == UINT32_MAX, "No entities! Please use `is_done` to correctly stop the system execution.");
+		return q.get(id);
 	}
 
 	static void get_components(LocalVector<uint32_t> &r_mutable_components, LocalVector<uint32_t> &r_immutable_components) {

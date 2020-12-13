@@ -8,6 +8,7 @@
 class TransformComponent : public godex::Component {
 	COMPONENT(TransformComponent, DenseVector)
 
+public:
 	Transform transform;
 
 public:
