@@ -25,7 +25,7 @@ public:
 
 /// This query is slower compared to `Query` but can be builded at runtime, so
 /// that the scripts can still interact with the `World`.
-/// Cache this query allow to save the time needed to lockup the components IDs,
+/// Cache this query allow to save the time needed to lookup the components IDs,
 /// so it's advised store it and use when needed.
 class DynamicQuery {
 	bool valid = true;

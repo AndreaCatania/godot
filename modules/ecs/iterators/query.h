@@ -57,8 +57,8 @@ public:
 	}
 };
 
-/// This query is the fastest available.
-/// Using the variadic template, is builded at compile time. Since the
+/// This is the fastest `Query`.
+/// Using the variadic template, it's build at compile time. Since the
 /// components must be known at compile time, this query can't by used by
 /// scripts that have to rely on the `DynamicQuery`.
 template <class... Cs>
