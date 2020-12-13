@@ -20,8 +20,10 @@ void ECS::_bind_methods() {
 
 ECS::ECS() :
 		Object() {
-	// TODO Do I need this?
-	MessageQueue::get_singleton()->push_callable(callable_mp(this, &ECS::ecs_init));
+	if (MessageQueue::get_singleton() != nullptr) {
+		// TODO Do I need this? https://github.com/godotengine/godot-proposals/issues/1593
+		MessageQueue::get_singleton()->push_callable(callable_mp(this, &ECS::ecs_init));
+	}
 }
 
 ECS::~ECS() {
