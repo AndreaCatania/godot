@@ -2,6 +2,7 @@
 
 /* Author: AndreaCatania */
 
+#include "core/object/object.h"
 #include "core/string/ustring.h"
 
 #define ECSCLASS(m_class)                             \
@@ -51,4 +52,9 @@ public:
 	operator uint32_t() const {
 		return id;
 	}
+};
+
+struct ScriptProperty {
+	PropertyInfo property;
+	Variant default_value;
 };

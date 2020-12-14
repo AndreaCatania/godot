@@ -32,7 +32,6 @@ TEST_CASE("[Modules][ECS] Test dynamic query") {
 	EntityID entity_3 = world
 								.create_entity()
 								.with(TransformComponent())
-								.with(Variant0Component())
 								.with(TagQueryTestComponent());
 
 	{
@@ -133,7 +132,21 @@ TEST_CASE("[Modules][ECS] Test dynamic query") {
 	}
 }
 
-// TODO test what happens in case the Dyn Query is invalid.
+TEST_CASE("[Modules][ECS] Test invalid dynamic query.") {
+	godex::DynamicQuery query;
+
+	// Add an invalid component.
+	query.add_component("ThisComponentDoesntExists");
+
+	CHECK(query.is_valid() == false);
+
+	// Reset the query.
+	query.reset();
+
+	// Build it again but this time valid.
+	query.add_component("TransformComponent");
+	CHECK(query.is_valid());
+}
 
 } // namespace godex_tests
 

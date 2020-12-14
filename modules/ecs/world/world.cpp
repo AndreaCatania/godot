@@ -73,3 +73,35 @@ void World::dispatch() {
 	}
 	pipeline->dispatch(this);
 }
+
+void World::create_storage(uint32_t p_component_id) {
+	// Using crash because this function is not expected to fail.
+	CRASH_COND_MSG(p_component_id == UINT32_MAX, "The component is not registered.");
+
+	if (p_component_id >= storages.size()) {
+		const uint32_t start = storages.size();
+		storages.resize(p_component_id + 1);
+		for (uint32_t i = start; i < storages.size(); i += 1) {
+			storages[i] = nullptr;
+		}
+	} else {
+		if (storages[p_component_id] != nullptr) {
+			// Nothing to do.
+			return;
+		}
+	}
+
+	storages[p_component_id] = C::create_storage();
+}
+
+void World::destroy_storage(uint32_t p_component_id) {
+	// Using crash because this function is not expected to fail.
+	CRASH_COND_MSG(p_component_id == UINT32_MAX, "The component is not registered.");
+
+	if (p_component_id >= storages.size() || storages[p_component_id] == nullptr) {
+		// Nothing to do.
+		return;
+	}
+
+	C::destroy_storage(storages[p_component_id]);
+}

@@ -28,15 +28,20 @@ TEST_CASE("[Modules][ECS] Test world") {
 }
 
 TEST_CASE("[Modules][ECS] Test storage script component") {
-	//World world;
+	LocalVector<ScriptProperty> props;
+	props.push_back({ PropertyInfo(Variant::INT, "variable_1"), 1 });
+	props.push_back({ PropertyInfo(Variant::BOOL, "variable_2"), false });
+	props.push_back({ PropertyInfo(Variant::TRANSFORM, "variable_3"), Transform() });
 
-	//TransformComponent entity_1_transform_component;
-	//entity_1_transform_component.set_transform(Transform(Basis(), Vector3(10.0, 10.0, 10.0)));
+	ECS::register_script_component("TestWorldComponent1.gd", props);
 
-	//EntityID entity_1 = world.create_entity();
-	//world.add_component(
-	//		entity_1,
-	//		entity_1_transform_component);
+	World world;
+
+	EntityID entity_1 = world.create_entity();
+	world.add_component(
+			entity_1,
+			"TestWorldComponent1.gd",
+			Dictionary());
 
 	//const TypedStorage<const TransformComponent> *storage = world.get_storage<const TransformComponent>();
 	//const TransformComponent &transform_from_storage = storage->get(entity_1);

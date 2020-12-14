@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import ecs_methods
-
 Import("env")
 Import("env_modules")
 
@@ -20,4 +18,3 @@ ecs.add_source_files(env.modules_sources, "*.cpp")
 
 ecs.add_source_files(env.modules_sources, "editor_plugins/*.cpp")
 
-ecs_methods.generate_variant_components()

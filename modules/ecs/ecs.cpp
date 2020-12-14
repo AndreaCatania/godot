@@ -1,6 +1,7 @@
 
 #include "ecs.h"
 
+#include "components/variant_component.h"
 #include "core/object/message_queue.h"
 #include "scene/main/scene_tree.h"
 #include "world/world.h"
@@ -161,4 +162,46 @@ bool ECS::dispatch_active_world() {
 }
 
 void ECS::ecs_init() {
+}
+
+uint32_t ECS::register_script_component(StringName p_name, const LocalVector<ScriptProperty> &p_properties) {
+	uint32_t id = get_component_id(p_name);
+	ERR_FAIL_COND_V_MSG(id != UINT32_MAX, id, "The script component " + p_name + " is already registered.");
+
+	// This component is not registered, go ahead.
+	ScriptComponentInfo *info = memnew(ScriptComponentInfo);
+
+	// Validate and initialize the parameters.
+	for (uint32_t i = 0; i < p_properties.size(); i += 1) {
+		switch (p_properties[i].property.type) {
+			case Variant::NIL:
+			case Variant::RID:
+			case Variant::OBJECT:
+			case Variant::SIGNAL:
+			case Variant::CALLABLE:
+				// TODO what about dictionary and arrays?
+				memdelete(info);
+				ERR_PRINT("The script component " + p_name + " is using a pointer variable. This is unsafe, so not supported. Please use a resource.");
+				return UINT32_MAX;
+			default:
+				// Nothing to do.
+				break;
+		}
+
+		info->property_map.insert(p_properties[i].property.name, i);
+	}
+
+	info->component_id = components.size();
+	info->properties = p_properties;
+
+	components.push_back(p_name);
+	components_info.push_back(
+			ComponentInfo{
+					nullptr,
+					nullptr,
+					nullptr,
+					nullptr,
+					info });
+
+	return id;
 }

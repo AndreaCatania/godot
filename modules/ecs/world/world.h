@@ -129,11 +129,13 @@ private:
 	/// already exists, does nothing.
 	template <class C>
 	void create_storage();
+	void create_storage(uint32_t p_component_id);
 
 	/// Destroy a component storage if exists.
 	// TODO when this is called?
 	template <class C>
 	void destroy_storage();
+	void destroy_storage(uint32_t p_component_id);
 };
 
 template <class C>
@@ -202,36 +204,10 @@ R &World::get_resource() {
 
 template <class C>
 void World::create_storage() {
-	const uint32_t id = C::get_component_id();
-	// Using crash because this function is not expected to fail.
-	CRASH_COND_MSG(id == UINT32_MAX, "The component is not registered.");
-
-	if (id >= storages.size()) {
-		const uint32_t start = storages.size();
-		storages.resize(id + 1);
-		for (uint32_t i = start; i < storages.size(); i += 1) {
-			storages[i] = nullptr;
-		}
-	} else {
-		if (storages[id] != nullptr) {
-			// Nothing to do.
-			return;
-		}
-	}
-
-	storages[id] = C::create_storage();
+	create_storage(C::get_component_id());
 }
 
 template <class C>
 void World::destroy_storage() {
-	const uint32_t id = C::get_component_id();
-	// Using crash because this function is not expected to fail.
-	CRASH_COND_MSG(id == UINT32_MAX, "The component is not registered.");
-
-	if (id >= storages.size() || storages[id] == nullptr) {
-		// Nothing to do.
-		return;
-	}
-
-	C::destroy_storage(storages[id]);
+	destroy_storage(C::get_component_id());
 }

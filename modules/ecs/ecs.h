@@ -12,6 +12,7 @@
 #include "modules/ecs/systems/system_builder.h"
 
 class World;
+class ScriptComponentInfo;
 
 // These functions are implemented by the `COMPONENT` macro and assigned during
 // component registration.
@@ -19,6 +20,8 @@ struct ComponentInfo {
 	OAHashMap<StringName, PropertyInfo> *(*get_properties)();
 	Variant (*get_property_default)(StringName p_property_name);
 	void (*add_component_by_name)(World *, EntityID, const Variant &);
+	Storage *(*create_storage)();
+	ScriptComponentInfo *script_component_info = nullptr;
 };
 
 class ECS : public Object {
@@ -42,6 +45,9 @@ public:
 	// ~~ Components ~~
 	template <class C>
 	static void register_component();
+
+	// TODO specify the storage here?
+	static uint32_t register_script_component(StringName p_name, const LocalVector<ScriptProperty> &p_properties);
 
 	static const LocalVector<StringName> &get_registered_components();
 	static uint32_t get_component_id(StringName p_component_name);
@@ -121,7 +127,9 @@ void ECS::register_component() {
 			ComponentInfo{
 					&C::get_properties_static,
 					&C::get_property_default_static,
-					&C::add_component_by_name });
+					&C::add_component_by_name,
+					&C::create_storage,
+					nullptr });
 }
 
 template <class R>
