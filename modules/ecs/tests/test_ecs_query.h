@@ -4,6 +4,7 @@
 #include "tests/test_macros.h"
 
 #include "modules/ecs/components/transform_component.h"
+#include "modules/ecs/components/variant_component.h"
 #include "modules/ecs/ecs.h"
 #include "modules/ecs/iterators/dynamic_query.h"
 #include "modules/ecs/world/world.h"
@@ -31,6 +32,7 @@ TEST_CASE("[Modules][ECS] Test dynamic query") {
 	EntityID entity_3 = world
 								.create_entity()
 								.with(TransformComponent())
+								.with(Variant0Component())
 								.with(TagQueryTestComponent());
 
 	{

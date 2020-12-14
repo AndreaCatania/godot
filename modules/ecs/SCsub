@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
+import ecs_methods
+
 Import("env")
 Import("env_modules")
 
 ecs = env_modules.Clone()
-
 
 # Module source files
 ecs.add_source_files(env.modules_sources, "nodes/*.cpp")
@@ -18,3 +19,5 @@ ecs.add_source_files(env.modules_sources, "pipeline/*.cpp")
 ecs.add_source_files(env.modules_sources, "*.cpp")
 
 ecs.add_source_files(env.modules_sources, "editor_plugins/*.cpp")
+
+ecs_methods.generate_variant_components()
