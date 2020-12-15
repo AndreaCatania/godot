@@ -171,6 +171,9 @@ uint32_t ECS::register_script_component(StringName p_name, const LocalVector<Scr
 	// This component is not registered, go ahead.
 	ScriptComponentInfo *info = memnew(ScriptComponentInfo);
 
+	info->properties.resize(p_properties.size());
+	info->defaults.resize(p_properties.size());
+
 	// Validate and initialize the parameters.
 	for (uint32_t i = 0; i < p_properties.size(); i += 1) {
 		switch (p_properties[i].property.type) {
@@ -189,10 +192,11 @@ uint32_t ECS::register_script_component(StringName p_name, const LocalVector<Scr
 		}
 
 		info->property_map.insert(p_properties[i].property.name, i);
+		info->properties[i] = p_properties[i].property;
+		info->defaults[i] = p_properties[i].default_value;
 	}
 
 	info->component_id = components.size();
-	info->properties = p_properties;
 
 	components.push_back(p_name);
 	components_info.push_back(
@@ -204,4 +208,22 @@ uint32_t ECS::register_script_component(StringName p_name, const LocalVector<Scr
 					info });
 
 	return id;
+}
+
+bool ECS::verify_component_id(uint32_t p_component_id) {
+	return components.size() > p_component_id;
+}
+
+Storage *ECS::create_storage(uint32_t p_component_id) {
+#ifdef DEBUG_ENABLED
+	// Crash cond because this function is not supposed to fail in any way.
+	CRASH_COND_MSG(ECS::verify_component_id(p_component_id), "This component id " + itos(p_component_id) + " is not valid.");
+#endif
+	if (components_info[p_component_id].script_component_info) {
+		// This is a script component
+		return components_info[p_component_id].script_component_info->create_storage();
+	} else {
+		// This is a native component.
+		return components_info[p_component_id].create_storage();
+	}
 }

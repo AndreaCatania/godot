@@ -49,12 +49,18 @@ public:
 	// TODO specify the storage here?
 	static uint32_t register_script_component(StringName p_name, const LocalVector<ScriptProperty> &p_properties);
 
+	static bool verify_component_id(uint32_t p_component_id);
+
+	static Storage *create_storage(uint32_t p_component_id);
 	static const LocalVector<StringName> &get_registered_components();
 	static uint32_t get_component_id(StringName p_component_name);
 	static StringName get_component_name(uint32_t p_component_id);
 	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(uint32_t p_component_id);
+	// TODO remove
 	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(StringName p_component_name);
+	// TODO use the index
 	static Variant get_component_property_default(StringName p_component_name, StringName p_property_name);
+	// TODO remove
 	static void add_component_by_name(World *p_world, EntityID p_entity, StringName p_component_name, const Variant &p_data);
 
 	// ~~ Resources ~~
@@ -128,7 +134,7 @@ void ECS::register_component() {
 					&C::get_properties_static,
 					&C::get_property_default_static,
 					&C::add_component_by_name,
-					&C::create_storage,
+					&C::create_storage_no_type,
 					nullptr });
 }
 

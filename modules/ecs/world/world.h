@@ -89,10 +89,10 @@ public:
 	template <class C>
 	void add_component(EntityID p_entity, const C &p_data);
 
-	/// Adds a new component using the name of the component and Variant data to
-	/// initialize it. Usually this function is used to initialize the component
-	/// from GDScript data.
-	void add_component(EntityID p_entity, StringName p_component_name, const Variant &p_data);
+	/// Adds a new component using the component id and  a `Dictionary` that
+	/// contains the initialization parameters.
+	/// Usually this function is used to initialize the script components.
+	void add_component(EntityID p_entity, uint32_t p_component_id, const Dictionary &p_data);
 
 	/// Returns the const storage pointed by the give ID.
 	const Storage *get_storage_by_id(uint32_t p_storage_id) const;

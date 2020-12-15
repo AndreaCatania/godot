@@ -4,6 +4,7 @@
 
 #include "core/object/class_db.h"
 #include "core/object/object.h"
+#include "core/templates/local_vector.h"
 #include "core/templates/oa_hash_map.h"
 #include "modules/ecs/ecs.h"
 #include "modules/ecs/storages/dense_vector.h"
@@ -38,78 +39,82 @@ struct GetMethodHandle : public GetMethodHandleBase {
 	}
 };
 
-#define COMPONENT(m_class, m_storage_class)                                                                            \
-	ECSCLASS(m_class)                                                                                                  \
-	friend class World;                                                                                                \
-	friend class Component;                                                                                            \
-																													   \
-private:                                                                                                               \
-	/* Storages */                                                                                                     \
-	static _FORCE_INLINE_ m_storage_class<m_class> *create_storage() {                                                 \
-		return memnew(m_storage_class<m_class>);                                                                       \
-	}                                                                                                                  \
-	static _FORCE_INLINE_ void destroy_storage(m_storage_class<m_class> *p_storage) {                                  \
-		memdelete(p_storage);                                                                                          \
-	}                                                                                                                  \
-																													   \
-	/* Components */                                                                                                   \
-	static inline uint32_t component_id = UINT32_MAX;                                                                  \
-																													   \
-	static void add_component_by_name(World *p_world, EntityID entity_id, const Variant &p_data) {                     \
-		m_class component;                                                                                             \
-		Dictionary dic = p_data;                                                                                       \
-		for (const Variant *key = dic.next(nullptr); key != nullptr; key = dic.next(key)) {                            \
-			component.set(*key, dic.get_valid(*key));                                                                  \
-		}                                                                                                              \
-		p_world->add_component(                                                                                        \
-				entity_id,                                                                                             \
-				component);                                                                                            \
-	}                                                                                                                  \
-																													   \
-public:                                                                                                                \
-	static uint32_t get_component_id() { return component_id; }                                                        \
-																													   \
-	/* Properties */                                                                                                   \
-private:                                                                                                               \
-	static inline OAHashMap<StringName, PropertyInfo> property_map;                                                    \
-	static inline OAHashMap<StringName, godex::SetMethodHandleBase *> set_map;                                         \
-	static inline OAHashMap<StringName, godex::GetMethodHandleBase *> get_map;                                         \
-	template <class M1, class M2>                                                                                      \
-	static void add_property(const PropertyInfo &p_info, M1 p_set, M2 p_get) {                                         \
-		property_map.insert(p_info.name, p_info);                                                                      \
-																													   \
-		godex::SetMethodHandle<m_class, M1> *handle_set = new godex::SetMethodHandle<m_class, M1>;                     \
-		handle_set->method = p_set;                                                                                    \
-		set_map.insert(p_info.name, handle_set);                                                                       \
-																													   \
-		godex::GetMethodHandle<m_class, M2> *handle_get = new godex::GetMethodHandle<m_class, M2>;                     \
-		handle_get->method = p_get;                                                                                    \
-		get_map.insert(p_info.name, handle_get);                                                                       \
-	}                                                                                                                  \
-	static OAHashMap<StringName, PropertyInfo> *get_properties_static() {                                              \
-		return &property_map;                                                                                          \
-	}                                                                                                                  \
-	static Variant get_property_default_static(StringName p_name) {                                                    \
-		const m_class c;                                                                                               \
-		return c.get(p_name);                                                                                          \
-	}                                                                                                                  \
-	static void clear_properties_static() {                                                                            \
-		property_map.clear();                                                                                          \
-	}                                                                                                                  \
-	virtual OAHashMap<StringName, PropertyInfo> *get_properties() const override {                                     \
-		return get_properties_static();                                                                                \
-	}                                                                                                                  \
-	virtual void set(StringName p_name, Variant p_data) override {                                                     \
-		godex::SetMethodHandleBase **b = set_map.lookup_ptr(p_name);                                                   \
-		ERR_FAIL_COND_MSG(b == nullptr, "The parameter " + p_name + " doesn't exist in this component.");              \
-		(*b)->set(this, p_data);                                                                                       \
-	}                                                                                                                  \
-	virtual Variant get(StringName p_name) const override {                                                            \
-		godex::GetMethodHandleBase **b = get_map.lookup_ptr(p_name);                                                   \
-		ERR_FAIL_COND_V_MSG(b == nullptr, Variant(), "The parameter " + p_name + " doesn't exist in this component."); \
-		return (*b)->get(this);                                                                                        \
-	}                                                                                                                  \
-																													   \
+#define COMPONENT(m_class, m_storage_class)                                                                   \
+	ECSCLASS(m_class)                                                                                         \
+	friend class World;                                                                                       \
+	friend class Component;                                                                                   \
+																											  \
+private:                                                                                                      \
+	/* Storages */                                                                                            \
+	static _FORCE_INLINE_ m_storage_class<m_class> *create_storage() {                                        \
+		return memnew(m_storage_class<m_class>);                                                              \
+	}                                                                                                         \
+	static _FORCE_INLINE_ Storage *create_storage_no_type() {                                                 \
+		/* Creates a storage but returns a generic component. */                                              \
+		return create_storage();                                                                              \
+	}                                                                                                         \
+																											  \
+	/* Components */                                                                                          \
+	static inline uint32_t component_id = UINT32_MAX;                                                         \
+																											  \
+	static void add_component_by_name(World *p_world, EntityID entity_id, const Variant &p_data) {            \
+		m_class component;                                                                                    \
+		Dictionary dic = p_data;                                                                              \
+		for (const Variant *key = dic.next(nullptr); key != nullptr; key = dic.next(key)) {                   \
+			component.set(*key, dic.get_valid(*key));                                                         \
+		}                                                                                                     \
+		p_world->add_component(                                                                               \
+				entity_id,                                                                                    \
+				component);                                                                                   \
+	}                                                                                                         \
+																											  \
+public:                                                                                                       \
+	static uint32_t get_component_id() { return component_id; }                                               \
+																											  \
+	/* Properties */                                                                                          \
+private:                                                                                                      \
+	static inline OAHashMap<StringName, uint32_t> property_map;                                               \
+	static inline LocalVector<PropertyInfo> properties;                                                       \
+	static inline LocalVector<godex::SetMethodHandleBase *> set_map;                                          \
+	static inline LocalVector<godex::GetMethodHandleBase *> get_map;                                          \
+	template <class M1, class M2>                                                                             \
+	static void add_property(const PropertyInfo &p_info, M1 p_set, M2 p_get) {                                \
+		const uint32_t index = properties.size();                                                             \
+		property_map.insert(p_info.name, index);                                                              \
+		properties.push_back(p_info);                                                                         \
+																											  \
+		godex::SetMethodHandle<m_class, M1> *handle_set = new godex::SetMethodHandle<m_class, M1>;            \
+		handle_set->method = p_set;                                                                           \
+		set_map.push_back(handle_set);                                                                        \
+																											  \
+		godex::GetMethodHandle<m_class, M2> *handle_get = new godex::GetMethodHandle<m_class, M2>;            \
+		handle_get->method = p_get;                                                                           \
+		get_map.push_back(handle_get);                                                                        \
+	}                                                                                                         \
+	static LocalVector<PropertyInfo> *get_properties_static() {                                               \
+		return &properties;                                                                                   \
+	}                                                                                                         \
+	static Variant get_property_default_static(StringName p_name) {                                           \
+		const m_class c;                                                                                      \
+		return c.get(p_name);                                                                                 \
+	}                                                                                                         \
+	static void clear_properties_static() {                                                                   \
+		property_map.clear();                                                                                 \
+	}                                                                                                         \
+	virtual const LocalVector<PropertyInfo> *get_properties() const override {                                \
+		return get_properties_static();                                                                       \
+	}                                                                                                         \
+	virtual void set(StringName p_name, Variant p_data) override {                                            \
+		const uint32_t *i_ptr = property_map.lookup_ptr(p_name);                                              \
+		ERR_FAIL_COND_MSG(i_ptr == nullptr, "The parameter " + p_name + " doesn't exist in this component."); \
+		set_map[*i_ptr]->set(this, p_data);                                                                   \
+	}                                                                                                         \
+	virtual Variant get(StringName p_name) const override {                                                   \
+		const uint32_t *i_ptr = property_map.lookup_ptr(p_name);                                              \
+		ERR_FAIL_COND_MSG(i_ptr == nullptr, "The parameter " + p_name + " doesn't exist in this component."); \
+		return get_map[*i_ptr]->get(this);                                                                    \
+	}                                                                                                         \
+																											  \
 private:
 
 class Component : public ECSClass {
@@ -120,7 +125,8 @@ public:
 
 public:
 	static void _bind_properties();
-	virtual OAHashMap<StringName, PropertyInfo> *get_properties() const;
+
+	virtual const LocalVector<PropertyInfo> *get_properties() const;
 	virtual void set(StringName p_name, Variant p_data);
 	virtual Variant get(StringName p_name) const;
 };

@@ -34,8 +34,11 @@ EntityID World::get_last_entity_id() const {
 	}
 }
 
-void World::add_component(EntityID p_entity, StringName p_component_name, const Variant &p_data) {
-	ECS::add_component_by_name(this, p_entity, p_component_name, p_data);
+void World::add_component(EntityID p_entity, uint32_t p_component_id, const Dictionary &p_data) {
+	ERR_FAIL_COND_MSG(ECS::verify_component_id(p_component_id), "The component id " + itos(p_component_id) + " is invalid.");
+	create_storage(p_component_id);
+	CRASH_NOW_MSG("TODO");
+	//ECS::add_component_by_name(this, p_entity, p_component_name, p_data);
 }
 
 const Storage *World::get_storage_by_id(uint32_t p_storage_id) const {
@@ -76,7 +79,7 @@ void World::dispatch() {
 
 void World::create_storage(uint32_t p_component_id) {
 	// Using crash because this function is not expected to fail.
-	CRASH_COND_MSG(p_component_id == UINT32_MAX, "The component is not registered.");
+	ERR_FAIL_COND_MSG(ECS::verify_component_id(p_component_id), "The component id" + itos(p_component_id) + " is not registered.");
 
 	if (p_component_id >= storages.size()) {
 		const uint32_t start = storages.size();
@@ -91,17 +94,18 @@ void World::create_storage(uint32_t p_component_id) {
 		}
 	}
 
-	storages[p_component_id] = C::create_storage();
+	storages[p_component_id] = ECS::create_storage(p_component_id);
 }
 
 void World::destroy_storage(uint32_t p_component_id) {
 	// Using crash because this function is not expected to fail.
-	CRASH_COND_MSG(p_component_id == UINT32_MAX, "The component is not registered.");
+	ERR_FAIL_UNSIGNED_INDEX_MSG(p_component_id, storages.size(), "The component storage id " + itos(p_component_id) + " is unknown; so can't be destroyed.");
 
-	if (p_component_id >= storages.size() || storages[p_component_id] == nullptr) {
+	if (storages[p_component_id] == nullptr) {
 		// Nothing to do.
 		return;
 	}
 
-	C::destroy_storage(storages[p_component_id]);
+	memdelete(storages[p_component_id]);
+	storages[p_component_id] = nullptr;
 }
