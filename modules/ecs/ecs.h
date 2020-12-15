@@ -46,7 +46,7 @@ public:
 	static void register_component();
 
 	// TODO specify the storage here?
-	static uint32_t register_script_component(StringName p_name, const LocalVector<ScriptProperty> &p_properties);
+	static uint32_t register_script_component(StringName p_name, const LocalVector<ScriptProperty> &p_properties, StorageType p_storage_type);
 
 	static bool verify_component_id(uint32_t p_component_id);
 

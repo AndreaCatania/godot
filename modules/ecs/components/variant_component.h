@@ -11,7 +11,7 @@ class DynamicComponentInfo {
 	OAHashMap<StringName, uint32_t> property_map; // TODO make this LocalVector?
 	LocalVector<PropertyInfo> properties;
 	LocalVector<Variant> defaults;
-	StorageType storage_type;
+	StorageType storage_type = StorageType::NONE;
 
 	DynamicComponentInfo();
 
@@ -26,6 +26,10 @@ public:
 		const uint32_t *id_ptr = property_map.lookup_ptr(p_name);
 		ERR_FAIL_COND_V_MSG(id_ptr == nullptr, Variant(), "The property " + p_name + " doesn't exists on this component " + ECS::get_component_name(component_id));
 		return defaults[*id_ptr];
+	}
+
+	const LocalVector<Variant> &get_property_defaults() const {
+		return defaults;
 	}
 
 	uint32_t get_property_id(StringName p_name) const {
@@ -43,10 +47,9 @@ class VariantComponent : public godex::Component {
 
 	Variant data[SIZE];
 
-	void initialize(DynamicComponentInfo *p_info);
-
 public:
 	VariantComponent() {}
+	void __initialize(DynamicComponentInfo *p_info);
 
 	virtual const LocalVector<PropertyInfo> *get_properties() const override;
 	virtual void set(StringName p_name, Variant p_data) override;
@@ -54,10 +57,15 @@ public:
 };
 
 template <int SIZE>
-void VariantComponent<SIZE>::initialize(DynamicComponentInfo *p_info) {
+void VariantComponent<SIZE>::__initialize(DynamicComponentInfo *p_info) {
 	info = p_info;
 	CRASH_COND_MSG(p_info == nullptr, "The component info can't be nullptr.");
-	CRASH_COND_MSG(info->properties.size() != SIZE, "The VariantComponent(size: " + itos(SIZE) + ") got created with a ScriptComponentInfo that has " + itos(info->properties.size()) + " parameters, this is not supposed to happen.");
+	CRASH_COND_MSG(info->get_properties()->size() != SIZE, "The VariantComponent(size: " + itos(SIZE) + ") got created with a ScriptComponentInfo that has " + itos(info->get_properties()->size()) + " parameters, this is not supposed to happen.");
+
+	// Set defaults.
+	for (uint32_t i = 0; i < SIZE; i += 1) {
+		data[i] = info->get_property_defaults()[i];
+	}
 }
 
 template <int SIZE>

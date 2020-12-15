@@ -158,9 +158,11 @@ bool ECS::dispatch_active_world() {
 void ECS::ecs_init() {
 }
 
-uint32_t ECS::register_script_component(StringName p_name, const LocalVector<ScriptProperty> &p_properties) {
-	uint32_t id = get_component_id(p_name);
-	ERR_FAIL_COND_V_MSG(id != UINT32_MAX, id, "The script component " + p_name + " is already registered.");
+uint32_t ECS::register_script_component(StringName p_name, const LocalVector<ScriptProperty> &p_properties, StorageType p_storage_type) {
+	{
+		const uint32_t id = get_component_id(p_name);
+		ERR_FAIL_COND_V_MSG(id != UINT32_MAX, id, "The script component " + p_name + " is already registered.");
+	}
 
 	// This component is not registered, go ahead.
 	DynamicComponentInfo *info = memnew(DynamicComponentInfo);
@@ -181,7 +183,7 @@ uint32_t ECS::register_script_component(StringName p_name, const LocalVector<Scr
 				ERR_PRINT("The script component " + p_name + " is using a pointer variable. This is unsafe, so not supported. Please use a resource.");
 				return UINT32_MAX;
 			default:
-				// Nothing to do.
+				// Valid!
 				break;
 		}
 
@@ -191,6 +193,7 @@ uint32_t ECS::register_script_component(StringName p_name, const LocalVector<Scr
 	}
 
 	info->component_id = components.size();
+	info->storage_type = p_storage_type;
 
 	components.push_back(p_name);
 	components_info.push_back(
@@ -200,7 +203,7 @@ uint32_t ECS::register_script_component(StringName p_name, const LocalVector<Scr
 					nullptr,
 					info });
 
-	return id;
+	return info->component_id;
 }
 
 bool ECS::verify_component_id(uint32_t p_component_id) {
@@ -210,7 +213,7 @@ bool ECS::verify_component_id(uint32_t p_component_id) {
 Storage *ECS::create_storage(uint32_t p_component_id) {
 #ifdef DEBUG_ENABLED
 	// Crash cond because this function is not supposed to fail in any way.
-	CRASH_COND_MSG(ECS::verify_component_id(p_component_id), "This component id " + itos(p_component_id) + " is not valid.");
+	CRASH_COND_MSG(ECS::verify_component_id(p_component_id) == false, "This component id " + itos(p_component_id) + " is not valid.");
 #endif
 	if (components_info[p_component_id].dynamic_component_info) {
 		// This is a script component

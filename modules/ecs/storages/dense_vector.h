@@ -13,6 +13,7 @@
 /// The the entity indices are stored sparsely.
 template <class T>
 class DenseVector : public TypedStorage<T> {
+protected:
 	LocalVector<T> data;
 	LocalVector<EntityID> data_to_entity;
 	// Each position of this vector is an Entity Index.
@@ -22,7 +23,6 @@ public:
 	virtual StorageType get_type() const override;
 	virtual String get_type_name() const override;
 
-	virtual void insert_dynamic(EntityID p_entity, const Dictionary &p_data) override;
 	virtual void insert(EntityID p_entity, T p_data) override;
 	virtual bool has(EntityID p_entity) const override;
 	virtual const godex::Component *get_ptr(EntityID p_entity) const;
@@ -31,8 +31,19 @@ public:
 	virtual T &get(EntityID p_entity) override;
 	virtual void remove(EntityID p_entity) override;
 
-private:
+protected:
 	void insert_entity(EntityID p_entity, uint32_t p_index);
+};
+
+template <class T>
+class DynamicDenseVector : public DenseVector<T> {
+	DynamicComponentInfo *dynamic_componente_info = nullptr;
+
+public:
+	DynamicDenseVector(DynamicComponentInfo *p_info) :
+			dynamic_componente_info(p_info) {}
+
+	virtual void insert_dynamic(EntityID p_entity, const Dictionary &p_data) override;
 };
 
 template <class T>
@@ -58,20 +69,6 @@ void DenseVector<T>::insert_entity(EntityID p_entity, uint32_t p_index) {
 
 	// Store the data-index
 	entity_to_data[p_entity] = p_index;
-}
-
-template <class T>
-void DenseVector<T>::insert_dynamic(EntityID p_entity, const Dictionary &p_data) {
-	const uint32_t index = data.size();
-	insert_entity(p_entity, index);
-
-	// Store the data
-	data.resize(index + 1);
-	data_to_entity.push_back(p_entity);
-
-	for (const Variant *key = p_data.next(); key; key = p_data.next(key)) {
-		data[index].set(*key, *p_data.getptr(*key));
-	}
 }
 
 template <class T>
@@ -128,4 +125,23 @@ void DenseVector<T>::remove(EntityID p_entity) {
 	data_to_entity.remove(last);
 	entity_to_data[p_entity] = UINT32_MAX;
 }
+
+template <class T>
+void DynamicDenseVector<T>::insert_dynamic(EntityID p_entity, const Dictionary &p_data) {
+	const uint32_t index = this->data.size();
+	this->insert_entity(p_entity, index);
+
+	// Create the data.
+	this->data.resize(index + 1);
+	this->data_to_entity.push_back(p_entity);
+
+	// Initialize with defaults.
+	this->data[index].__initialize(dynamic_componente_info);
+
+	// Set the custom data if any
+	for (const Variant *key = p_data.next(); key; key = p_data.next(key)) {
+		this->data[index].set(*key, *p_data.getptr(*key));
+	}
+}
+
 #endif

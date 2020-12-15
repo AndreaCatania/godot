@@ -77,7 +77,7 @@ void World::dispatch() {
 
 void World::create_storage(uint32_t p_component_id) {
 	// Using crash because this function is not expected to fail.
-	ERR_FAIL_COND_MSG(ECS::verify_component_id(p_component_id), "The component id" + itos(p_component_id) + " is not registered.");
+	ERR_FAIL_COND_MSG(ECS::verify_component_id(p_component_id) == false, "The component id " + itos(p_component_id) + " is not registered.");
 
 	if (p_component_id >= storages.size()) {
 		const uint32_t start = storages.size();
