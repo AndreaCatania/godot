@@ -1,7 +1,7 @@
 
 #include "ecs.h"
 
-#include "components/variant_component.h"
+#include "components/dynamic_component.h"
 #include "core/object/message_queue.h"
 #include "scene/main/scene_tree.h"
 #include "world/world.h"

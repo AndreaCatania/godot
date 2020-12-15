@@ -4,7 +4,7 @@
 #include "tests/test_macros.h"
 
 #include "modules/ecs/components/transform_component.h"
-#include "modules/ecs/components/variant_component.h"
+#include "modules/ecs/components/dynamic_component.h"
 #include "modules/ecs/ecs.h"
 #include "modules/ecs/pipeline/pipeline.h"
 #include "modules/ecs/world/world.h"
