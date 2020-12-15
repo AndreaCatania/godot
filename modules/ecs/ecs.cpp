@@ -44,31 +44,25 @@ StringName ECS::get_component_name(uint32_t p_component_id) {
 	return components[p_component_id];
 }
 
-const OAHashMap<StringName, PropertyInfo> *ECS::get_component_properties(uint32_t p_component_id) {
+const LocalVector<PropertyInfo> *ECS::get_component_properties(uint32_t p_component_id) {
 	ERR_FAIL_INDEX_V_MSG(p_component_id, components.size(), nullptr, "The `component_id` is invalid: " + itos(p_component_id));
-	return components_info[p_component_id].get_properties();
+	if (components_info[p_component_id].dynamic_component_info != nullptr) {
+		return components_info[p_component_id].dynamic_component_info->get_properties();
+	} else {
+		return components_info[p_component_id].get_properties();
+	}
 }
 
-const OAHashMap<StringName, PropertyInfo> *ECS::get_component_properties(StringName p_component_name) {
-	const int64_t id = components.find(p_component_name);
-	ERR_FAIL_COND_V_MSG(id == -1, nullptr, "The component " + p_component_name + " doesn't exist or it's not registered.");
-	return get_component_properties(id);
-}
+Variant ECS::get_component_property_default(uint32_t p_component_id, StringName p_property_name) {
+	ERR_FAIL_COND_V_MSG(verify_component_id(p_component_id) == false, Variant(), "The component " + itos(p_component_id) + " is invalid.");
 
-Variant ECS::get_component_property_default(StringName p_component_name, StringName p_property_name) {
-	const int64_t id = components.find(p_component_name);
-	ERR_FAIL_COND_V_MSG(id == -1, Variant(), "The component " + p_component_name + " doesn't exist or it's not registered.");
-	return components_info[id].get_property_default(p_property_name);
-}
-
-void ECS::add_component_by_name(
-		World *p_world,
-		EntityID p_entity,
-		StringName p_component_name,
-		const Variant &p_data) {
-	const int64_t id = components.find(p_component_name);
-	ERR_FAIL_COND_MSG(id == -1, "The component " + p_component_name + " doesn't exist or it's not registered.");
-	components_info[id].add_component_by_name(p_world, p_entity, p_data);
+	if (components_info[p_component_id].dynamic_component_info != nullptr) {
+		// Script
+		return components_info[p_component_id].dynamic_component_info->get_property_default(p_property_name);
+	} else {
+		// Native
+		return components_info[p_component_id].get_property_default(p_property_name);
+	}
 }
 
 const LocalVector<StringName> &ECS::get_registered_resources() {
@@ -169,7 +163,7 @@ uint32_t ECS::register_script_component(StringName p_name, const LocalVector<Scr
 	ERR_FAIL_COND_V_MSG(id != UINT32_MAX, id, "The script component " + p_name + " is already registered.");
 
 	// This component is not registered, go ahead.
-	ScriptComponentInfo *info = memnew(ScriptComponentInfo);
+	DynamicComponentInfo *info = memnew(DynamicComponentInfo);
 
 	info->properties.resize(p_properties.size());
 	info->defaults.resize(p_properties.size());
@@ -204,7 +198,6 @@ uint32_t ECS::register_script_component(StringName p_name, const LocalVector<Scr
 					nullptr,
 					nullptr,
 					nullptr,
-					nullptr,
 					info });
 
 	return id;
@@ -219,9 +212,9 @@ Storage *ECS::create_storage(uint32_t p_component_id) {
 	// Crash cond because this function is not supposed to fail in any way.
 	CRASH_COND_MSG(ECS::verify_component_id(p_component_id), "This component id " + itos(p_component_id) + " is not valid.");
 #endif
-	if (components_info[p_component_id].script_component_info) {
+	if (components_info[p_component_id].dynamic_component_info) {
 		// This is a script component
-		return components_info[p_component_id].script_component_info->create_storage();
+		return components_info[p_component_id].dynamic_component_info->create_storage();
 	} else {
 		// This is a native component.
 		return components_info[p_component_id].create_storage();

@@ -117,7 +117,7 @@ Variant Entity::get_component_data_value(StringName p_component_name, StringName
 		return c->get_property_default_value(p_property_name);
 	} else {
 		// This is a native Component.
-		return ECS::get_component_property_default(p_component_name, p_property_name);
+		return ECS::get_component_property_default(ECS::get_component_id(p_component_name), p_property_name);
 	}
 }
 

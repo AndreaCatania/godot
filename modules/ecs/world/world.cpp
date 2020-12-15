@@ -35,13 +35,13 @@ EntityID World::get_last_entity_id() const {
 }
 
 void World::add_component(EntityID p_entity, uint32_t p_component_id, const Dictionary &p_data) {
-	ERR_FAIL_COND_MSG(ECS::verify_component_id(p_component_id), "The component id " + itos(p_component_id) + " is invalid.");
 	create_storage(p_component_id);
-	CRASH_NOW_MSG("TODO");
-	//ECS::add_component_by_name(this, p_entity, p_component_name, p_data);
+	Storage *storage = get_storage(p_component_id);
+	ERR_FAIL_COND(storage == nullptr);
+	storage->insert_dynamic(p_entity, p_data);
 }
 
-const Storage *World::get_storage_by_id(uint32_t p_storage_id) const {
+const Storage *World::get_storage(uint32_t p_storage_id) const {
 	ERR_FAIL_COND_V_MSG(p_storage_id == UINT32_MAX, nullptr, "The component is not registered.");
 
 	if (p_storage_id >= storages.size() || storages[p_storage_id] == nullptr) {
@@ -51,9 +51,7 @@ const Storage *World::get_storage_by_id(uint32_t p_storage_id) const {
 	return storages[p_storage_id];
 }
 
-Storage *World::get_storage_by_id(uint32_t p_storage_id) {
-	ERR_FAIL_COND_V_MSG(p_storage_id == UINT32_MAX, nullptr, "The component is not registered.");
-
+Storage *World::get_storage(uint32_t p_storage_id) {
 	if (p_storage_id >= storages.size() || storages[p_storage_id] == nullptr) {
 		return nullptr;
 	}

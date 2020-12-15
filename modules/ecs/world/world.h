@@ -95,10 +95,10 @@ public:
 	void add_component(EntityID p_entity, uint32_t p_component_id, const Dictionary &p_data);
 
 	/// Returns the const storage pointed by the give ID.
-	const Storage *get_storage_by_id(uint32_t p_storage_id) const;
+	const Storage *get_storage(uint32_t p_storage_id) const;
 
 	/// Returns the storage pointed by the give ID.
-	Storage *get_storage_by_id(uint32_t p_storage_id);
+	Storage *get_storage(uint32_t p_storage_id);
 
 	/// Returns the constant storage pointer.
 	/// If the storage doesn't exist, returns null.
@@ -155,8 +155,6 @@ void World::add_component(EntityID p_entity, const C &p_data) {
 template <class C>
 const TypedStorage<const C> *World::get_storage() const {
 	const uint32_t id = C::get_component_id();
-	ERR_FAIL_COND_V_MSG(id == UINT32_MAX, nullptr, "The component is not registered.");
-
 	if (id >= storages.size() || storages[id] == nullptr) {
 		return nullptr;
 	}
@@ -167,7 +165,7 @@ const TypedStorage<const C> *World::get_storage() const {
 template <class C>
 TypedStorage<C> *World::get_storage() {
 	const uint32_t id = C::get_component_id();
-	return static_cast<TypedStorage<C> *>(get_storage_by_id(id));
+	return static_cast<TypedStorage<C> *>(get_storage(id));
 }
 
 template <class R>

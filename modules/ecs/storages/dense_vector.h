@@ -22,6 +22,7 @@ public:
 	virtual StorageType get_type() const override;
 	virtual String get_type_name() const override;
 
+	virtual void insert_dynamic(EntityID p_entity, const Dictionary &p_data) override;
 	virtual void insert(EntityID p_entity, T p_data) override;
 	virtual bool has(EntityID p_entity) const override;
 	virtual const godex::Component *get_ptr(EntityID p_entity) const;
@@ -29,6 +30,9 @@ public:
 	virtual const T &get(EntityID p_entity) const override;
 	virtual T &get(EntityID p_entity) override;
 	virtual void remove(EntityID p_entity) override;
+
+private:
+	void insert_entity(EntityID p_entity, uint32_t p_index);
 };
 
 template <class T>
@@ -42,7 +46,7 @@ String DenseVector<T>::get_type_name() const {
 }
 
 template <class T>
-void DenseVector<T>::insert(EntityID p_entity, T p_data) {
+void DenseVector<T>::insert_entity(EntityID p_entity, uint32_t p_index) {
 	if (entity_to_data.size() <= p_entity) {
 		const uint32_t start = entity_to_data.size();
 		// Resize the vector so to fit this new entity.
@@ -53,7 +57,27 @@ void DenseVector<T>::insert(EntityID p_entity, T p_data) {
 	}
 
 	// Store the data-index
-	entity_to_data[p_entity] = data.size();
+	entity_to_data[p_entity] = p_index;
+}
+
+template <class T>
+void DenseVector<T>::insert_dynamic(EntityID p_entity, const Dictionary &p_data) {
+	const uint32_t index = data.size();
+	insert_entity(p_entity, index);
+
+	// Store the data
+	data.resize(index + 1);
+	data_to_entity.push_back(p_entity);
+
+	for (const Variant *key = p_data.next(); key; key = p_data.next(key)) {
+		data[index].set(*key, *p_data.getptr(*key));
+	}
+}
+
+template <class T>
+void DenseVector<T>::insert(EntityID p_entity, T p_data) {
+	const uint32_t index = data.size();
+	insert_entity(p_entity, index);
 
 	// Store the data
 	data.push_back(p_data);

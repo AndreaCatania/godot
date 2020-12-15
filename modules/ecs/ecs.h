@@ -12,16 +12,15 @@
 #include "modules/ecs/systems/system_builder.h"
 
 class World;
-class ScriptComponentInfo;
+class DynamicComponentInfo;
 
 // These functions are implemented by the `COMPONENT` macro and assigned during
 // component registration.
 struct ComponentInfo {
-	OAHashMap<StringName, PropertyInfo> *(*get_properties)();
+	LocalVector<PropertyInfo> *(*get_properties)();
 	Variant (*get_property_default)(StringName p_property_name);
-	void (*add_component_by_name)(World *, EntityID, const Variant &);
 	Storage *(*create_storage)();
-	ScriptComponentInfo *script_component_info = nullptr;
+	DynamicComponentInfo *dynamic_component_info = nullptr;
 };
 
 class ECS : public Object {
@@ -55,13 +54,8 @@ public:
 	static const LocalVector<StringName> &get_registered_components();
 	static uint32_t get_component_id(StringName p_component_name);
 	static StringName get_component_name(uint32_t p_component_id);
-	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(uint32_t p_component_id);
-	// TODO remove
-	static const OAHashMap<StringName, PropertyInfo> *get_component_properties(StringName p_component_name);
-	// TODO use the index
-	static Variant get_component_property_default(StringName p_component_name, StringName p_property_name);
-	// TODO remove
-	static void add_component_by_name(World *p_world, EntityID p_entity, StringName p_component_name, const Variant &p_data);
+	static const LocalVector<PropertyInfo> *get_component_properties(uint32_t p_component_id);
+	static Variant get_component_property_default(uint32_t p_component_id, StringName p_property_name);
 
 	// ~~ Resources ~~
 	template <class C>
@@ -133,7 +127,6 @@ void ECS::register_component() {
 			ComponentInfo{
 					&C::get_properties_static,
 					&C::get_property_default_static,
-					&C::add_component_by_name,
 					&C::create_storage_no_type,
 					nullptr });
 }

@@ -25,6 +25,9 @@ public:
 		CRASH_NOW_MSG("Override this function.");
 		return false;
 	}
+	virtual void insert_dynamic(EntityID p_entity, const Dictionary &p_data) {
+		CRASH_NOW_MSG("Override this function.");
+	}
 	virtual const godex::Component *get_ptr(EntityID p_entity) const {
 		CRASH_NOW_MSG("Override this function.");
 		return nullptr;

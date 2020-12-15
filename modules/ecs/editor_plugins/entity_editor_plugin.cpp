@@ -113,9 +113,9 @@ void EntityEditor::create_component_inspector(StringName p_component_name, VBoxC
 			component->get_component_property_list(&properties);
 		}
 	} else {
-		const OAHashMap<StringName, PropertyInfo> *props = ECS::get_component_properties(p_component_name);
-		for (OAHashMap<StringName, PropertyInfo>::Iterator it = props->iter(); it.valid; it = props->next_iter(it)) {
-			properties.push_back(*it.value);
+		const LocalVector<PropertyInfo> *props = ECS::get_component_properties(ECS::get_component_id(p_component_name));
+		for (uint32_t i = 0; i < props->size(); i += 1) {
+			properties.push_back((*props)[i]);
 		}
 	}
 

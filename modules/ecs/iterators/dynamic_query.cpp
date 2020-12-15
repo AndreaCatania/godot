@@ -65,7 +65,7 @@ void DynamicQuery::begin(World *p_world) {
 
 	storages.resize(storage_ids.size());
 	for (uint32_t i = 0; i < storage_ids.size(); i += 1) {
-		storages[i] = world->get_storage_by_id(storage_ids[i]);
+		storages[i] = world->get_storage(storage_ids[i]);
 		ERR_FAIL_COND_MSG(storages[i] == nullptr, "There is a storage nullptr. This is not supposed to happen.");
 	}
 
