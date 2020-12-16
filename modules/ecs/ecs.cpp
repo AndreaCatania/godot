@@ -161,7 +161,7 @@ void ECS::ecs_init() {
 uint32_t ECS::register_script_component(StringName p_name, const LocalVector<ScriptProperty> &p_properties, StorageType p_storage_type) {
 	{
 		const uint32_t id = get_component_id(p_name);
-		ERR_FAIL_COND_V_MSG(id != UINT32_MAX, id, "The script component " + p_name + " is already registered.");
+		ERR_FAIL_COND_V_MSG(id != UINT32_MAX, UINT32_MAX, "The script component " + p_name + " is already registered.");
 	}
 
 	// This component is not registered, go ahead.
@@ -172,6 +172,7 @@ uint32_t ECS::register_script_component(StringName p_name, const LocalVector<Scr
 
 	// Validate and initialize the parameters.
 	for (uint32_t i = 0; i < p_properties.size(); i += 1) {
+		// Is  type supported?
 		switch (p_properties[i].property.type) {
 			case Variant::NIL:
 			case Variant::RID:
@@ -185,6 +186,13 @@ uint32_t ECS::register_script_component(StringName p_name, const LocalVector<Scr
 			default:
 				// Valid!
 				break;
+		}
+
+		// Is default type correct?
+		if (p_properties[i].property.type != p_properties[i].default_value.get_type()) {
+			memdelete(info);
+			ERR_PRINT("The script variable " + p_name + "::" + p_properties[i].property.name + " is being initialized with a different default variable type.");
+			return UINT32_MAX;
 		}
 
 		info->property_map.insert(p_properties[i].property.name, i);

@@ -8,6 +8,11 @@ EntityBuilder::EntityBuilder(World *p_world) :
 		world(p_world) {
 }
 
+const EntityBuilder &EntityBuilder::with(uint32_t p_component_id, const Dictionary &p_data) const {
+	world->add_component(entity, p_component_id, p_data);
+	return *this;
+}
+
 EntityID World::create_entity_index() {
 	return entity_count++;
 }

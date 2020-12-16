@@ -36,8 +36,8 @@ TEST_CASE("[Modules][ECS] Test dynamic query") {
 
 	{
 		godex::DynamicQuery query;
-		query.add_component("TransformComponent", true);
-		query.add_component("TagQueryTestComponent", false);
+		query.add_component(ECS::get_component_id("TransformComponent"), true);
+		query.add_component(ECS::get_component_id("TagQueryTestComponent"), false);
 
 		CHECK(query.is_valid());
 
@@ -79,7 +79,7 @@ TEST_CASE("[Modules][ECS] Test dynamic query") {
 
 	{
 		godex::DynamicQuery query;
-		query.add_component("TransformComponent", false);
+		query.add_component(ECS::get_component_id("TransformComponent"), false);
 
 		// Test process.
 		query.begin(&world);
@@ -132,11 +132,115 @@ TEST_CASE("[Modules][ECS] Test dynamic query") {
 	}
 }
 
+TEST_CASE("[Modules][ECS] Test dynamic query with dynamic storages.") {
+	LocalVector<ScriptProperty> props;
+	props.push_back({ PropertyInfo(Variant::INT, "variable_1"), 1 });
+	props.push_back({ PropertyInfo(Variant::BOOL, "variable_2"), false });
+	props.push_back({ PropertyInfo(Variant::VECTOR3, "variable_3"), Vector3() });
+
+	const uint32_t test_dyn_component_id = ECS::register_script_component(
+			"TestDynamicQueryComponent1.gd",
+			props,
+			StorageType::DENSE_VECTOR);
+
+	World world;
+
+	EntityID entity_1 = world.create_entity()
+								.with(test_dyn_component_id, Dictionary());
+
+	EntityID entity_2 = world.create_entity()
+								.with(test_dyn_component_id, Dictionary());
+
+	godex::DynamicQuery query;
+	query.add_component(test_dyn_component_id, true);
+
+	CHECK(query.is_valid());
+
+	// Test process.
+	query.begin(&world);
+
+	// Entity 1
+	CHECK(query.is_done() == false);
+	CHECK(query.get_current_entity_id() == entity_1);
+
+	{
+		const LocalVector<godex::AccessComponent> *data = query.get();
+		CHECK(data->size() == 1);
+		CHECK((*data)[0].is_mutable());
+		(*data)[0].set("variable_1", 20);
+		(*data)[0].set("variable_2", true);
+		(*data)[0].set("variable_3", Vector2(10., 10.)); // Test if wrong type is still handled: `variable_3` is a `Vector3`.
+	}
+
+	query.next_entity();
+
+	// Entity 2
+	CHECK(query.is_done() == false);
+	CHECK(query.get_current_entity_id() == entity_2);
+
+	{
+		const LocalVector<godex::AccessComponent> *data = query.get();
+		CHECK(data->size() == 1);
+		CHECK((*data)[0].is_mutable());
+		(*data)[0].set("variable_1", 30);
+		(*data)[0].set("variable_2", true);
+		(*data)[0].set("variable_3", Vector3(10.0, 0, 0));
+	}
+
+	query.next_entity();
+	CHECK(query.is_done());
+	query.end();
+
+	// ~~ Make sure the data got written using another immutable query. ~~
+
+	query.reset();
+	query.add_component(test_dyn_component_id, false);
+
+	query.begin(&world);
+
+	// Entity 1
+	CHECK(query.is_done() == false);
+	CHECK(query.get_current_entity_id() == entity_1);
+
+	{
+		const LocalVector<godex::AccessComponent> *data = query.get();
+		CHECK(data->size() == 1);
+		CHECK((*data)[0].is_mutable() == false);
+		CHECK((*data)[0].get("variable_1") == Variant(20));
+		CHECK((*data)[0].get("variable_2") == Variant(true));
+		// Make sure this doesn't changed, since we submitted a wrong value.
+		CHECK((*data)[0].get("variable_3") == Variant(Vector3()));
+	}
+
+	query.next_entity();
+
+	// Entity 2
+	CHECK(query.is_done() == false);
+	CHECK(query.get_current_entity_id() == entity_2);
+
+	{
+		const LocalVector<godex::AccessComponent> *data = query.get();
+		CHECK(data->size() == 1);
+		CHECK((*data)[0].is_mutable() == false);
+		CHECK((*data)[0].get("variable_1") == Variant(30));
+		CHECK((*data)[0].get("variable_2") == Variant(true));
+		CHECK(ABS((*data)[0].get("variable_3").operator Vector3().x - 10.0) < CMP_EPSILON);
+
+		// Try to mutate an immutable value.
+		(*data)[0].set("variable_2", false);
+		CHECK((*data)[0].get("variable_2") != Variant(false));
+	}
+
+	query.next_entity();
+	CHECK(query.is_done());
+	query.end();
+}
+
 TEST_CASE("[Modules][ECS] Test invalid dynamic query.") {
 	godex::DynamicQuery query;
 
 	// Add an invalid component.
-	query.add_component("ThisComponentDoesntExists");
+	query.add_component(ECS::get_component_id("ThisComponentDoesntExists"));
 
 	CHECK(query.is_valid() == false);
 
@@ -144,7 +248,7 @@ TEST_CASE("[Modules][ECS] Test invalid dynamic query.") {
 	query.reset();
 
 	// Build it again but this time valid.
-	query.add_component("TransformComponent");
+	query.add_component(ECS::get_component_id("TransformComponent"));
 	CHECK(query.is_valid());
 }
 

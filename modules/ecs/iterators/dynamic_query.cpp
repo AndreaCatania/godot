@@ -24,16 +24,16 @@ bool AccessComponent::is_mutable() const {
 DynamicQuery::DynamicQuery() {
 }
 
-void DynamicQuery::add_component(StringName p_component, bool p_mutable) {
-	ERR_FAIL_COND_MSG(is_valid() == false, "This component is not valid.");
+void DynamicQuery::add_component(uint32_t p_component_id, bool p_mutable) {
+	ERR_FAIL_COND_MSG(is_valid() == false, "This query is not valid.");
 	ERR_FAIL_COND_MSG(can_change == false, "This query can't change at this point, you have to `clear` it.");
-
-	const uint32_t id = ECS::get_component_id(p_component);
-	if (id == UINT32_MAX) {
+	if (unlikely(ECS::verify_component_id(p_component_id) == false)) {
 		// Invalidate.
 		valid = false;
+		ERR_FAIL_MSG("The component_id " + itos(p_component_id) + " is invalid.");
 	}
-	storage_ids.push_back(id);
+
+	storage_ids.push_back(p_component_id);
 	access_component.push_back(p_mutable);
 }
 

@@ -8,6 +8,7 @@ class World;
 
 namespace godex {
 
+/// This class is used to make sure the `Query` mutability is respected.
 class AccessComponent {
 	friend class DynamicQuery;
 
@@ -41,7 +42,7 @@ public:
 	DynamicQuery();
 
 	/// Add component.
-	void add_component(StringName p_component, bool p_mutable = false);
+	void add_component(uint32_t p_component_id, bool p_mutable = false);
 
 	/// Returns true if this query is valid.
 	bool is_valid() const;

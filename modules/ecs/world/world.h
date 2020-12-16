@@ -39,6 +39,7 @@ private:
 public:
 	template <class C>
 	const EntityBuilder &with(const C &p_data) const;
+	const EntityBuilder &with(uint32_t p_component_id, const Dictionary &p_data) const;
 
 	operator EntityID() const {
 		return entity;
