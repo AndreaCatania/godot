@@ -9,6 +9,8 @@ class World;
 
 typedef void (*system_execute)(World *p_world);
 
+// TODO this goes around, which copy the resource a bunch of times.
+// Does something about??
 struct SystemInfo {
 	StringName name;
 	String description;

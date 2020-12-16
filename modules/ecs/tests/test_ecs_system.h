@@ -3,8 +3,8 @@
 
 #include "tests/test_macros.h"
 
-#include "modules/ecs/components/transform_component.h"
 #include "modules/ecs/components/dynamic_component.h"
+#include "modules/ecs/components/transform_component.h"
 #include "modules/ecs/ecs.h"
 #include "modules/ecs/pipeline/pipeline.h"
 #include "modules/ecs/world/world.h"
@@ -49,8 +49,6 @@ TEST_CASE("[Modules][ECS] Test system and query") {
 		pipeline.dispatch(&world);
 	}
 
-	world.get_storage<TransformComponent>();
-
 	const TypedStorage<const TransformComponent> *storage = world.get_storage<const TransformComponent>();
 
 	const Vector3 entity_1_origin = storage->get(entity_1).get_transform().origin;
@@ -81,14 +79,21 @@ TEST_CASE("[Modules][ECS] Test system and resource") {
 //}
 
 TEST_CASE("[Modules][ECS] Test dynamic system") {
-	ECS::register_component<TagTestComponent>();
+	LocalVector<ScriptProperty> props;
+	props.push_back({ PropertyInfo(Variant::INT, "variable_1"), 1 });
+	props.push_back({ PropertyInfo(Variant::BOOL, "variable_2"), false });
+
+	const uint32_t test_dyn_component_id = ECS::register_script_component(
+			"TestDynamicSystemComponent1.gd",
+			props,
+			StorageType::DENSE_VECTOR);
 
 	World world;
 
 	EntityID entity_1 = world
 								.create_entity()
 								.with(TransformComponent())
-								.with(TagTestComponent());
+								.with(test_dyn_component_id, Dictionary());
 
 	EntityID entity_2 = world
 								.create_entity()
@@ -97,9 +102,7 @@ TEST_CASE("[Modules][ECS] Test dynamic system") {
 	EntityID entity_3 = world
 								.create_entity()
 								.with(TransformComponent())
-								.with(TagTestComponent());
-
-	// TODO use the dynamic system instead
+								.with(test_dyn_component_id, Dictionary());
 
 	Pipeline pipeline;
 	pipeline.add_system(test_system_tag);
@@ -108,8 +111,7 @@ TEST_CASE("[Modules][ECS] Test dynamic system") {
 		pipeline.dispatch(&world);
 	}
 
-	world.get_storage<TransformComponent>();
-
+	return;
 	const TypedStorage<const TransformComponent> *storage = world.get_storage<const TransformComponent>();
 
 	const Vector3 entity_1_origin = storage->get(entity_1).get_transform().origin;
