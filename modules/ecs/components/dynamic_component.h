@@ -37,6 +37,10 @@ public:
 		ERR_FAIL_COND_V_MSG(id_ptr == nullptr, UINT32_MAX, "The property " + p_name + " doesn't exists on this component " + ECS::get_component_name(component_id));
 		return *id_ptr;
 	}
+
+	bool validate_type(uint32_t p_index, Variant::Type p_type) const {
+		return defaults[p_index].get_type() == p_type;
+	}
 };
 
 /// The `VariantComponent` is a special type component designed for godot
@@ -80,6 +84,7 @@ void VariantComponent<SIZE>::set(StringName p_name, Variant p_data) {
 #endif
 	const uint32_t index = info->get_property_id(p_name);
 	ERR_FAIL_COND(index >= SIZE);
+	ERR_FAIL_COND_MSG(info->validate_type(index, p_data.get_type()) == false, "The component variable " + p_name + " has not the same type of the given value: " + p_data);
 	return data[index] = p_data;
 }
 
