@@ -4,6 +4,7 @@
 #include "components/dynamic_component.h"
 #include "core/object/message_queue.h"
 #include "scene/main/scene_tree.h"
+#include "systems/dynamic_system.h"
 #include "world/world.h"
 
 ECS *ECS::singleton = nullptr;
@@ -77,12 +78,28 @@ StringName ECS::get_resource_name(uint32_t p_resource_id) {
 // Undefine the macro defined into `ecs.h` so we can define the method properly.
 #undef register_system
 void ECS::register_system(get_system_info_func p_get_info_func, StringName p_name, String p_description) {
+	{
+		const uint32_t id = find_system_id(p_name);
+		ERR_FAIL_COND_MSG(id != UINT32_MAX, "The system is already registered.");
+	}
+
 	SystemInfo info = p_get_info_func();
 	info.name = p_name;
 	info.description = p_description;
 
 	systems.push_back(p_name);
 	systems_info.push_back(info);
+}
+
+uint32_t ECS::register_dynamic_system(StringName p_name, const godex::DynamicSystemInfo *p_info) {
+	{
+		const uint32_t id = find_system_id(p_name);
+		ERR_FAIL_COND_V_MSG(id != UINT32_MAX, UINT32_MAX, "The system is already registered.");
+	}
+
+	// TODO extract system info
+
+	// TODO store the system.
 }
 
 uint32_t ECS::find_system_id(StringName p_name) {

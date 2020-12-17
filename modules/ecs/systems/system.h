@@ -10,8 +10,9 @@ class World;
 typedef void (*system_execute)(World *p_world);
 
 // TODO this goes around, which copy the resource a bunch of times.
-// Does something about??
+// Do something about??
 struct SystemInfo {
+	// TODO do I really need the name here?
 	StringName name;
 	String description;
 	LocalVector<uint32_t> mutable_components;

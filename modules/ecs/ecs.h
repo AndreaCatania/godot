@@ -13,6 +13,9 @@
 
 class World;
 class DynamicComponentInfo;
+namespace godex {
+class DynamicSystemInfo;
+}
 
 // These functions are implemented by the `COMPONENT` macro and assigned during
 // component registration.
@@ -66,6 +69,9 @@ public:
 
 	// ~~ Systems ~~
 	static void register_system(get_system_info_func p_get_info_func, StringName p_name, String p_description = "");
+
+	// Register the system and returns the ID.
+	static uint32_t register_dynamic_system(StringName p_name, const godex::DynamicSystemInfo *p_info);
 
 // This macro save the user the need to pass a `SystemInfo`, indeed it wraps
 // the passed function with a labda function that creates a `SystemInfo`.
