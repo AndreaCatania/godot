@@ -27,6 +27,9 @@ protected:
 	static void _bind_methods();
 
 public:
+	PipelineECS();
+	~PipelineECS();
+
 	void set_pipeline_name(StringName p_name);
 	StringName get_pipeline_name() const;
 
@@ -38,7 +41,7 @@ public:
 	/// compose the world.
 	///
 	/// @param `p_system_link` Can be a native system name (`TransformSystem`)
-	///                        or a script system (`res://path/to/script.gd::system_func_name`)
+	///                        or a script system (`ScriptedSystem.gd`)
 	/// @param `p_pos` Sets the system at the given position, pushing the others.
 	///                Passing `UINT32_MAX`, allow to push back the system.
 	///
@@ -47,7 +50,10 @@ public:
 	/// Note: Add and Remove a `system` will cause world rebuild, which
 	/// should be avoided by using more worlds and activating them when
 	/// needed.
-	void insert_system(const String &p_system_link, uint32_t p_pos = UINT32_MAX);
+	void insert_system(const StringName &p_system_name, uint32_t p_pos = UINT32_MAX);
+
+	/// Builds the pipeline and returns it.
+	Pipeline *get_pipeline();
 };
 
 /// The `WorldECS` class holds the `World` information that is where all the
@@ -69,6 +75,7 @@ class WorldECS : public Node {
 	bool is_active = false;
 
 	Vector<Ref<PipelineECS>> pipelines;
+	StringName active_pipeline;
 
 protected:
 	static void _bind_methods();
@@ -99,6 +106,9 @@ public:
 
 	Ref<PipelineECS> find_pipeline(StringName p_name);
 	int find_pipeline_index(StringName p_name) const;
+
+	void set_active_pipeline(StringName p_name);
+	StringName get_active_pipeline() const;
 
 private:
 	void active_world();

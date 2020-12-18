@@ -12,7 +12,6 @@
 class Storage;
 class World;
 class ECSResource;
-class Pipeline;
 
 /// Utility that can be used to create an entity with components.
 /// You can use it in this way:
@@ -51,7 +50,6 @@ class World {
 	LocalVector<ECSResource *> resources;
 	uint32_t entity_count = 0;
 	EntityBuilder entity_builder = EntityBuilder(this);
-	Pipeline *pipeline = nullptr;
 
 public:
 	/// Creates a new Entity id. You can add the components using the function
@@ -119,11 +117,6 @@ public:
 
 	template <class R>
 	R &get_resource();
-
-	void set_pipeline(Pipeline *p_pipeline);
-	Pipeline *get_pipeline() const;
-
-	void dispatch();
 
 private:
 	/// Creates a new component storage into the world, if the storage

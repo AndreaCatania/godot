@@ -12,6 +12,7 @@
 #include "modules/ecs/systems/system_builder.h"
 
 class World;
+class Pipeline;
 class DynamicComponentInfo;
 namespace godex {
 class DynamicSystemInfo;
@@ -41,6 +42,7 @@ class ECS : public Object {
 	static LocalVector<SystemInfo> systems_info;
 
 	World *active_world = nullptr;
+	Pipeline *active_world_pipeline = nullptr;
 	WorldCommands commands;
 
 public:
@@ -108,6 +110,8 @@ public:
 	/// Set the active world. If there is already an active world an error
 	/// is generated.
 	void set_active_world(World *p_world);
+	World *get_active_world() const;
+
 	bool has_active_world() const;
 
 	/// Returns a command object that can be used to spawn entities, add
@@ -115,6 +119,11 @@ public:
 	/// This function returns nullptr when the world is dispatched because
 	/// it's unsafe interact during that phase.
 	WorldCommands *get_commands();
+
+	void set_active_world_pipeline(Pipeline *p_pipeline);
+	Pipeline *get_active_world_pipeline() const;
+
+	bool has_active_world_pipeline() const;
 
 private:
 	bool dispatch_active_world();

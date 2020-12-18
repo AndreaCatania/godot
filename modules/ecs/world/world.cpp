@@ -2,7 +2,6 @@
 #include "world.h"
 
 #include "modules/ecs/ecs.h"
-#include "modules/ecs/pipeline/pipeline.h"
 
 EntityBuilder::EntityBuilder(World *p_world) :
 		world(p_world) {
@@ -62,22 +61,6 @@ Storage *World::get_storage(uint32_t p_storage_id) {
 	}
 
 	return storages[p_storage_id];
-}
-
-void World::set_pipeline(Pipeline *p_pipeline) {
-	pipeline = p_pipeline;
-}
-
-Pipeline *World::get_pipeline() const {
-	return pipeline;
-}
-
-void World::dispatch() {
-	if (unlikely(pipeline == nullptr)) {
-		// No world, nothing to do.
-		return;
-	}
-	pipeline->dispatch(this);
 }
 
 void World::create_storage(uint32_t p_component_id) {

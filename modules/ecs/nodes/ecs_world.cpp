@@ -19,6 +19,17 @@ void PipelineECS::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "system_links"), "set_system_links", "get_system_links");
 }
 
+PipelineECS::PipelineECS() {}
+
+PipelineECS::~PipelineECS() {
+	if (ECS::get_singleton()->get_active_world_pipeline() == pipeline) {
+		ECS::get_singleton()->set_active_world_pipeline(nullptr);
+	}
+
+	memdelete(pipeline);
+	pipeline = nullptr;
+}
+
 void PipelineECS::set_pipeline_name(StringName p_name) {
 	pipeline_name = p_name;
 	_change_notify("pipeline_name");
@@ -37,27 +48,38 @@ Array PipelineECS::get_system_links() const {
 	return system_links;
 }
 
-void PipelineECS::insert_system(const String &p_system_link, uint32_t p_pos) {
-	if (p_system_link.is_resource_file() == false) {
-		// This is a Native system.
-		ERR_FAIL_COND_MSG(ECS::find_system_id(p_system_link) == UINT32_MAX, "This system is not known.");
-	}
-
-	// At this point the p_system_link is valid.
-
+void PipelineECS::insert_system(const StringName &p_system_name, uint32_t p_pos) {
 	// Make sure to remove any previously declared link.
-	system_links.erase(p_system_link);
+	system_links.erase(p_system_name);
 
 	if (p_pos == UINT32_MAX) {
 		// Just push back.
-		system_links.push_back(p_system_link);
+		system_links.push_back(p_system_name);
 	} else {
-		ERR_FAIL_INDEX_MSG(int(p_pos), system_links.size() + 1, "The pipeline is not so big, this system: " + p_system_link + " can't be insert at this position: " + itos(p_pos));
+		ERR_FAIL_INDEX_MSG(int(p_pos), system_links.size() + 1, "The pipeline is not so big, this system: " + p_system_name + " can't be insert at this position: " + itos(p_pos));
 		// Insert the system at given position.
-		system_links.insert(p_pos, p_system_link);
+		system_links.insert(p_pos, p_system_name);
 	}
 
 	_change_notify("system_links");
+}
+
+Pipeline *PipelineECS::get_pipeline() {
+	// Build the pipeline.
+
+	if (pipeline) {
+		return pipeline;
+	}
+
+	pipeline = memnew(Pipeline);
+
+	for (int i = 0; i < system_links.size(); i += 1) {
+		const StringName system_name = system_links[i];
+		const uint32_t system_id = ECS::find_system_id(system_name);
+		pipeline->add_registered_system(ECS::get_system_info(system_id));
+	}
+
+	return pipeline;
 }
 
 void WorldECS::_bind_methods() {
@@ -200,9 +222,29 @@ int WorldECS::find_pipeline_index(StringName p_name) const {
 	return -1;
 }
 
+void WorldECS::set_active_pipeline(StringName p_name) {
+	if (ECS::get_singleton()->get_active_world() == world) {
+		active_pipeline = p_name;
+		Ref<PipelineECS> pip = find_pipeline(p_name);
+		if (pip.is_valid()) {
+			ECS::get_singleton()->set_active_world_pipeline(pip->get_pipeline());
+		} else {
+			ECS::get_singleton()->set_active_world_pipeline(nullptr);
+		}
+	}
+}
+
+StringName WorldECS::get_active_pipeline() const {
+	return active_pipeline;
+}
+
 void WorldECS::active_world() {
 	if (ECS::get_singleton()->has_active_world() == false) {
 		ECS::get_singleton()->set_active_world(world);
+		Ref<PipelineECS> pip = find_pipeline(active_pipeline);
+		if (pip.is_valid()) {
+			ECS::get_singleton()->set_active_world_pipeline(pip->get_pipeline());
+		}
 		is_active = true;
 
 		if (ECS::get_singleton()->is_connected(

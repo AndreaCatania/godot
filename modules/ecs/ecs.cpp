@@ -3,6 +3,7 @@
 
 #include "components/dynamic_component.h"
 #include "core/object/message_queue.h"
+#include "pipeline/pipeline.h"
 #include "scene/main/scene_tree.h"
 #include "systems/dynamic_system.h"
 #include "world/world.h"
@@ -151,6 +152,7 @@ void ECS::set_active_world(World *p_world) {
 	}
 
 	active_world = p_world;
+	active_world_pipeline = nullptr;
 
 	if (active_world != nullptr) {
 		// The world is just loaded.
@@ -159,6 +161,10 @@ void ECS::set_active_world(World *p_world) {
 		// The world is just unloaded.
 		emit_signal("world_unloaded");
 	}
+}
+
+World *ECS::get_active_world() const {
+	return active_world;
 }
 
 bool ECS::has_active_world() const {
@@ -172,9 +178,22 @@ WorldCommands *ECS::get_commands() {
 	return &commands;
 }
 
+void ECS::set_active_world_pipeline(Pipeline *p_pipeline) {
+	// TODO Make sure to never change the pipeline during dispatching.
+	active_world_pipeline = p_pipeline;
+}
+
+Pipeline *ECS::get_active_world_pipeline() const {
+	return active_world_pipeline;
+}
+
+bool ECS::has_active_world_pipeline() const {
+	return active_world_pipeline != nullptr;
+}
+
 bool ECS::dispatch_active_world() {
-	if (likely(active_world)) {
-		active_world->dispatch();
+	if (likely(active_world && active_world_pipeline)) {
+		active_world_pipeline->dispatch(active_world);
 	}
 
 	// TODO add a way to terminate, from a system, the engine execution
