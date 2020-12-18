@@ -61,9 +61,13 @@ String resource_validate_script(Ref<Script> p_script);
 /// Utility that allow to handle the godot scripted Component, Resources, Systems.
 class ScriptECS {
 	static bool component_loaded;
+	static bool ecs_initialized;
 
 	static LocalVector<StringName> component_names;
 	static LocalVector<Ref<Component>> components;
+
+	static LocalVector<StringName> system_names;
+	static LocalVector<Ref<System>> systems;
 
 public:
 	/// Loads components.
@@ -77,4 +81,8 @@ public:
 	static const LocalVector<Ref<Component>> &get_components();
 
 	static Ref<Component> get_component(uint32_t p_id);
+
+	static void register_runtime_scripts();
+	static void register_dynamic_components();
+	static void register_dynamic_systems();
 };

@@ -1,8 +1,10 @@
 #include "ecs_utilities.h"
 
+#include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "core/io/resource_loader.h"
 #include "core/object/script_language.h"
+#include "modules/ecs/ecs.h"
 
 void System::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("with_resource", "resource_name", "mutability"), &System::with_resource, DEFVAL(IMMUTABLE));
@@ -43,15 +45,11 @@ String System::validate_script(Ref<Script> p_script) {
 	return "";
 }
 
-void Component::_bind_methods() {
-}
+void Component::_bind_methods() {}
 
-Component::Component() {
-}
+Component::Component() {}
 
-Component::~Component() {
-	set_component_script(Ref<Script>());
-}
+Component::~Component() {}
 
 void Component::set_name(StringName p_name) {
 	name = p_name;
@@ -88,6 +86,7 @@ Variant Component::get_property_default_value(StringName p_property_name) {
 	si->get(p_property_name, ret);
 	// Make sure to clear the script, so it's correctly destroyed.
 	set_script_instance(nullptr);
+	set_script(Ref<Script>());
 	return ret;
 }
 
@@ -141,6 +140,8 @@ String resource_validate_script(Ref<Script> p_script) {
 }
 
 bool ScriptECS::component_loaded = false;
+bool ScriptECS::ecs_initialized = false;
+
 LocalVector<StringName> ScriptECS::component_names;
 LocalVector<Ref<Component>> ScriptECS::components;
 
@@ -205,3 +206,45 @@ Ref<Component> ScriptECS::get_component(uint32_t p_id) {
 //	ERR_FAIL_COND_V(p_component_script.is_null(), "");
 //	return p_component_script->get_path();
 //}
+
+void ScriptECS::register_runtime_scripts() {
+	if (Engine::get_singleton()->is_editor_hint()) {
+		// Only when the editor is off the Scripted components are registered.
+		return;
+	}
+	if (ecs_initialized) {
+		return;
+	}
+
+	ecs_initialized = true;
+
+	register_dynamic_components();
+	// TODO resources
+	register_dynamic_systems();
+}
+
+void ScriptECS::register_dynamic_components() {
+	load_components();
+
+	for (uint32_t i = 0; i < components.size(); i += 1) {
+		List<PropertyInfo> raw_properties;
+		components[i]->get_component_property_list(&raw_properties);
+
+		LocalVector<ScriptProperty> properties;
+		properties.reserve(raw_properties.size());
+		for (List<PropertyInfo>::Element *e = raw_properties.front(); e; e = e->next()) {
+			properties.push_back({ e->get(),
+					// TODO use a way to get all the values at once.
+					components[i]->get_property_default_value(e->get().name) });
+		}
+
+		ECS::register_script_component(
+				component_names[i],
+				properties,
+				// TODO make the storage customizable.
+				StorageType::DENSE_VECTOR);
+	}
+}
+
+void ScriptECS::register_dynamic_systems() {
+}

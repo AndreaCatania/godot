@@ -4,6 +4,7 @@
 #include "ecs_world.h"
 
 #include "modules/ecs/ecs.h"
+#include "modules/ecs/nodes/ecs_utilities.h"
 #include "modules/ecs/pipeline/pipeline.h"
 #include "modules/ecs/world/world.h"
 
@@ -26,8 +27,10 @@ PipelineECS::~PipelineECS() {
 		ECS::get_singleton()->set_active_world_pipeline(nullptr);
 	}
 
-	memdelete(pipeline);
-	pipeline = nullptr;
+	if (pipeline) {
+		memdelete(pipeline);
+		pipeline = nullptr;
+	}
 }
 
 void PipelineECS::set_pipeline_name(StringName p_name) {
@@ -85,6 +88,11 @@ Pipeline *PipelineECS::get_pipeline() {
 void WorldECS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_pipeline", "pipeline"), &WorldECS::add_pipeline);
 	ClassDB::bind_method(D_METHOD("remove_pipeline", "pipeline"), &WorldECS::remove_pipeline);
+
+	ClassDB::bind_method(D_METHOD("set_active_pipeline", "name"), &WorldECS::set_active_pipeline);
+	ClassDB::bind_method(D_METHOD("get_active_pipeline"), &WorldECS::get_active_pipeline);
+
+	ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "active_pipeline"), "set_active_pipeline", "get_active_pipeline");
 }
 
 bool WorldECS::_set(const StringName &p_name, const Variant &p_value) {
@@ -134,6 +142,10 @@ void WorldECS::_get_property_list(List<PropertyInfo> *p_list) const {
 void WorldECS::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_READY:
+			// TODO this should go in a better place, like at the end of the
+			// engine setup: https://github.com/godotengine/godot-proposals/issues/1593
+			ScriptECS::register_runtime_scripts();
+
 			add_to_group("_world_ecs");
 			if (Engine::get_singleton()->is_editor_hint() == false) {
 				active_world();

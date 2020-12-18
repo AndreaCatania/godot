@@ -25,11 +25,6 @@ public:
 	}
 } rep;
 
-// TODO just a quick test.
-#include "modules/ecs/iterators/query.h"
-void test_system(Query<TransformComponent> &p_query) {
-}
-
 void register_ecs_types() {
 	godex::DynamicSystemInfo::for_each_name = StringName("_for_each");
 
@@ -53,8 +48,6 @@ void register_ecs_types() {
 	if (Engine::get_singleton()->is_editor_hint()) {
 		MessageQueue::get_singleton()->push_callable(callable_mp(&rep, &REP::register_editor_plugins));
 	}
-
-	ECS::register_system(test_system, "TestSystem", "Just a test");
 }
 
 void unregister_ecs_types() {

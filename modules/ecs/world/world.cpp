@@ -24,7 +24,9 @@ const EntityBuilder &World::create_entity() {
 void World::destroy_entity(EntityID p_entity) {
 	// Removes the components assigned to this entity.
 	for (uint32_t i = 0; i < storages.size(); i += 1) {
-		storages[i]->remove(p_entity);
+		if (storages[i] != nullptr) {
+			storages[i]->remove(p_entity);
+		}
 	}
 
 	// TODO consider to reuse this ID.
