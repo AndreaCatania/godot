@@ -92,14 +92,24 @@ void ECS::register_system(get_system_info_func p_get_info_func, StringName p_nam
 }
 
 uint32_t ECS::register_dynamic_system(StringName p_name, const godex::DynamicSystemInfo *p_info) {
+	ERR_FAIL_COND_V_MSG(p_info == nullptr, UINT32_MAX, "`DynamicSysteInfo` can't be nullptr.");
 	{
 		const uint32_t id = find_system_id(p_name);
 		ERR_FAIL_COND_V_MSG(id != UINT32_MAX, UINT32_MAX, "The system is already registered.");
 	}
 
-	// TODO extract system info
+	const uint32_t id = systems.size();
 
-	// TODO store the system.
+	SystemInfo info = p_info->get_system_info();
+	info.name = p_name;
+	// Used to assign a static function to this dynamic system, check the
+	// DynamicSystem doc to know more (modules/ecs/systems/dynamic_system.h).
+	info.system_func = godex::register_dynamic_system(*p_info);
+
+	systems.push_back(p_name);
+	systems_info.push_back(info);
+
+	return id;
 }
 
 uint32_t ECS::find_system_id(StringName p_name) {

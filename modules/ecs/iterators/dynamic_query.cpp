@@ -5,16 +5,19 @@
 using godex::AccessComponent;
 using godex::DynamicQuery;
 
-AccessComponent::AccessComponent(bool p_mut) :
-		mut(p_mut) {}
-
-void AccessComponent::set(StringName p_name, Variant p_data) const {
-	ERR_FAIL_COND_MSG(mut == false, "This component was taken as not mutable.");
-	component->set(p_name, p_data);
+void AccessComponent::set_mutable(bool p_mut) {
+	mut = p_mut;
 }
 
-Variant AccessComponent::get(StringName p_name) const {
-	return component->get(p_name);
+AccessComponent::AccessComponent() {}
+
+bool AccessComponent::_setv(const StringName &p_name, const Variant &p_data) {
+	ERR_FAIL_COND_V_MSG(mut == false, false, "This component was taken as not mutable.");
+	return component->set(p_name, p_data);
+}
+
+bool AccessComponent::_getv(const StringName &p_name, Variant &r_data) const {
+	return component->get(p_name, r_data);
 }
 
 bool AccessComponent::is_mutable() const {
@@ -33,25 +36,54 @@ void DynamicQuery::add_component(uint32_t p_component_id, bool p_mutable) {
 		ERR_FAIL_MSG("The component_id " + itos(p_component_id) + " is invalid.");
 	}
 
-	storage_ids.push_back(p_component_id);
-	access_component.push_back(p_mutable);
+	component_ids.push_back(p_component_id);
+	mutability.push_back(p_mutable);
 }
 
 bool DynamicQuery::is_valid() const {
 	return valid;
 }
 
+bool DynamicQuery::build() {
+	ERR_FAIL_COND_V(is_valid() == false, false);
+	if (likely(can_change == false)) {
+		return false;
+	}
+
+	can_change = false;
+
+	// Build the access_component is this way doesn't make the `ObjectDB`
+	// complain for some reason.
+	access_components.resize(component_ids.size());
+	for (uint32_t i = 0; i < component_ids.size(); i += 1) {
+		access_components[i].set_mutable(mutability[i]);
+	}
+
+	return true;
+}
+
 void DynamicQuery::reset() {
 	valid = true;
 	can_change = true;
-	storage_ids.clear();
-	access_component.clear();
+	component_ids.clear();
+	mutability.clear();
+	access_components.clear();
 	world = nullptr;
+}
+
+uint32_t DynamicQuery::access_count() const {
+	return component_ids.size();
+}
+
+AccessComponent *DynamicQuery::get_access(uint32_t p_index) {
+	ERR_FAIL_COND_V_MSG(is_valid() == false, nullptr, "The query is invalid.");
+	build();
+	return access_components.ptr() + p_index;
 }
 
 void DynamicQuery::begin(World *p_world) {
 	// Can't change anymore.
-	can_change = false;
+	build();
 	entity_id = UINT32_MAX;
 
 	ERR_FAIL_COND(is_valid() == false);
@@ -63,9 +95,9 @@ void DynamicQuery::begin(World *p_world) {
 	CRASH_COND_MSG(world != nullptr, "Make sure to call `DynamicQuery::end()` when you finish using the query!");
 	world = p_world;
 
-	storages.resize(storage_ids.size());
-	for (uint32_t i = 0; i < storage_ids.size(); i += 1) {
-		storages[i] = world->get_storage(storage_ids[i]);
+	storages.resize(component_ids.size());
+	for (uint32_t i = 0; i < component_ids.size(); i += 1) {
+		storages[i] = world->get_storage(component_ids[i]);
 		ERR_FAIL_COND_MSG(storages[i] == nullptr, "There is a storage nullptr. This is not supposed to happen.");
 	}
 
@@ -75,21 +107,13 @@ void DynamicQuery::begin(World *p_world) {
 	entity_id = 0;
 	if (has_entity(0) == false) {
 		next_entity();
+	} else {
+		fetch();
 	}
 }
 
 bool DynamicQuery::is_done() const {
 	return entity_id == UINT32_MAX;
-}
-
-const LocalVector<AccessComponent> *DynamicQuery::get() {
-	ERR_FAIL_COND_V_MSG(entity_id == UINT32_MAX, nullptr, "There is nothing to fetch.");
-
-	for (uint32_t i = 0; i < storages.size(); i += 1) {
-		access_component[i].component = storages[i]->get_ptr(entity_id);
-	}
-
-	return &access_component;
 }
 
 EntityID DynamicQuery::get_current_entity_id() const {
@@ -109,6 +133,7 @@ void DynamicQuery::next_entity() {
 		if (has_entity(new_entity_id)) {
 			// Confirmed, this `new_entity_id` has all the storages.
 			entity_id = new_entity_id;
+			fetch();
 			return;
 		}
 	}
@@ -118,8 +143,24 @@ void DynamicQuery::next_entity() {
 }
 
 void DynamicQuery::end() {
+	// Clear any component reference.
+	for (uint32_t i = 0; i < component_ids.size(); i += 1) {
+		access_components[i].component = nullptr;
+	}
+
 	world = nullptr;
 	storages.clear();
+}
+
+void DynamicQuery::get_system_info(SystemInfo &p_info) const {
+	ERR_FAIL_COND(is_valid() == false);
+	for (uint32_t i = 0; i < component_ids.size(); i += 1) {
+		if (mutability[i]) {
+			p_info.mutable_components.push_back(component_ids[i]);
+		} else {
+			p_info.immutable_components.push_back(component_ids[i]);
+		}
+	}
 }
 
 bool DynamicQuery::has_entity(EntityID p_id) const {
@@ -129,4 +170,12 @@ bool DynamicQuery::has_entity(EntityID p_id) const {
 		}
 	}
 	return true;
+}
+
+void DynamicQuery::fetch() {
+	ERR_FAIL_COND_MSG(entity_id == UINT32_MAX, "There is nothing to fetch.");
+
+	for (uint32_t i = 0; i < storages.size(); i += 1) {
+		access_components[i].component = storages[i]->get_ptr(entity_id);
+	}
 }

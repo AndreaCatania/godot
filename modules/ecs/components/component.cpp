@@ -14,11 +14,18 @@ const LocalVector<PropertyInfo> *Component::get_properties() const {
 	return nullptr;
 }
 
-void Component::set(StringName p_name, Variant p_data) {
+bool Component::set(const StringName &p_name, const Variant &p_data) {
 	CRASH_NOW_MSG("The component class must always be tagged using the macro `COMPONENT()`.");
+	return false;
 }
 
-Variant Component::get(StringName p_name) const {
+bool Component::get(const StringName &p_name, Variant &r_data) const {
 	CRASH_NOW_MSG("The component class must always be tagged using the macro `COMPONENT()`.");
-	return Variant();
+	return false;
+}
+
+Variant Component::get(const StringName &p_name) const {
+	Variant r;
+	get(p_name, r);
+	return r;
 }

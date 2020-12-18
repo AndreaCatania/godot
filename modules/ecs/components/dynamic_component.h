@@ -56,8 +56,8 @@ public:
 	void __initialize(DynamicComponentInfo *p_info);
 
 	virtual const LocalVector<PropertyInfo> *get_properties() const override;
-	virtual void set(StringName p_name, Variant p_data) override;
-	virtual Variant get(StringName p_name) const override;
+	virtual bool set(const StringName &p_name, const Variant &p_data) override;
+	virtual bool get(const StringName &p_name, Variant &p_data) const override;
 };
 
 template <int SIZE>
@@ -78,22 +78,24 @@ const LocalVector<PropertyInfo> *VariantComponent<SIZE>::get_properties() const 
 }
 
 template <int SIZE>
-void VariantComponent<SIZE>::set(StringName p_name, Variant p_data) {
+bool VariantComponent<SIZE>::set(const StringName &p_name, const Variant &p_data) {
 #ifdef DEBUG_ENABLED
 	CRASH_COND_MSG(info == nullptr, "The component is not initialized. This is not supposed to happen.");
 #endif
 	const uint32_t index = info->get_property_id(p_name);
-	ERR_FAIL_COND(index >= SIZE);
-	ERR_FAIL_COND_MSG(info->validate_type(index, p_data.get_type()) == false, "The component variable " + p_name + " has not the same type of the given value: " + p_data);
-	return data[index] = p_data;
+	ERR_FAIL_COND_V(index >= SIZE, false);
+	ERR_FAIL_COND_V_MSG(info->validate_type(index, p_data.get_type()) == false, false, "The component variable " + p_name + " has not the same type of the given value: " + p_data);
+	data[index] = p_data;
+	return true;
 }
 
 template <int SIZE>
-Variant VariantComponent<SIZE>::get(StringName p_name) const {
+bool VariantComponent<SIZE>::get(const StringName &p_name, Variant &r_data) const {
 #ifdef DEBUG_ENABLED
 	CRASH_COND_MSG(info == nullptr, "The component is not initialized. This is not supposed to happen.");
 #endif
 	const uint32_t index = info->get_property_id(p_name);
-	ERR_FAIL_COND_V(index >= SIZE, Variant());
-	return data[index];
+	ERR_FAIL_COND_V(index >= SIZE, false);
+	r_data = data[index];
+	return true;
 }

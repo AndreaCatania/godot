@@ -18,7 +18,7 @@ public:
 	/// Add a system that is registered via `ECS`, usually this function is used
 	/// to construct the pipeline using the `ECS` class.
 	/// This only difference with `add_system` is the argument type.
-	void add_native_system(const SystemInfo &p_system_info);
+	void add_registered_system(const SystemInfo &p_system_info);
 
 	/// Add a system that is not registered via `ECS`.
 	void add_system(get_system_info_func p_get_info_func);

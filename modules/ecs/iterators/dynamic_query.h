@@ -9,17 +9,19 @@ class World;
 namespace godex {
 
 /// This class is used to make sure the `Query` mutability is respected.
-class AccessComponent {
+class AccessComponent : public Object {
 	friend class DynamicQuery;
 
 	godex::Component *component = nullptr;
-	bool mut;
+	bool mut = false;
+
+	void set_mutable(bool p_mut);
 
 public:
-	AccessComponent(bool p_mut = false);
+	AccessComponent();
 
-	void set(StringName p_name, Variant p_data) const;
-	Variant get(StringName p_name) const;
+	virtual bool _setv(const StringName &p_name, const Variant &p_data) override;
+	virtual bool _getv(const StringName &p_name, Variant &r_data) const override;
 
 	bool is_mutable() const;
 };
@@ -31,8 +33,9 @@ public:
 class DynamicQuery {
 	bool valid = true;
 	bool can_change = true;
-	LocalVector<uint32_t> storage_ids;
-	LocalVector<AccessComponent> access_component;
+	LocalVector<uint32_t> component_ids;
+	LocalVector<bool> mutability;
+	LocalVector<AccessComponent> access_components;
 	LocalVector<Storage *> storages;
 
 	World *world = nullptr;
@@ -47,19 +50,22 @@ public:
 	/// Returns true if this query is valid.
 	bool is_valid() const;
 
+	/// Build the query, it's not need call this explicitely.
+	bool build();
+
 	/// Clear the query so this memory can be reused.
 	void reset();
+
+	uint32_t access_count() const;
+	/// The returned pointer is valid only for the execution of the query.
+	/// If you reset the query, copy it (move the object), this pointer is invalidated.
+	AccessComponent *get_access(uint32_t p_index);
 
 	/// Start the execution of this query.
 	void begin(World *p_world);
 
 	/// Returns `false` if this query can still return the components via `get`.
 	bool is_done() const;
-
-	/// Returns the components.
-	/// IMPORTANT: Store this pointer is unsafe and may cause crash; the pointers
-	/// are valid only for the duration of the query process.
-	const LocalVector<AccessComponent> *get();
 
 	/// Returns entity id.
 	EntityID get_current_entity_id() const;
@@ -70,8 +76,11 @@ public:
 	/// Ends the query execution.
 	void end();
 
+	void get_system_info(SystemInfo &p_info) const;
+
 private:
 	bool has_entity(EntityID p_id) const;
+	void fetch();
 };
 
 } // namespace godex

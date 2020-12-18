@@ -9,6 +9,7 @@
 #include "nodes/ecs_utilities.h"
 #include "nodes/ecs_world.h"
 #include "nodes/entity.h"
+#include "systems/dynamic_system.h"
 
 #include "editor_plugins/editor_world_ecs.h"
 #include "editor_plugins/entity_editor_plugin.h"
@@ -30,6 +31,8 @@ void test_system(Query<TransformComponent> &p_query) {
 }
 
 void register_ecs_types() {
+	godex::DynamicSystemInfo::for_each_name = StringName("_for_each");
+
 	ClassDB::register_class<ECS>();
 	ClassDB::register_class<WorldECS>();
 	ClassDB::register_class<PipelineECS>();

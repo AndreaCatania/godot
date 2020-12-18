@@ -49,11 +49,10 @@ TEST_CASE("[Modules][ECS] Test dynamic query") {
 		CHECK(query.get_current_entity_id() == entity_1);
 
 		{
-			const LocalVector<godex::AccessComponent> *data = query.get();
-			CHECK(data->size() == 2);
-			CHECK((*data)[0].is_mutable());
-			CHECK((*data)[1].is_mutable() == false);
-			(*data)[0].set("transform", Transform(Basis(), Vector3(100.0, 100.0, 100.0)));
+			CHECK(query.access_count() == 2);
+			CHECK(query.get_access(0)->is_mutable());
+			CHECK(query.get_access(1)->is_mutable() == false);
+			query.get_access(0)->set("transform", Transform(Basis(), Vector3(100.0, 100.0, 100.0)));
 		}
 
 		query.next_entity();
@@ -63,11 +62,10 @@ TEST_CASE("[Modules][ECS] Test dynamic query") {
 		CHECK(query.get_current_entity_id() == entity_3);
 
 		{
-			const LocalVector<godex::AccessComponent> *data = query.get();
-			CHECK(data->size() == 2);
-			CHECK((*data)[0].is_mutable());
-			CHECK((*data)[1].is_mutable() == false);
-			(*data)[0].set("transform", Transform(Basis(), Vector3(200.0, 200.0, 200.0)));
+			CHECK(query.access_count() == 2);
+			CHECK(query.get_access(0)->is_mutable());
+			CHECK(query.get_access(1)->is_mutable() == false);
+			query.get_access(0)->set("transform", Transform(Basis(), Vector3(200.0, 200.0, 200.0)));
 		}
 
 		query.next_entity();
@@ -89,10 +87,9 @@ TEST_CASE("[Modules][ECS] Test dynamic query") {
 		CHECK(query.get_current_entity_id() == entity_1);
 
 		{
-			const LocalVector<godex::AccessComponent> *data = query.get();
-			CHECK(data->size() == 1);
-			CHECK((*data)[0].is_mutable() == false);
-			const Transform t = (*data)[0].get("transform");
+			CHECK(query.access_count() == 1);
+			CHECK(query.get_access(0)->is_mutable() == false);
+			const Transform t = query.get_access(0)->get("transform");
 			// Check if the entity_1 is changed.
 			CHECK(t.origin.x - 100.0 <= CMP_EPSILON);
 		}
@@ -103,10 +100,9 @@ TEST_CASE("[Modules][ECS] Test dynamic query") {
 		CHECK(query.is_done() == false);
 		CHECK(query.get_current_entity_id() == entity_2);
 		{
-			const LocalVector<godex::AccessComponent> *data = query.get();
-			CHECK(data->size() == 1);
-			CHECK((*data)[0].is_mutable() == false);
-			const Transform t = (*data)[0].get("transform");
+			CHECK(query.access_count() == 1);
+			CHECK(query.get_access(0)->is_mutable() == false);
+			const Transform t = query.get_access(0)->get("transform");
 			// Make sure the entity_2 is not changed.
 			CHECK(t.origin.x <= CMP_EPSILON);
 		}
@@ -117,10 +113,9 @@ TEST_CASE("[Modules][ECS] Test dynamic query") {
 		CHECK(query.is_done() == false);
 		CHECK(query.get_current_entity_id() == entity_3);
 		{
-			const LocalVector<godex::AccessComponent> *data = query.get();
-			CHECK(data->size() == 1);
-			CHECK((*data)[0].is_mutable() == false);
-			const Transform t = (*data)[0].get("transform");
+			CHECK(query.access_count() == 1);
+			CHECK(query.get_access(0)->is_mutable() == false);
+			const Transform t = query.get_access(0)->get("transform");
 			// Make sure the entity_3 is changed.
 			CHECK(t.origin.x - 200.0 <= CMP_EPSILON);
 		}
@@ -164,12 +159,11 @@ TEST_CASE("[Modules][ECS] Test dynamic query with dynamic storages.") {
 	CHECK(query.get_current_entity_id() == entity_1);
 
 	{
-		const LocalVector<godex::AccessComponent> *data = query.get();
-		CHECK(data->size() == 1);
-		CHECK((*data)[0].is_mutable());
-		(*data)[0].set("variable_1", 20);
-		(*data)[0].set("variable_2", true);
-		(*data)[0].set("variable_3", Vector2(10., 10.)); // Test if wrong type is still handled: `variable_3` is a `Vector3`.
+		CHECK(query.access_count() == 1);
+		CHECK(query.get_access(0)->is_mutable());
+		query.get_access(0)->set("variable_1", 20);
+		query.get_access(0)->set("variable_2", true);
+		query.get_access(0)->set("variable_3", Vector2(10., 10.)); // Test if wrong type is still handled: `variable_3` is a `Vector3`.
 	}
 
 	query.next_entity();
@@ -179,12 +173,11 @@ TEST_CASE("[Modules][ECS] Test dynamic query with dynamic storages.") {
 	CHECK(query.get_current_entity_id() == entity_2);
 
 	{
-		const LocalVector<godex::AccessComponent> *data = query.get();
-		CHECK(data->size() == 1);
-		CHECK((*data)[0].is_mutable());
-		(*data)[0].set("variable_1", 30);
-		(*data)[0].set("variable_2", true);
-		(*data)[0].set("variable_3", Vector3(10.0, 0, 0));
+		CHECK(query.access_count() == 1);
+		CHECK(query.get_access(0)->is_mutable());
+		query.get_access(0)->set("variable_1", 30);
+		query.get_access(0)->set("variable_2", true);
+		query.get_access(0)->set("variable_3", Vector3(10.0, 0, 0));
 	}
 
 	query.next_entity();
@@ -203,13 +196,12 @@ TEST_CASE("[Modules][ECS] Test dynamic query with dynamic storages.") {
 	CHECK(query.get_current_entity_id() == entity_1);
 
 	{
-		const LocalVector<godex::AccessComponent> *data = query.get();
-		CHECK(data->size() == 1);
-		CHECK((*data)[0].is_mutable() == false);
-		CHECK((*data)[0].get("variable_1") == Variant(20));
-		CHECK((*data)[0].get("variable_2") == Variant(true));
+		CHECK(query.access_count() == 1);
+		CHECK(query.get_access(0)->is_mutable() == false);
+		CHECK(query.get_access(0)->get("variable_1") == Variant(20));
+		CHECK(query.get_access(0)->get("variable_2") == Variant(true));
 		// Make sure this doesn't changed, since we submitted a wrong value.
-		CHECK((*data)[0].get("variable_3") == Variant(Vector3()));
+		CHECK(query.get_access(0)->get("variable_3") == Variant(Vector3()));
 	}
 
 	query.next_entity();
@@ -219,16 +211,15 @@ TEST_CASE("[Modules][ECS] Test dynamic query with dynamic storages.") {
 	CHECK(query.get_current_entity_id() == entity_2);
 
 	{
-		const LocalVector<godex::AccessComponent> *data = query.get();
-		CHECK(data->size() == 1);
-		CHECK((*data)[0].is_mutable() == false);
-		CHECK((*data)[0].get("variable_1") == Variant(30));
-		CHECK((*data)[0].get("variable_2") == Variant(true));
-		CHECK(ABS((*data)[0].get("variable_3").operator Vector3().x - 10.0) < CMP_EPSILON);
+		CHECK(query.access_count() == 1);
+		CHECK(query.get_access(0)->is_mutable() == false);
+		CHECK(query.get_access(0)->get("variable_1") == Variant(30));
+		CHECK(query.get_access(0)->get("variable_2") == Variant(true));
+		CHECK(ABS(query.get_access(0)->get("variable_3").operator Vector3().x - 10.0) < CMP_EPSILON);
 
 		// Try to mutate an immutable value.
-		(*data)[0].set("variable_2", false);
-		CHECK((*data)[0].get("variable_2") != Variant(false));
+		query.get_access(0)->set("variable_2", false);
+		CHECK(query.get_access(0)->get("variable_2") != Variant(false));
 	}
 
 	query.next_entity();

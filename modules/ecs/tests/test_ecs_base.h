@@ -51,6 +51,7 @@ TEST_CASE("[Modules][ECS] Test ECS dynamic component with wrong default type.") 
 	LocalVector<ScriptProperty> props;
 	props.push_back({ PropertyInfo(Variant::INT, "variable_1"), false });
 
+	print_line("Test ECS dynamic component with wrong default type, the followint error is legit:");
 	const uint32_t test_dyn_component_id = ECS::register_script_component(
 			"TestDynamicBaseComponent2.gd",
 			props,
