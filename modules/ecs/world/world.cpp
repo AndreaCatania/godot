@@ -73,7 +73,7 @@ Pipeline *World::get_pipeline() const {
 }
 
 void World::dispatch() {
-	if (unlikely(pipeline != nullptr)) {
+	if (unlikely(pipeline == nullptr)) {
 		// No world, nothing to do.
 		return;
 	}

@@ -136,9 +136,11 @@ void Entity::create_entity() {
 				const Variant *key = components_data.next(nullptr);
 				key != nullptr;
 				key = components_data.next(key)) {
+			const uint32_t component_id = ECS::get_component_id(*key);
+			ERR_CONTINUE(component_id == UINT32_MAX);
 			ECS::get_singleton()->get_commands()->add_component(
 					entity_id,
-					*key,
+					component_id,
 					*components_data.getptr(*key));
 		}
 	}

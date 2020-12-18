@@ -68,10 +68,6 @@ TEST_CASE("[Modules][ECS] Test system and query") {
 	CHECK(ABS(entity_3_origin.x - 300.0) <= CMP_EPSILON);
 }
 
-TEST_CASE("[Modules][ECS] Test system and resource") {
-	// TODO
-}
-
 TEST_CASE("[Modules][ECS] Test dynamic system using a script.") {
 	LocalVector<ScriptProperty> props;
 	props.push_back({ PropertyInfo(Variant::INT, "variable_1"), 1 });
@@ -162,6 +158,14 @@ TEST_CASE("[Modules][ECS] Test dynamic system using a script.") {
 		// Make sure this doesn't changed.
 		CHECK(storage->get_ptr(entity_3)->get("variable_2") == Variant(false));
 	}
+}
+
+TEST_CASE("[Modules][ECS] Test system and resource") {
+	// TODO
+}
+
+TEST_CASE("[Modules][ECS] Test system and resource") {
+	// TODO
 }
 
 // TODO test resources with C++ and Scripts systems.
