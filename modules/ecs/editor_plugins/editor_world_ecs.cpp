@@ -523,22 +523,22 @@ void EditorWorldECS::pipeline_panel_update() {
 		return;
 	}
 
-	Array systems = pipeline->get_system_links();
+	Array systems = pipeline->get_systems_name();
 	for (int i = 0; i < systems.size(); i += 1) {
 		SystemInfoBox *info_box = pipeline_panel_add_system();
 
-		const String system_link = systems[i];
+		const StringName system_name = systems[i];
 
-		if (system_link.is_resource_file()) {
+		if (String(system_name).ends_with(".gd")) {
 			// Init a script system.
-			info_box->set_system_name(system_link.get_file());
+			info_box->set_system_name(system_name);
 			// TODO add script system components
 
 		} else {
 			// Init a native system.
-			const uint32_t system_id = ECS::find_system_id(system_link);
+			const uint32_t system_id = ECS::find_system_id(system_name);
 			if (system_id == UINT32_MAX) {
-				info_box->set_system_name(system_link + "[INVALID]");
+				info_box->set_system_name(String(system_name) + " [INVALID]");
 			} else {
 				const SystemInfo &system_info = ECS::get_system_info(system_id);
 
@@ -622,7 +622,7 @@ void EditorWorldECS::add_sys_update(const String &p_search) {
 
 		TreeItem *item = add_sys_tree->create_item(native_root);
 		item->set_text(0, name);
-		item->set_meta("system_link", info.name);
+		item->set_meta("system_name", info.name);
 		item->set_meta("desc", info.description);
 	}
 
@@ -650,7 +650,7 @@ void EditorWorldECS::add_sys_update(const String &p_search) {
 
 			TreeItem *item = add_sys_tree->create_item(script_root);
 			item->set_text(0, system_name);
-			item->set_meta("system_link", sys_script_path);
+			item->set_meta("system_name", system_name);
 			item->set_meta("desc", "GDScript: " + sys_script_path);
 		}
 	}
@@ -695,10 +695,10 @@ void EditorWorldECS::add_sys_add() {
 	}
 
 	editor->get_undo_redo()->create_action(TTR("Add system"));
-	editor->get_undo_redo()->add_do_method(pipeline.ptr(), "insert_system", selected->get_meta("system_link"));
-	// Undo by resetting the `system_links` because the `insert_system` changes
+	editor->get_undo_redo()->add_do_method(pipeline.ptr(), "insert_system", selected->get_meta("system_name"));
+	// Undo by resetting the `system_names` because the `insert_system` changes
 	// the array not trivially.
-	editor->get_undo_redo()->add_undo_method(pipeline.ptr(), "set_system_links", pipeline->get_system_links().duplicate(true));
+	editor->get_undo_redo()->add_undo_method(pipeline.ptr(), "set_systems_name", pipeline->get_systems_name().duplicate(true));
 	editor->get_undo_redo()->commit_action();
 }
 

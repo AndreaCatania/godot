@@ -3,13 +3,24 @@
 #include "core/io/resource.h"
 #include "core/templates/local_vector.h"
 #include "core/templates/oa_hash_map.h"
+#include "modules/ecs/ecs.h"
 
 class Script;
+
+namespace godex {
+class DynamicSystemInfo;
+}
 
 class System : public Resource {
 	GDCLASS(System, Resource);
 
+	friend class ScriptECS;
+
+	godex::DynamicSystemInfo *info = nullptr;
+	godex::system_id id = UINT32_MAX;
+
 	static void _bind_methods();
+	void prepare(godex::DynamicSystemInfo *p_info);
 
 public:
 	enum Mutability {
@@ -19,10 +30,13 @@ public:
 
 public:
 	System();
+	~System();
 
-	void with_resource(const String &p_resource, Mutability p_mutability);
-	void with_component(const String &p_component, Mutability p_mutability);
-	void without_component(const String &p_component);
+	void with_resource(const StringName &p_resource_name, Mutability p_mutability);
+	void with_component(const StringName &p_component_name, Mutability p_mutability);
+	void without_component(const StringName &p_component_name);
+
+	godex::system_id get_id() const;
 
 	static String validate_script(Ref<Script> p_script);
 };
@@ -84,5 +98,8 @@ public:
 
 	static void register_runtime_scripts();
 	static void register_dynamic_components();
+
+	static uint32_t reload_system(const String &p_path);
+	static uint32_t get_system_id(const StringName &p_name);
 	static void register_dynamic_systems();
 };

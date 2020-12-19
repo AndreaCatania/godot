@@ -71,6 +71,11 @@ const LocalVector<StringName> &ECS::get_registered_resources() {
 	return resources;
 }
 
+uint32_t ECS::get_resource_id(const StringName &p_name) {
+	const int64_t id = resources.find(p_name);
+	return id >= 0 ? godex::resource_id(id) : UINT32_MAX;
+}
+
 StringName ECS::get_resource_name(uint32_t p_resource_id) {
 	ERR_FAIL_INDEX_V_MSG(p_resource_id, resources.size(), "", "The `resource_id` is invalid: " + itos(p_resource_id));
 	return resources[p_resource_id];
@@ -88,18 +93,21 @@ void ECS::register_system(get_system_info_func p_get_info_func, StringName p_nam
 	info.name = p_name;
 	info.description = p_description;
 
+	const godex::system_id id = systems.size();
 	systems.push_back(p_name);
 	systems_info.push_back(info);
+
+	print_line("System: " + p_name + " registered with ID: " + itos(id));
 }
 
-uint32_t ECS::register_dynamic_system(StringName p_name, const godex::DynamicSystemInfo *p_info) {
+godex::system_id ECS::register_dynamic_system(StringName p_name, const godex::DynamicSystemInfo *p_info) {
 	ERR_FAIL_COND_V_MSG(p_info == nullptr, UINT32_MAX, "`DynamicSysteInfo` can't be nullptr.");
 	{
 		const uint32_t id = find_system_id(p_name);
 		ERR_FAIL_COND_V_MSG(id != UINT32_MAX, UINT32_MAX, "The system is already registered.");
 	}
 
-	const uint32_t id = systems.size();
+	const godex::system_id id = systems.size();
 
 	SystemInfo info = p_info->get_system_info();
 	info.name = p_name;
@@ -110,12 +118,14 @@ uint32_t ECS::register_dynamic_system(StringName p_name, const godex::DynamicSys
 	systems.push_back(p_name);
 	systems_info.push_back(info);
 
+	print_line("Dynamic system: " + p_name + " registered with ID: " + itos(id));
+
 	return id;
 }
 
-uint32_t ECS::find_system_id(StringName p_name) {
+godex::system_id ECS::find_system_id(StringName p_name) {
 	const int64_t index = systems.find(p_name);
-	return index >= 0 ? uint32_t(index) : UINT32_MAX;
+	return index >= 0 ? godex::system_id(index) : UINT32_MAX;
 }
 
 uint32_t ECS::get_systems_count() {
@@ -123,9 +133,19 @@ uint32_t ECS::get_systems_count() {
 }
 
 static const SystemInfo invalid_system_info;
-const SystemInfo &ECS::get_system_info(uint32_t p_system_id) {
-	ERR_FAIL_INDEX_V_MSG(p_system_id, systems_info.size(), invalid_system_info, "The SystemID: " + itos(p_system_id) + " doesn't exists.");
-	return systems_info[p_system_id];
+const SystemInfo &ECS::get_system_info(godex::system_id p_id) {
+	ERR_FAIL_INDEX_V_MSG(p_id, systems_info.size(), invalid_system_info, "The SystemID: " + itos(p_id) + " doesn't exists.");
+	return systems_info[p_id];
+}
+
+void ECS::set_dynamic_system_target(godex::system_id p_id, Object *p_target) {
+	ERR_FAIL_COND_MSG(verify_system_id(p_id) == false, "This system " + itos(p_id) + " doesn't exists.");
+	//ERR_FAIL_COND_MSG(systems_info[p_id]);
+	ERR_FAIL_MSG("TODO finish this function.");
+}
+
+bool ECS::verify_system_id(godex::system_id p_id) {
+	return systems.size() > p_id;
 }
 
 ECS *ECS::get_singleton() {

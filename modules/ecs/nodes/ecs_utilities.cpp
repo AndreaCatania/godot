@@ -5,10 +5,11 @@
 #include "core/io/resource_loader.h"
 #include "core/object/script_language.h"
 #include "modules/ecs/ecs.h"
+#include "modules/ecs/systems/dynamic_system.h"
 
 void System::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("with_resource", "resource_name", "mutability"), &System::with_resource, DEFVAL(IMMUTABLE));
-	ClassDB::bind_method(D_METHOD("with_component", "component_name", "mutability"), &System::with_component, DEFVAL(IMMUTABLE));
+	ClassDB::bind_method(D_METHOD("with_resource", "resource_name", "mutability"), &System::with_resource);
+	ClassDB::bind_method(D_METHOD("with_component", "component_name", "mutability"), &System::with_component);
 	ClassDB::bind_method(D_METHOD("without_component", "component_name"), &System::without_component);
 
 	BIND_ENUM_CONSTANT(IMMUTABLE);
@@ -18,16 +19,50 @@ void System::_bind_methods() {
 	// TODO how to define `_for_each`? It has  dynamic argument, depending on the `_prepare` function.
 }
 
+void System::prepare(godex::DynamicSystemInfo *p_info) {
+	ERR_FAIL_COND_MSG(p_info == nullptr, "[FATAL] This is not supposed to happen.");
+	// Set the components and resources
+	info = p_info;
+	Callable::CallError err;
+	call("_prepare", nullptr, 0, err);
+	info = nullptr;
+
+	// Set this object as target.
+	p_info->set_target(this);
+}
+
 System::System() {
 }
 
-void System::with_resource(const String &p_resource, Mutability p_mutability) {
+System::~System() {
+	if (id != UINT32_MAX) {
+		ECS::set_dynamic_system_target(id, nullptr);
+	}
 }
 
-void System::with_component(const String &p_component, Mutability p_mutability) {
+void System::with_resource(const StringName &p_resource, Mutability p_mutability) {
+	ERR_FAIL_COND_MSG(info == nullptr, "No info set. This function can be called only within the `_prepare`.");
+	const godex::resource_id id = ECS::get_resource_id(p_resource);
+	ERR_FAIL_COND_MSG(id == UINT32_MAX, "The resource " + p_resource + " is unknown.");
+	info->with_resource(id, p_mutability == MUTABLE);
 }
 
-void System::without_component(const String &p_component) {
+void System::with_component(const StringName &p_component, Mutability p_mutability) {
+	ERR_FAIL_COND_MSG(info == nullptr, "No info set. This function can be called only within the `_prepare`.");
+	const godex::component_id id = ECS::get_component_id(p_component);
+	ERR_FAIL_COND_MSG(id == UINT32_MAX, "The component " + p_component + " is unknown.");
+	info->with_component(id, p_mutability == MUTABLE);
+}
+
+void System::without_component(const StringName &p_component) {
+	ERR_FAIL_COND_MSG(info == nullptr, "No info set. This function can be called only within the `_prepare`.");
+	const godex::component_id id = ECS::get_component_id(p_component);
+	ERR_FAIL_COND_MSG(id == UINT32_MAX, "The component " + p_component + " is unknown.");
+	info->without_component(id);
+}
+
+godex::system_id System::get_id() const {
+	return id;
 }
 
 String System::validate_script(Ref<Script> p_script) {
@@ -144,6 +179,8 @@ bool ScriptECS::ecs_initialized = false;
 
 LocalVector<StringName> ScriptECS::component_names;
 LocalVector<Ref<Component>> ScriptECS::components;
+LocalVector<StringName> ScriptECS::system_names;
+LocalVector<Ref<System>> ScriptECS::systems;
 
 void ScriptECS::load_components() {
 	if (component_loaded) {
@@ -172,6 +209,8 @@ uint32_t ScriptECS::reload_component(const String &p_path) {
 		ERR_FAIL_COND_V_MSG(script.is_null(), UINT32_MAX, "The script [" + p_path + "] can't be loaded.");
 		ERR_FAIL_COND_V_MSG(script->is_valid() == false, UINT32_MAX, "The script [" + p_path + "] is not a valid script.");
 		ERR_FAIL_COND_V_MSG("Component" != script->get_instance_base_type(), UINT32_MAX, "This script [" + p_path + "] is not extending `Component`.");
+		const String res = Component::validate_script(script);
+		ERR_FAIL_COND_V_MSG(res != "", UINT32_MAX, "This script [" + p_path + "] is not valid: " + res);
 
 		Ref<Component> component;
 		component.instance();
@@ -226,6 +265,7 @@ void ScriptECS::register_runtime_scripts() {
 void ScriptECS::register_dynamic_components() {
 	load_components();
 
+	// TODO move this into the component registration instead??
 	for (uint32_t i = 0; i < components.size(); i += 1) {
 		List<PropertyInfo> raw_properties;
 		components[i]->get_component_property_list(&raw_properties);
@@ -246,5 +286,52 @@ void ScriptECS::register_dynamic_components() {
 	}
 }
 
+uint32_t ScriptECS::reload_system(const String &p_path) {
+	const StringName name = p_path.get_file();
+	uint32_t id = get_system_id(name);
+	if (id == UINT32_MAX) {
+		// System doesn't exists.
+
+		Ref<Script> script = ResourceLoader::load(p_path);
+
+		ERR_FAIL_COND_V_MSG(script.is_null(), UINT32_MAX, "The script [" + p_path + "] can't be loaded.");
+		ERR_FAIL_COND_V_MSG(script->is_valid() == false, UINT32_MAX, "The script [" + p_path + "] is not a valid script.");
+		ERR_FAIL_COND_V_MSG("System" != script->get_instance_base_type(), UINT32_MAX, "This script [" + p_path + "] is not extending `Component`.");
+		const String res = System::validate_script(script);
+		ERR_FAIL_COND_V_MSG(res != "", UINT32_MAX, "This script [" + p_path + "] is not valid: " + res);
+
+		Ref<System> system;
+		system.instance();
+
+		id = component_names.size();
+		system_names.push_back(name);
+		systems.push_back(system);
+
+		system->set_script(script);
+
+		if (Engine::get_singleton()->is_editor_hint() == false) {
+			godex::DynamicSystemInfo info;
+			system->prepare(&info);
+			system->id = ECS::register_dynamic_system(
+					name,
+					&info);
+		}
+	}
+	return id;
+}
+
+uint32_t ScriptECS::get_system_id(const StringName &p_name) {
+	const int64_t index = system_names.find(p_name);
+	return index < 0 ? UINT32_MAX : uint32_t(index);
+}
+
 void ScriptECS::register_dynamic_systems() {
+	if (ProjectSettings::get_singleton()->has_setting("ECS/System/scripts") == false) {
+		return;
+	}
+
+	const Array scripts = ProjectSettings::get_singleton()->get_setting("ECS/System/scripts");
+	for (int i = 0; i < scripts.size(); i += 1) {
+		reload_system(scripts[i]);
+	}
 }

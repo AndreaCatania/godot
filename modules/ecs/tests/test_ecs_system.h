@@ -111,8 +111,8 @@ TEST_CASE("[Modules][ECS] Test dynamic system using a script.") {
 
 	// Build dynami component.
 	godex::DynamicSystemInfo dynamic_system_info;
-	dynamic_system_info.add_component(TransformComponent::get_component_id(), true);
-	dynamic_system_info.add_component(test_dyn_component_id, true);
+	dynamic_system_info.with_component(TransformComponent::get_component_id(), true);
+	dynamic_system_info.with_component(test_dyn_component_id, true);
 	dynamic_system_info.set_target(&target_obj);
 	uint32_t system_id = ECS::register_dynamic_system("TestDynamicSystem.gd", &dynamic_system_info);
 

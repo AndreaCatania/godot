@@ -16,7 +16,7 @@ class PipelineECS : public Resource {
 	/// This name is used to reference this pipeline.
 	StringName pipeline_name;
 
-	Array system_links;
+	Array systems_name;
 	// TODO add the physics stage
 
 	// This is just a cache value so to avoid rebuild the pipeline each time
@@ -33,19 +33,19 @@ public:
 	void set_pipeline_name(StringName p_name);
 	StringName get_pipeline_name() const;
 
-	void set_system_links(Array p_system_links);
-	Array get_system_links() const;
+	void set_systems_name(Array p_system_names);
+	Array get_systems_name() const;
 
 	/// Insert a new system into the world. This `System` is not immediately
 	/// added to the world. This function is mainly used by the editor to
 	/// compose the world.
 	///
-	/// @param `p_system_link` Can be a native system name (`TransformSystem`)
+	/// @param `p_system_name` Can be a native system name (`TransformSystem`)
 	///                        or a script system (`ScriptedSystem.gd`)
 	/// @param `p_pos` Sets the system at the given position, pushing the others.
 	///                Passing `UINT32_MAX`, allow to push back the system.
 	///
-	/// If the `p_system_link` is already defined it's position is updated.
+	/// If the `p_system_name` is already defined it's position is updated.
 	///
 	/// Note: Add and Remove a `system` will cause world rebuild, which
 	/// should be avoided by using more worlds and activating them when

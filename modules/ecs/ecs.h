@@ -15,8 +15,13 @@ class World;
 class Pipeline;
 class DynamicComponentInfo;
 namespace godex {
+
 class DynamicSystemInfo;
-}
+
+typedef uint32_t component_id;
+typedef uint32_t resource_id;
+typedef uint32_t system_id;
+} // namespace godex
 
 // These functions are implemented by the `COMPONENT` macro and assigned during
 // component registration.
@@ -55,25 +60,26 @@ public:
 
 	static bool verify_component_id(uint32_t p_component_id);
 
-	static Storage *create_storage(uint32_t p_component_id);
+	static Storage *create_storage(godex::component_id p_component_id);
 	static const LocalVector<StringName> &get_registered_components();
-	static uint32_t get_component_id(StringName p_component_name);
-	static StringName get_component_name(uint32_t p_component_id);
-	static const LocalVector<PropertyInfo> *get_component_properties(uint32_t p_component_id);
-	static Variant get_component_property_default(uint32_t p_component_id, StringName p_property_name);
+	static godex::component_id get_component_id(StringName p_component_name);
+	static StringName get_component_name(godex::component_id p_component_id);
+	static const LocalVector<PropertyInfo> *get_component_properties(godex::component_id p_component_id);
+	static Variant get_component_property_default(godex::component_id p_component_id, StringName p_property_name);
 
 	// ~~ Resources ~~
 	template <class C>
 	static void register_resource();
 
 	static const LocalVector<StringName> &get_registered_resources();
-	static StringName get_resource_name(uint32_t p_resource_id);
+	static godex::resource_id get_resource_id(const StringName &p_name);
+	static StringName get_resource_name(godex::resource_id p_resource_id);
 
 	// ~~ Systems ~~
 	static void register_system(get_system_info_func p_get_info_func, StringName p_name, String p_description = "");
 
 	// Register the system and returns the ID.
-	static uint32_t register_dynamic_system(StringName p_name, const godex::DynamicSystemInfo *p_info);
+	static godex::system_id register_dynamic_system(StringName p_name, const godex::DynamicSystemInfo *p_info);
 
 // This macro save the user the need to pass a `SystemInfo`, indeed it wraps
 // the passed function with a labda function that creates a `SystemInfo`.
@@ -91,9 +97,11 @@ public:
 			name, desc)
 
 	/// Returns the system id or UINT32_MAX if not found.
-	static uint32_t find_system_id(StringName p_name);
+	static godex::system_id find_system_id(StringName p_name);
 	static uint32_t get_systems_count();
-	static const SystemInfo &get_system_info(uint32_t p_system_id);
+	static const SystemInfo &get_system_info(godex::system_id p_id);
+	static void set_dynamic_system_target(godex::system_id p_id, Object *p_target);
+	static bool verify_system_id(godex::system_id p_id);
 
 protected:
 	static void _bind_methods();

@@ -33,8 +33,9 @@ public:
 	DynamicSystemInfo();
 
 	void set_target(Object *p_target);
-	void add_resource(uint32_t p_resource_id, bool p_mutable);
-	void add_component(uint32_t p_component_id, bool p_mutable);
+	void with_resource(uint32_t p_resource_id, bool p_mutable);
+	void with_component(uint32_t p_component_id, bool p_mutable);
+	void without_component(uint32_t p_component_id);
 
 	SystemInfo get_system_info() const;
 

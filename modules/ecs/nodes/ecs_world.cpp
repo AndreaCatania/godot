@@ -11,13 +11,13 @@
 void PipelineECS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_pipeline_name", "name"), &PipelineECS::set_pipeline_name);
 	ClassDB::bind_method(D_METHOD("get_pipeline_name"), &PipelineECS::get_pipeline_name);
-	ClassDB::bind_method(D_METHOD("set_system_links", "system_links"), &PipelineECS::set_system_links);
-	ClassDB::bind_method(D_METHOD("get_system_links"), &PipelineECS::get_system_links);
+	ClassDB::bind_method(D_METHOD("set_systems_name", "systems_name"), &PipelineECS::set_systems_name);
+	ClassDB::bind_method(D_METHOD("get_systems_name"), &PipelineECS::get_systems_name);
 
-	ClassDB::bind_method(D_METHOD("insert_system", "system_link", "position"), &PipelineECS::insert_system, DEFVAL(-1));
+	ClassDB::bind_method(D_METHOD("insert_system", "system_name", "position"), &PipelineECS::insert_system, DEFVAL(-1));
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "pipeline_name"), "set_pipeline_name", "get_pipeline_name");
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "system_links"), "set_system_links", "get_system_links");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "systems_name"), "set_systems_name", "get_systems_name");
 }
 
 PipelineECS::PipelineECS() {}
@@ -42,29 +42,29 @@ StringName PipelineECS::get_pipeline_name() const {
 	return pipeline_name;
 }
 
-void PipelineECS::set_system_links(Array p_system_links) {
-	system_links = p_system_links;
-	_change_notify("system_links");
+void PipelineECS::set_systems_name(Array p_system_names) {
+	systems_name = p_system_names;
+	_change_notify("systems_name");
 }
 
-Array PipelineECS::get_system_links() const {
-	return system_links;
+Array PipelineECS::get_systems_name() const {
+	return systems_name;
 }
 
 void PipelineECS::insert_system(const StringName &p_system_name, uint32_t p_pos) {
 	// Make sure to remove any previously declared link.
-	system_links.erase(p_system_name);
+	systems_name.erase(p_system_name);
 
 	if (p_pos == UINT32_MAX) {
 		// Just push back.
-		system_links.push_back(p_system_name);
+		systems_name.push_back(p_system_name);
 	} else {
-		ERR_FAIL_INDEX_MSG(int(p_pos), system_links.size() + 1, "The pipeline is not so big, this system: " + p_system_name + " can't be insert at this position: " + itos(p_pos));
+		ERR_FAIL_INDEX_MSG(int(p_pos), systems_name.size() + 1, "The pipeline is not so big, this system: " + p_system_name + " can't be insert at this position: " + itos(p_pos));
 		// Insert the system at given position.
-		system_links.insert(p_pos, p_system_name);
+		systems_name.insert(p_pos, p_system_name);
 	}
 
-	_change_notify("system_links");
+	_change_notify("systems_name");
 }
 
 Pipeline *PipelineECS::get_pipeline() {
@@ -76,10 +76,11 @@ Pipeline *PipelineECS::get_pipeline() {
 
 	pipeline = memnew(Pipeline);
 
-	for (int i = 0; i < system_links.size(); i += 1) {
-		const StringName system_name = system_links[i];
-		const uint32_t system_id = ECS::find_system_id(system_name);
-		pipeline->add_registered_system(ECS::get_system_info(system_id));
+	for (int i = 0; i < systems_name.size(); i += 1) {
+		const StringName system_name = systems_name[i];
+		const godex::system_id id = ECS::find_system_id(system_name);
+		ERR_CONTINUE_MSG(id == UINT32_MAX, "The system " + system_name + " was not found.");
+		pipeline->add_registered_system(ECS::get_system_info(id));
 	}
 
 	return pipeline;
@@ -235,8 +236,11 @@ int WorldECS::find_pipeline_index(StringName p_name) const {
 }
 
 void WorldECS::set_active_pipeline(StringName p_name) {
+	active_pipeline = p_name;
+	if (Engine::get_singleton()->is_editor_hint()) {
+		return;
+	}
 	if (ECS::get_singleton()->get_active_world() == world) {
-		active_pipeline = p_name;
 		Ref<PipelineECS> pip = find_pipeline(p_name);
 		if (pip.is_valid()) {
 			ECS::get_singleton()->set_active_world_pipeline(pip->get_pipeline());
