@@ -205,6 +205,10 @@ bool ResourceImporterScene::get_option_visibility(const String &p_option, const 
 		return false;
 	}
 
+	if (p_option == "materials/use_shader" && int(p_options["materials/storage"]) == 0) {
+		return false;
+	}
+
 	if (p_option == "meshes/lightmap_texel_size" && int(p_options["meshes/light_baking"]) < 2) {
 		return false;
 	}
@@ -945,7 +949,7 @@ void ResourceImporterScene::_find_meshes(Node *p_node, Map<Ref<ArrayMesh>, Trans
 	}
 }
 
-void ResourceImporterScene::_make_external_resources(Node *p_node, const String &p_base_path, bool p_make_animations, bool p_animations_as_text, bool p_keep_animations, bool p_make_materials, bool p_materials_as_text, bool p_keep_materials, bool p_make_meshes, bool p_meshes_as_text, Map<Ref<Animation>, Ref<Animation>> &p_animations, Map<Ref<Material>, Ref<Material>> &p_materials, Map<Ref<ArrayMesh>, Ref<ArrayMesh>> &p_meshes) {
+void ResourceImporterScene::_make_external_resources(Node *p_node, const String &p_base_path, bool p_make_animations, bool p_animations_as_text, bool p_keep_animations, bool p_make_materials, bool p_materials_as_text, bool p_keep_materials, bool p_use_shader, bool p_make_meshes, bool p_meshes_as_text, Map<Ref<Animation>, Ref<Animation>> &p_animations, Map<Ref<Material>, Ref<Material>> &p_materials, Map<Ref<ArrayMesh>, Ref<ArrayMesh>> &p_meshes) {
 	List<PropertyInfo> pi;
 
 	if (p_make_animations) {
@@ -999,6 +1003,16 @@ void ResourceImporterScene::_make_external_resources(Node *p_node, const String 
 		if (E->get().type == Variant::OBJECT) {
 			Ref<Material> mat = p_node->get(E->get().name);
 
+			if (p_use_shader && mat.is_valid()) {
+				Ref<ShaderMaterial> shader_mat = mat;
+				if (shader_mat.is_null()) {
+					shader_mat.instance();
+					shader_mat->set_name(mat->get_name());
+					p_materials.erase(mat);
+					mat = shader_mat;
+				}
+			}
+
 			if (p_make_materials && mat.is_valid() && mat->get_name() != "") {
 				if (!p_materials.has(mat)) {
 					String ext_name;
@@ -1049,6 +1063,17 @@ void ResourceImporterScene::_make_external_resources(Node *p_node, const String 
 						if (mesh_just_added || !p_meshes.has(mesh)) {
 							for (int i = 0; i < mesh->get_surface_count(); i++) {
 								mat = mesh->surface_get_material(i);
+
+								if (p_use_shader && mat.is_valid()) {
+									Ref<ShaderMaterial> shader_mat = mat;
+									if (shader_mat.is_null()) {
+										shader_mat.instance();
+										shader_mat->set_name(mat->get_name());
+										p_materials.erase(mat);
+										mat = shader_mat;
+										mesh->surface_set_material(i, mat);
+									}
+								}
 
 								if (!mat.is_valid()) {
 									continue;
@@ -1105,7 +1130,7 @@ void ResourceImporterScene::_make_external_resources(Node *p_node, const String 
 	}
 
 	for (int i = 0; i < p_node->get_child_count(); i++) {
-		_make_external_resources(p_node->get_child(i), p_base_path, p_make_animations, p_animations_as_text, p_keep_animations, p_make_materials, p_materials_as_text, p_keep_materials, p_make_meshes, p_meshes_as_text, p_animations, p_materials, p_meshes);
+		_make_external_resources(p_node->get_child(i), p_base_path, p_make_animations, p_animations_as_text, p_keep_animations, p_make_materials, p_materials_as_text, p_keep_materials, p_use_shader, p_make_meshes, p_meshes_as_text, p_animations, p_materials, p_meshes);
 	}
 }
 
@@ -1136,6 +1161,7 @@ void ResourceImporterScene::get_import_options(List<ImportOption> *r_options, in
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "materials/location", PROPERTY_HINT_ENUM, "Node,Mesh"), (meshes_out || materials_out) ? 1 : 0));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "materials/storage", PROPERTY_HINT_ENUM, "Built-In,Files (.material),Files (.tres)", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), materials_out ? 1 : 0));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "materials/keep_on_reimport"), materials_out));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "materials/use_shader"), materials_out));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "meshes/ensure_tangents"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "meshes/storage", PROPERTY_HINT_ENUM, "Built-In,Files (.mesh),Files (.tres)"), meshes_out ? 1 : 0));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "meshes/generate_lods"), true));
@@ -1540,9 +1566,10 @@ Error ResourceImporterScene::import(const String &p_source_file, const String &p
 		Map<Ref<Material>, Ref<Material>> mat_map;
 		Map<Ref<ArrayMesh>, Ref<ArrayMesh>> mesh_map;
 
-		bool keep_materials = bool(p_options["materials/keep_on_reimport"]);
+		const bool keep_materials = bool(p_options["materials/keep_on_reimport"]);
+		const bool use_shader = bool(p_options["materials/use_shader"]);
 
-		_make_external_resources(scene, base_path, external_animations, external_animations_as_text, keep_custom_tracks, external_materials, external_materials_as_text, keep_materials, external_meshes, external_meshes_as_text, anim_map, mat_map, mesh_map);
+		_make_external_resources(scene, base_path, external_animations, external_animations_as_text, keep_custom_tracks, external_materials, external_materials_as_text, keep_materials, use_shader, external_meshes, external_meshes_as_text, anim_map, mat_map, mesh_map);
 	}
 
 	progress.step(TTR("Running Custom Script..."), 2);
