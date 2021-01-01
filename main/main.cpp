@@ -1284,8 +1284,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	/* todo restore
-    OS::get_singleton()->_allow_layered = GLOBAL_DEF("display/window/per_pixel_transparency/allowed", false);
-    video_mode.layered = GLOBAL_DEF("display/window/per_pixel_transparency/enabled", false);
+	OS::get_singleton()->_allow_layered = GLOBAL_DEF("display/window/per_pixel_transparency/allowed", false);
+	video_mode.layered = GLOBAL_DEF("display/window/per_pixel_transparency/enabled", false);
 */
 	GLOBAL_DEF("rendering/quality/intended_usage/framebuffer_allocation", 2);
 	GLOBAL_DEF("rendering/quality/intended_usage/framebuffer_allocation.mobile", 3);
@@ -2464,6 +2464,11 @@ bool Main::iteration() {
 
 	bool exit = false;
 
+#ifdef CUSTOM_ITERATOR
+	exit = custom_iteration(process_step, physics_step, &advance, time_scale);
+#endif
+
+#ifndef CUSTOM_PHYSICS_ITERATOR
 	Engine::get_singleton()->_in_physics = true;
 
 	for (int iters = 0; iters < advance.physics_steps; ++iters) {
@@ -2496,6 +2501,7 @@ bool Main::iteration() {
 	}
 
 	Engine::get_singleton()->_in_physics = false;
+#endif
 
 	uint64_t process_begin = OS::get_singleton()->get_ticks_usec();
 
@@ -2528,7 +2534,9 @@ bool Main::iteration() {
 		ScriptServer::get_language(i)->frame();
 	}
 
+#ifndef CUSTOM_AUDIO_ITERATOR
 	AudioServer::get_singleton()->update();
+#endif
 
 	if (EngineDebugger::is_active()) {
 		EngineDebugger::get_singleton()->iteration(frame_time, process_ticks, physics_process_ticks, physics_step);
