@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace GodotTools.Core
 {
@@ -14,23 +15,38 @@ namespace GodotTools.Core
             if (Path.DirectorySeparatorChar == '\\')
                 dir = dir.Replace("/", "\\") + "\\";
 
-            Uri fullPath = new Uri(Path.GetFullPath(path), UriKind.Absolute);
-            Uri relRoot = new Uri(Path.GetFullPath(dir), UriKind.Absolute);
+            var fullPath = new Uri(Path.GetFullPath(path), UriKind.Absolute);
+            var relRoot = new Uri(Path.GetFullPath(dir), UriKind.Absolute);
 
-            return relRoot.MakeRelativeUri(fullPath).ToString();
+            // MakeRelativeUri converts spaces to %20, hence why we need UnescapeDataString
+            return Uri.UnescapeDataString(relRoot.MakeRelativeUri(fullPath).ToString());
         }
 
         public static string NormalizePath(this string path)
         {
+            if (string.IsNullOrEmpty(path))
+                return path;
+
             bool rooted = path.IsAbsolutePath();
 
             path = path.Replace('\\', '/');
+            path = path[path.Length - 1] == '/' ? path.Substring(0, path.Length - 1) : path;
 
-            string[] parts = path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
 
             path = string.Join(Path.DirectorySeparatorChar.ToString(), parts).Trim();
 
-            return rooted ? Path.DirectorySeparatorChar + path : path;
+            if (!rooted)
+                return path;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                string maybeDrive = parts[0];
+                if (maybeDrive.Length == 2 && maybeDrive[1] == ':')
+                    return path; // Already has drive letter
+            }
+
+            return Path.DirectorySeparatorChar + path;
         }
 
         private static readonly string DriveRoot = Path.GetPathRoot(Environment.CurrentDirectory);
@@ -42,9 +58,9 @@ namespace GodotTools.Core
                    path.StartsWith(DriveRoot, StringComparison.Ordinal);
         }
 
-        public static string ToSafeDirName(this string dirName, bool allowDirSeparator)
+        public static string ToSafeDirName(this string dirName, bool allowDirSeparator = false)
         {
-            var invalidChars = new List<string> { ":", "*", "?", "\"", "<", ">", "|" };
+            var invalidChars = new List<string> {":", "*", "?", "\"", "<", ">", "|"};
 
             if (allowDirSeparator)
             {

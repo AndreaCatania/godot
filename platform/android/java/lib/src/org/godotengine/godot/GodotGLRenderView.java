@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -29,7 +29,6 @@
 /*************************************************************************/
 
 package org.godotengine.godot;
-
 import org.godotengine.godot.input.GodotGestureHandler;
 import org.godotengine.godot.input.GodotInputHandler;
 import org.godotengine.godot.utils.GLUtils;
@@ -42,6 +41,7 @@ import org.godotengine.godot.xr.regular.RegularContextFactory;
 import org.godotengine.godot.xr.regular.RegularFallbackConfigChooser;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.view.GestureDetector;
@@ -68,19 +68,20 @@ import android.view.SurfaceView;
  *   bit depths). Failure to do so would result in an EGL_BAD_MATCH error.
  */
 public class GodotGLRenderView extends GLSurfaceView implements GodotRenderView {
-	private final Godot activity;
+	private final Godot godot;
 	private final GodotInputHandler inputHandler;
 	private final GestureDetector detector;
 	private final GodotRenderer godotRenderer;
 
-	public GodotGLRenderView(Godot activity, XRMode xrMode, boolean p_use_32_bits, boolean p_use_debug_opengl) {
-		super(activity);
+	public GodotGLRenderView(Context context, Godot godot, XRMode xrMode, boolean p_use_32_bits,
+			boolean p_use_debug_opengl) {
+		super(context);
 		GLUtils.use_32 = p_use_32_bits;
 		GLUtils.use_debug_opengl = p_use_debug_opengl;
 
-		this.activity = activity;
+		this.godot = godot;
 		this.inputHandler = new GodotInputHandler(this);
-		this.detector = new GestureDetector(activity, new GodotGestureHandler(this));
+		this.detector = new GestureDetector(context, new GodotGestureHandler(this));
 		this.godotRenderer = new GodotRenderer();
 		init(xrMode, false, 16, 0);
 	}
@@ -112,7 +113,12 @@ public class GodotGLRenderView extends GLSurfaceView implements GodotRenderView 
 
 	@Override
 	public void onBackPressed() {
-		activity.onBackPressed();
+		godot.onBackPressed();
+	}
+
+	@Override
+	public GodotInputHandler getInputHandler() {
+		return inputHandler;
 	}
 
 	@SuppressLint("ClickableViewAccessibility")
@@ -120,7 +126,7 @@ public class GodotGLRenderView extends GLSurfaceView implements GodotRenderView 
 	public boolean onTouchEvent(MotionEvent event) {
 		super.onTouchEvent(event);
 		this.detector.onTouchEvent(event);
-		return activity.gotTouchEvent(event);
+		return inputHandler.onTouchEvent(event);
 	}
 
 	@Override
@@ -136,6 +142,11 @@ public class GodotGLRenderView extends GLSurfaceView implements GodotRenderView 
 	@Override
 	public boolean onGenericMotionEvent(MotionEvent event) {
 		return inputHandler.onGenericMotionEvent(event) || super.onGenericMotionEvent(event);
+	}
+
+	@Override
+	public boolean onCapturedPointerEvent(MotionEvent event) {
+		return inputHandler.onGenericMotionEvent(event);
 	}
 
 	private void init(XRMode xrMode, boolean translucent, int depth, int stencil) {
@@ -177,15 +188,15 @@ public class GodotGLRenderView extends GLSurfaceView implements GodotRenderView 
 
 				if (GLUtils.use_32) {
 					setEGLConfigChooser(translucent ?
-												new RegularFallbackConfigChooser(8, 8, 8, 8, 24, stencil,
+												  new RegularFallbackConfigChooser(8, 8, 8, 8, 24, stencil,
 														new RegularConfigChooser(8, 8, 8, 8, 16, stencil)) :
-												new RegularFallbackConfigChooser(8, 8, 8, 8, 24, stencil,
+												  new RegularFallbackConfigChooser(8, 8, 8, 8, 24, stencil,
 														new RegularConfigChooser(5, 6, 5, 0, 16, stencil)));
 
 				} else {
 					setEGLConfigChooser(translucent ?
-												new RegularConfigChooser(8, 8, 8, 8, 16, stencil) :
-												new RegularConfigChooser(5, 6, 5, 0, 16, stencil));
+												  new RegularConfigChooser(8, 8, 8, 8, 16, stencil) :
+												  new RegularConfigChooser(5, 6, 5, 0, 16, stencil));
 				}
 				break;
 		}

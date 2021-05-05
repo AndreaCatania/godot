@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,7 +32,7 @@
 #define COLLISION_OBJECT_SW_H
 
 #include "broad_phase_3d_sw.h"
-#include "core/self_list.h"
+#include "core/templates/self_list.h"
 #include "servers/physics_server_3d.h"
 #include "shape_3d_sw.h"
 
@@ -48,7 +48,8 @@ class CollisionObject3DSW : public ShapeOwner3DSW {
 public:
 	enum Type {
 		TYPE_AREA,
-		TYPE_BODY
+		TYPE_BODY,
+		TYPE_SOFT_BODY,
 	};
 
 private:
@@ -129,8 +130,8 @@ public:
 	_FORCE_INLINE_ const AABB &get_shape_aabb(int p_index) const { return shapes[p_index].aabb_cache; }
 	_FORCE_INLINE_ real_t get_shape_area(int p_index) const { return shapes[p_index].area_cache; }
 
-	_FORCE_INLINE_ Transform get_transform() const { return transform; }
-	_FORCE_INLINE_ Transform get_inv_transform() const { return inv_transform; }
+	_FORCE_INLINE_ const Transform &get_transform() const { return transform; }
+	_FORCE_INLINE_ const Transform &get_inv_transform() const { return inv_transform; }
 	_FORCE_INLINE_ Space3DSW *get_space() const { return space; }
 
 	_FORCE_INLINE_ void set_ray_pickable(bool p_enable) { ray_pickable = p_enable; }
@@ -142,10 +143,16 @@ public:
 		return shapes[p_idx].disabled;
 	}
 
-	_FORCE_INLINE_ void set_collision_layer(uint32_t p_layer) { collision_layer = p_layer; }
+	_FORCE_INLINE_ void set_collision_layer(uint32_t p_layer) {
+		collision_layer = p_layer;
+		_shape_changed();
+	}
 	_FORCE_INLINE_ uint32_t get_collision_layer() const { return collision_layer; }
 
-	_FORCE_INLINE_ void set_collision_mask(uint32_t p_mask) { collision_mask = p_mask; }
+	_FORCE_INLINE_ void set_collision_mask(uint32_t p_mask) {
+		collision_mask = p_mask;
+		_shape_changed();
+	}
 	_FORCE_INLINE_ uint32_t get_collision_mask() const { return collision_mask; }
 
 	_FORCE_INLINE_ bool test_collision_mask(CollisionObject3DSW *p_other) const {

@@ -7,6 +7,8 @@ env_bullet = env_modules.Clone()
 
 # Thirdparty source files
 
+thirdparty_obj = []
+
 if env["builtin_bullet"]:
     # Build only version 2 for now (as of 2.89)
     # Sync file list with relevant upstream CMakeLists.txt for each folder.
@@ -201,15 +203,23 @@ if env["builtin_bullet"]:
         env_bullet.Append(CPPFLAGS=["-isystem", Dir(thirdparty_dir).path])
     else:
         env_bullet.Prepend(CPPPATH=[thirdparty_dir])
-    # if env['target'] == "debug" or env['target'] == "release_debug":
-    #     env_bullet.Append(CPPDEFINES=['BT_DEBUG'])
+    if env["target"] == "debug" or env["target"] == "release_debug":
+        env_bullet.Append(CPPDEFINES=["DEBUG"])
 
     env_bullet.Append(CPPDEFINES=["BT_USE_OLD_DAMPING_METHOD"])
 
     env_thirdparty = env_bullet.Clone()
     env_thirdparty.disable_warnings()
-    env_thirdparty.add_source_files(env.modules_sources, thirdparty_sources)
+    env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
+    env.modules_sources += thirdparty_obj
 
 
 # Godot source files
-env_bullet.add_source_files(env.modules_sources, "*.cpp")
+
+module_obj = []
+
+env_bullet.add_source_files(module_obj, "*.cpp")
+env.modules_sources += module_obj
+
+# Needed to force rebuilding the module files when the thirdparty library is updated.
+env.Depends(module_obj, thirdparty_obj)

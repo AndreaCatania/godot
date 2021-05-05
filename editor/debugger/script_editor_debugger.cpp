@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,12 +30,15 @@
 
 #include "script_editor_debugger.h"
 
+#include "core/config/project_settings.h"
 #include "core/debugger/debugger_marshalls.h"
 #include "core/debugger/remote_debugger.h"
 #include "core/io/marshalls.h"
-#include "core/project_settings.h"
-#include "core/ustring.h"
+#include "core/string/ustring.h"
+#include "core/version.h"
+#include "core/version_hash.gen.h"
 #include "editor/debugger/editor_network_profiler.h"
+#include "editor/debugger/editor_performance_profiler.h"
 #include "editor/debugger/editor_profiler.h"
 #include "editor/debugger/editor_visual_profiler.h"
 #include "editor/editor_log.h"
@@ -43,6 +46,7 @@
 #include "editor/editor_scale.h"
 #include "editor/editor_settings.h"
 #include "editor/plugins/canvas_item_editor_plugin.h"
+#include "editor/plugins/editor_debugger_plugin.h"
 #include "editor/plugins/node_3d_editor_plugin.h"
 #include "editor/property_editor.h"
 #include "main/performance.h"
@@ -172,14 +176,25 @@ void ScriptEditorDebugger::_file_selected(const String &p_file) {
 			file->store_csv_line(line);
 
 			// values
-			List<Vector<float>>::Element *E = perf_history.back();
-			while (E) {
-				Vector<float> &perf_data = E->get();
-				for (int i = 0; i < perf_data.size(); i++) {
-					line.write[i] = String::num_real(perf_data[i]);
+			Vector<List<float>::Element *> iterators;
+			iterators.resize(Performance::MONITOR_MAX);
+			bool continue_iteration = false;
+			for (int i = 0; i < Performance::MONITOR_MAX; i++) {
+				iterators.write[i] = performance_profiler->get_monitor_data(Performance::get_singleton()->get_monitor_name(Performance::Monitor(i)))->back();
+				continue_iteration = continue_iteration || iterators[i];
+			}
+			while (continue_iteration) {
+				continue_iteration = false;
+				for (int i = 0; i < Performance::MONITOR_MAX; i++) {
+					if (iterators[i]) {
+						line.write[i] = String::num_real(iterators[i]->get());
+						iterators.write[i] = iterators[i]->prev();
+					} else {
+						line.write[i] = "";
+					}
+					continue_iteration = continue_iteration || iterators[i];
 				}
 				file->store_csv_line(line);
-				E = E->prev();
 			}
 			file->store_string("\n");
 
@@ -270,7 +285,7 @@ void ScriptEditorDebugger::_video_mem_export() {
 	file_dialog->set_access(EditorFileDialog::ACCESS_FILESYSTEM);
 	file_dialog->clear_filters();
 	file_dialog_purpose = SAVE_VRAM_CSV;
-	file_dialog->popup_centered_ratio();
+	file_dialog->popup_file_dialog();
 }
 
 Size2 ScriptEditorDebugger::get_minimum_size() const {
@@ -330,7 +345,7 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 		DebuggerMarshalls::ResourceUsage usage;
 		usage.deserialize(p_data);
 
-		int total = 0;
+		uint64_t total = 0;
 
 		for (List<DebuggerMarshalls::ResourceInfo>::Element *E = usage.infos.front(); E; E = E->next()) {
 			TreeItem *it = vmem_tree->create_item(root);
@@ -409,37 +424,12 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 			EditorNode::get_log()->add_message(output_strings[i], msg_type);
 		}
 	} else if (p_msg == "performance:profile_frame") {
-		Vector<float> p;
-		p.resize(p_data.size());
+		Vector<float> frame_data;
+		frame_data.resize(p_data.size());
 		for (int i = 0; i < p_data.size(); i++) {
-			p.write[i] = p_data[i];
-			if (i < perf_items.size()) {
-				const float value = p[i];
-				String label = rtos(value);
-				String tooltip = label;
-				switch (Performance::MonitorType((int)perf_items[i]->get_metadata(1))) {
-					case Performance::MONITOR_TYPE_MEMORY: {
-						label = String::humanize_size(value);
-						tooltip = label;
-					} break;
-					case Performance::MONITOR_TYPE_TIME: {
-						label = rtos(value * 1000).pad_decimals(2) + " ms";
-						tooltip = label;
-					} break;
-					default: {
-						tooltip += " " + perf_items[i]->get_text(0);
-					} break;
-				}
-
-				perf_items[i]->set_text(1, label);
-				perf_items[i]->set_tooltip(1, tooltip);
-				if (p[i] > perf_max[i]) {
-					perf_max.write[i] = p[i];
-				}
-			}
+			frame_data.write[i] = p_data[i];
 		}
-		perf_history.push_front(p);
-		perf_draw->update();
+		performance_profiler->add_profile_frame(frame_data);
 
 	} else if (p_msg == "visual:profile_frame") {
 		DebuggerMarshalls::VisualProfilerFrame frame;
@@ -499,17 +489,20 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 		error->set_text_align(0, TreeItem::ALIGN_LEFT);
 
 		String error_title;
-		// Include method name, when given, in error title.
-		if (!oe.source_func.empty()) {
+		if (oe.callstack.size() > 0) {
+			// If available, use the script's stack in the error title.
+			error_title = oe.callstack[oe.callstack.size() - 1].func + ": ";
+		} else if (!oe.source_func.is_empty()) {
+			// Otherwise try to use the C++ source function.
 			error_title += oe.source_func + ": ";
 		}
 		// If we have a (custom) error message, use it as title, and add a C++ Error
 		// item with the original error condition.
-		error_title += oe.error_descr.empty() ? oe.error : oe.error_descr;
+		error_title += oe.error_descr.is_empty() ? oe.error : oe.error_descr;
 		error->set_text(1, error_title);
 		tooltip += " " + error_title + "\n";
 
-		if (!oe.error_descr.empty()) {
+		if (!oe.error_descr.is_empty()) {
 			// Add item for C++ error condition.
 			TreeItem *cpp_cond = error_tree->create_item(error);
 			cpp_cond->set_text(0, "<" + TTR("C++ Error") + ">");
@@ -525,7 +518,7 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 
 		// Source of the error.
 		String source_txt = (source_is_project_file ? oe.source_file.get_file() : oe.source_file) + ":" + itos(oe.source_line);
-		if (!oe.source_func.empty()) {
+		if (!oe.source_func.is_empty()) {
 			source_txt += " @ " + oe.source_func + "()";
 		}
 
@@ -540,9 +533,6 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 			error->set_metadata(0, source_meta);
 			cpp_source->set_metadata(0, source_meta);
 		}
-
-		error->set_tooltip(0, tooltip);
-		error->set_tooltip(1, tooltip);
 
 		// Format stack trace.
 		// stack_items_count is the number of elements to parse, with 3 items per frame
@@ -560,9 +550,16 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 				stack_trace->set_text(0, "<" + TTR("Stack Trace") + ">");
 				stack_trace->set_text_align(0, TreeItem::ALIGN_LEFT);
 				error->set_metadata(0, meta);
+				tooltip += TTR("Stack Trace:") + "\n";
 			}
-			stack_trace->set_text(1, infos[i].file.get_file() + ":" + itos(infos[i].line) + " @ " + infos[i].func + "()");
+
+			String frame_txt = infos[i].file.get_file() + ":" + itos(infos[i].line) + " @ " + infos[i].func + "()";
+			tooltip += frame_txt + "\n";
+			stack_trace->set_text(1, frame_txt);
 		}
+
+		error->set_tooltip(0, tooltip);
+		error->set_tooltip(1, tooltip);
 
 		if (oe.warning) {
 			warning_count++;
@@ -704,8 +701,38 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 		emit_signal("stop_requested");
 		_stop_and_notify();
 
+	} else if (p_msg == "performance:profile_names") {
+		Vector<StringName> monitors;
+		monitors.resize(p_data.size());
+		for (int i = 0; i < p_data.size(); i++) {
+			ERR_FAIL_COND(p_data[i].get_type() != Variant::STRING_NAME);
+			monitors.set(i, p_data[i]);
+		}
+		performance_profiler->update_monitors(monitors);
+
 	} else {
-		WARN_PRINT("unknown message " + p_msg);
+		int colon_index = p_msg.find_char(':');
+		ERR_FAIL_COND_MSG(colon_index < 1, "Invalid message received");
+
+		bool parsed = false;
+		const String cap = p_msg.substr(0, colon_index);
+		Map<StringName, Callable>::Element *element = captures.find(cap);
+		if (element) {
+			Callable &c = element->value();
+			ERR_FAIL_COND_MSG(c.is_null(), "Invalid callable registered: " + cap);
+			Variant cmd = p_msg.substr(colon_index + 1), data = p_data;
+			const Variant *args[2] = { &cmd, &data };
+			Variant retval;
+			Callable::CallError err;
+			c.call(args, 2, retval, err);
+			ERR_FAIL_COND_MSG(err.error != Callable::CallError::CALL_OK, "Error calling 'capture' to callable: " + Variant::get_callable_error_text(c, args, 2, err));
+			ERR_FAIL_COND_MSG(retval.get_type() != Variant::BOOL, "Error calling 'capture' to callable: " + String(c) + ". Return type is not bool.");
+			parsed = retval;
+		}
+
+		if (!parsed) {
+			WARN_PRINT("unknown message " + p_msg);
+		}
 	}
 }
 
@@ -722,80 +749,6 @@ void ScriptEditorDebugger::_set_reason_text(const String &p_reason, MessageType 
 	}
 	reason->set_text(p_reason);
 	reason->set_tooltip(p_reason.word_wrap(80));
-}
-
-void ScriptEditorDebugger::_performance_select() {
-	perf_draw->update();
-}
-
-void ScriptEditorDebugger::_performance_draw() {
-	Vector<int> which;
-	for (int i = 0; i < perf_items.size(); i++) {
-		if (perf_items[i]->is_checked(0)) {
-			which.push_back(i);
-		}
-	}
-
-	if (which.empty()) {
-		info_message->show();
-		return;
-	}
-
-	info_message->hide();
-
-	Ref<StyleBox> graph_sb = get_theme_stylebox("normal", "TextEdit");
-	Ref<Font> graph_font = get_theme_font("font", "TextEdit");
-
-	int cols = Math::ceil(Math::sqrt((float)which.size()));
-	int rows = Math::ceil((float)which.size() / cols);
-	if (which.size() == 1) {
-		rows = 1;
-	}
-
-	int margin = 3;
-	int point_sep = 5;
-	Size2i s = Size2i(perf_draw->get_size()) / Size2i(cols, rows);
-	for (int i = 0; i < which.size(); i++) {
-		Point2i p(i % cols, i / cols);
-		Rect2i r(p * s, s);
-		r.position += Point2(margin, margin);
-		r.size -= Point2(margin, margin) * 2.0;
-		perf_draw->draw_style_box(graph_sb, r);
-		r.position += graph_sb->get_offset();
-		r.size -= graph_sb->get_minimum_size();
-		int pi = which[i];
-		Color c = get_theme_color("accent_color", "Editor");
-		float h = (float)which[i] / (float)(perf_items.size());
-		// Use a darker color on light backgrounds for better visibility
-		float value_multiplier = EditorSettings::get_singleton()->is_dark_theme() ? 1.4 : 0.55;
-		c.set_hsv(Math::fmod(h + 0.4, 0.9), c.get_s() * 0.9, c.get_v() * value_multiplier);
-
-		c.a = 0.6;
-		perf_draw->draw_string(graph_font, r.position + Point2(0, graph_font->get_ascent()), perf_items[pi]->get_text(0), c, r.size.x);
-		c.a = 0.9;
-		perf_draw->draw_string(graph_font, r.position + Point2(0, graph_font->get_ascent() + graph_font->get_height()), perf_items[pi]->get_text(1), c, r.size.y);
-
-		float spacing = point_sep / float(cols);
-		float from = r.size.width;
-
-		List<Vector<float>>::Element *E = perf_history.front();
-		float prev = -1;
-		while (from >= 0 && E) {
-			float m = perf_max[pi];
-			if (m == 0) {
-				m = 0.00001;
-			}
-			float h2 = E->get()[pi] / m;
-			h2 = (1.0 - h2) * r.size.y;
-
-			if (E != perf_history.front()) {
-				perf_draw->draw_line(r.position + Point2(from, h2), r.position + Point2(from + spacing, prev), c, Math::round(EDSCALE));
-			}
-			prev = h2;
-			E = E->next();
-			from -= spacing;
-		}
-	}
 }
 
 void ScriptEditorDebugger::_notification(int p_what) {
@@ -851,8 +804,8 @@ void ScriptEditorDebugger::_notification(int p_what) {
 						msg.push_back(true);
 						msg.push_back(cam->get_fov());
 					}
-					msg.push_back(cam->get_znear());
-					msg.push_back(cam->get_zfar());
+					msg.push_back(cam->get_near());
+					msg.push_back(cam->get_far());
 					_put_msg("scene:override_camera_3D:transform", msg);
 				}
 			}
@@ -915,10 +868,7 @@ void ScriptEditorDebugger::start(Ref<RemoteDebuggerPeer> p_peer) {
 	peer = p_peer;
 	ERR_FAIL_COND(p_peer.is_null());
 
-	perf_history.clear();
-	for (int i = 0; i < Performance::MONITOR_MAX; i++) {
-		perf_max.write[i] = 0;
-	}
+	performance_profiler->reset();
 
 	set_process(true);
 	breaked = false;
@@ -928,6 +878,7 @@ void ScriptEditorDebugger::start(Ref<RemoteDebuggerPeer> p_peer) {
 	tabs->set_current_tab(0);
 	_set_reason_text(TTR("Debug session started."), MESSAGE_SUCCESS);
 	_update_buttons_state();
+	emit_signal("started");
 }
 
 void ScriptEditorDebugger::_update_buttons_state() {
@@ -1025,7 +976,7 @@ void ScriptEditorDebugger::_export_csv() {
 	file_dialog->set_file_mode(EditorFileDialog::FILE_MODE_SAVE_FILE);
 	file_dialog->set_access(EditorFileDialog::ACCESS_FILESYSTEM);
 	file_dialog_purpose = SAVE_MONITORS_CSV;
-	file_dialog->popup_centered_ratio();
+	file_dialog->popup_file_dialog();
 }
 
 String ScriptEditorDebugger::get_var_value(const String &p_var) const {
@@ -1081,7 +1032,7 @@ void ScriptEditorDebugger::_method_changed(Object *p_base, const StringName &p_n
 
 	for (int i = 0; i < VARIANT_ARG_MAX; i++) {
 		//no pointers, sorry
-		if (argptr[i] && (argptr[i]->get_type() == Variant::OBJECT || argptr[i]->get_type() == Variant::_RID)) {
+		if (argptr[i] && (argptr[i]->get_type() == Variant::OBJECT || argptr[i]->get_type() == Variant::RID)) {
 			return;
 		}
 	}
@@ -1422,7 +1373,8 @@ void ScriptEditorDebugger::_error_tree_item_rmb_selected(const Vector2 &p_pos) {
 	item_menu->set_size(Size2(1, 1));
 
 	if (error_tree->is_anything_selected()) {
-		item_menu->add_icon_item(get_theme_icon("ActionCopy", "EditorIcons"), TTR("Copy Error"), 0);
+		item_menu->add_icon_item(get_theme_icon("ActionCopy", "EditorIcons"), TTR("Copy Error"), ACTION_COPY_ERROR);
+		item_menu->add_icon_item(get_theme_icon("Instance", "EditorIcons"), TTR("Open C++ Source on GitHub"), ACTION_OPEN_SOURCE);
 	}
 
 	if (item_menu->get_item_count() > 0) {
@@ -1432,30 +1384,64 @@ void ScriptEditorDebugger::_error_tree_item_rmb_selected(const Vector2 &p_pos) {
 }
 
 void ScriptEditorDebugger::_item_menu_id_pressed(int p_option) {
-	TreeItem *ti = error_tree->get_selected();
-	while (ti->get_parent() != error_tree->get_root()) {
-		ti = ti->get_parent();
+	switch (p_option) {
+		case ACTION_COPY_ERROR: {
+			TreeItem *ti = error_tree->get_selected();
+			while (ti->get_parent() != error_tree->get_root()) {
+				ti = ti->get_parent();
+			}
+
+			String type;
+
+			if (ti->get_icon(0) == get_theme_icon("Warning", "EditorIcons")) {
+				type = "W ";
+			} else if (ti->get_icon(0) == get_theme_icon("Error", "EditorIcons")) {
+				type = "E ";
+			}
+
+			String text = ti->get_text(0) + "   ";
+			int rpad_len = text.length();
+
+			text = type + text + ti->get_text(1) + "\n";
+			TreeItem *ci = ti->get_children();
+			while (ci) {
+				text += "  " + ci->get_text(0).rpad(rpad_len) + ci->get_text(1) + "\n";
+				ci = ci->get_next();
+			}
+
+			DisplayServer::get_singleton()->clipboard_set(text);
+		} break;
+
+		case ACTION_OPEN_SOURCE: {
+			TreeItem *ti = error_tree->get_selected();
+			while (ti->get_parent() != error_tree->get_root()) {
+				ti = ti->get_parent();
+			}
+
+			// We only need the first child here (C++ source stack trace).
+			TreeItem *ci = ti->get_children();
+			// Parse back the `file:line @ method()` string.
+			const Vector<String> file_line_number = ci->get_text(1).split("@")[0].strip_edges().split(":");
+			ERR_FAIL_COND_MSG(file_line_number.size() < 2, "Incorrect C++ source stack trace file:line format (please report).");
+			const String file = file_line_number[0];
+			const int line_number = file_line_number[1].to_int();
+
+			// Construct a GitHub repository URL and open it in the user's default web browser.
+			if (String(VERSION_HASH).length() >= 1) {
+				// Git commit hash information available; use it for greater accuracy, including for development versions.
+				OS::get_singleton()->shell_open(vformat("https://github.com/godotengine/godot/blob/%s/%s#L%d",
+						VERSION_HASH,
+						file,
+						line_number));
+			} else {
+				// Git commit hash information unavailable; fall back to tagged releases.
+				OS::get_singleton()->shell_open(vformat("https://github.com/godotengine/godot/blob/%s-stable/%s#L%d",
+						VERSION_NUMBER,
+						file,
+						line_number));
+			}
+		} break;
 	}
-
-	String type;
-
-	if (ti->get_icon(0) == get_theme_icon("Warning", "EditorIcons")) {
-		type = "W ";
-	} else if (ti->get_icon(0) == get_theme_icon("Error", "EditorIcons")) {
-		type = "E ";
-	}
-
-	String text = ti->get_text(0) + "   ";
-	int rpad_len = text.length();
-
-	text = type + text + ti->get_text(1) + "\n";
-	TreeItem *ci = ti->get_children();
-	while (ci) {
-		text += "  " + ci->get_text(0).rpad(rpad_len) + ci->get_text(1) + "\n";
-		ci = ci->get_next();
-	}
-
-	DisplayServer::get_singleton()->clipboard_set(text);
 }
 
 void ScriptEditorDebugger::_tab_changed(int p_tab) {
@@ -1476,6 +1462,7 @@ void ScriptEditorDebugger::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("request_remote_object", "id"), &ScriptEditorDebugger::request_remote_object);
 	ClassDB::bind_method(D_METHOD("update_remote_object", "id", "property", "value"), &ScriptEditorDebugger::update_remote_object);
 
+	ADD_SIGNAL(MethodInfo("started"));
 	ADD_SIGNAL(MethodInfo("stopped"));
 	ADD_SIGNAL(MethodInfo("stop_requested"));
 	ADD_SIGNAL(MethodInfo("stack_frame_selected", PropertyInfo(Variant::INT, "frame")));
@@ -1487,6 +1474,43 @@ void ScriptEditorDebugger::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("remote_object_updated", PropertyInfo(Variant::INT, "id")));
 	ADD_SIGNAL(MethodInfo("remote_object_property_updated", PropertyInfo(Variant::INT, "id"), PropertyInfo(Variant::STRING, "property")));
 	ADD_SIGNAL(MethodInfo("remote_tree_updated"));
+}
+
+void ScriptEditorDebugger::add_debugger_plugin(const Ref<Script> &p_script) {
+	if (!debugger_plugins.has(p_script)) {
+		EditorDebuggerPlugin *plugin = memnew(EditorDebuggerPlugin());
+		plugin->attach_debugger(this);
+		plugin->set_script(p_script);
+		tabs->add_child(plugin);
+		debugger_plugins.insert(p_script, plugin);
+	}
+}
+
+void ScriptEditorDebugger::remove_debugger_plugin(const Ref<Script> &p_script) {
+	if (debugger_plugins.has(p_script)) {
+		tabs->remove_child(debugger_plugins[p_script]);
+		debugger_plugins[p_script]->detach_debugger(false);
+		memdelete(debugger_plugins[p_script]);
+		debugger_plugins.erase(p_script);
+	}
+}
+
+void ScriptEditorDebugger::send_message(const String &p_message, const Array &p_args) {
+	_put_msg(p_message, p_args);
+}
+
+void ScriptEditorDebugger::register_message_capture(const StringName &p_name, const Callable &p_callable) {
+	ERR_FAIL_COND_MSG(has_capture(p_name), "Capture already registered: " + p_name);
+	captures.insert(p_name, p_callable);
+}
+
+void ScriptEditorDebugger::unregister_message_capture(const StringName &p_name) {
+	ERR_FAIL_COND_MSG(!has_capture(p_name), "Capture not registered: " + p_name);
+	captures.erase(p_name);
+}
+
+bool ScriptEditorDebugger::has_capture(const StringName &p_name) {
+	return captures.has(p_name);
 }
 
 ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
@@ -1517,27 +1541,31 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 
 		hbc->add_child(memnew(VSeparator));
 
-		skip_breakpoints = memnew(ToolButton);
+		skip_breakpoints = memnew(Button);
+		skip_breakpoints->set_flat(true);
 		hbc->add_child(skip_breakpoints);
 		skip_breakpoints->set_tooltip(TTR("Skip Breakpoints"));
 		skip_breakpoints->connect("pressed", callable_mp(this, &ScriptEditorDebugger::debug_skip_breakpoints));
 
 		hbc->add_child(memnew(VSeparator));
 
-		copy = memnew(ToolButton);
+		copy = memnew(Button);
+		copy->set_flat(true);
 		hbc->add_child(copy);
 		copy->set_tooltip(TTR("Copy Error"));
 		copy->connect("pressed", callable_mp(this, &ScriptEditorDebugger::debug_copy));
 
 		hbc->add_child(memnew(VSeparator));
 
-		step = memnew(ToolButton);
+		step = memnew(Button);
+		step->set_flat(true);
 		hbc->add_child(step);
 		step->set_tooltip(TTR("Step Into"));
 		step->set_shortcut(ED_GET_SHORTCUT("debugger/step_into"));
 		step->connect("pressed", callable_mp(this, &ScriptEditorDebugger::debug_step));
 
-		next = memnew(ToolButton);
+		next = memnew(Button);
+		next->set_flat(true);
 		hbc->add_child(next);
 		next->set_tooltip(TTR("Step Over"));
 		next->set_shortcut(ED_GET_SHORTCUT("debugger/step_over"));
@@ -1545,13 +1573,15 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 
 		hbc->add_child(memnew(VSeparator));
 
-		dobreak = memnew(ToolButton);
+		dobreak = memnew(Button);
+		dobreak->set_flat(true);
 		hbc->add_child(dobreak);
 		dobreak->set_tooltip(TTR("Break"));
 		dobreak->set_shortcut(ED_GET_SHORTCUT("debugger/break"));
 		dobreak->connect("pressed", callable_mp(this, &ScriptEditorDebugger::debug_break));
 
-		docontinue = memnew(ToolButton);
+		docontinue = memnew(Button);
+		docontinue->set_flat(true);
 		hbc->add_child(docontinue);
 		docontinue->set_tooltip(TTR("Continue"));
 		docontinue->set_shortcut(ED_GET_SHORTCUT("debugger/continue"));
@@ -1660,63 +1690,8 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 	}
 
 	{ //monitors
-
-		HSplitContainer *hsp = memnew(HSplitContainer);
-
-		perf_monitors = memnew(Tree);
-		perf_monitors->set_columns(2);
-		perf_monitors->set_column_title(0, TTR("Monitor"));
-		perf_monitors->set_column_title(1, TTR("Value"));
-		perf_monitors->set_column_titles_visible(true);
-		perf_monitors->connect("item_edited", callable_mp(this, &ScriptEditorDebugger::_performance_select));
-		hsp->add_child(perf_monitors);
-
-		perf_draw = memnew(Control);
-		perf_draw->set_clip_contents(true);
-		perf_draw->connect("draw", callable_mp(this, &ScriptEditorDebugger::_performance_draw));
-		hsp->add_child(perf_draw);
-
-		hsp->set_name(TTR("Monitors"));
-		hsp->set_split_offset(340 * EDSCALE);
-		tabs->add_child(hsp);
-		perf_max.resize(Performance::MONITOR_MAX);
-
-		Map<String, TreeItem *> bases;
-		TreeItem *root = perf_monitors->create_item();
-		perf_monitors->set_hide_root(true);
-		for (int i = 0; i < Performance::MONITOR_MAX; i++) {
-			String n = Performance::get_singleton()->get_monitor_name(Performance::Monitor(i));
-			Performance::MonitorType mtype = Performance::get_singleton()->get_monitor_type(Performance::Monitor(i));
-			String base = n.get_slice("/", 0);
-			String name = n.get_slice("/", 1);
-			if (!bases.has(base)) {
-				TreeItem *b = perf_monitors->create_item(root);
-				b->set_text(0, base.capitalize());
-				b->set_editable(0, false);
-				b->set_selectable(0, false);
-				b->set_expand_right(0, true);
-				bases[base] = b;
-			}
-
-			TreeItem *it = perf_monitors->create_item(bases[base]);
-			it->set_metadata(1, mtype);
-			it->set_cell_mode(0, TreeItem::CELL_MODE_CHECK);
-			it->set_editable(0, true);
-			it->set_selectable(0, false);
-			it->set_selectable(1, false);
-			it->set_text(0, name.capitalize());
-			perf_items.push_back(it);
-			perf_max.write[i] = 0;
-		}
-
-		info_message = memnew(Label);
-		info_message->set_text(TTR("Pick one or more items from the list to display the graph."));
-		info_message->set_valign(Label::VALIGN_CENTER);
-		info_message->set_align(Label::ALIGN_CENTER);
-		info_message->set_autowrap(true);
-		info_message->set_custom_minimum_size(Size2(100 * EDSCALE, 0));
-		info_message->set_anchors_and_margins_preset(PRESET_WIDE, PRESET_MODE_KEEP_SIZE, 8 * EDSCALE);
-		perf_draw->add_child(info_message);
+		performance_profiler = memnew(EditorPerformanceProfiler);
+		tabs->add_child(performance_profiler);
 	}
 
 	{ //vmem inspect
@@ -1730,9 +1705,11 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 		vmem_total->set_editable(false);
 		vmem_total->set_custom_minimum_size(Size2(100, 0) * EDSCALE);
 		vmem_hb->add_child(vmem_total);
-		vmem_refresh = memnew(ToolButton);
+		vmem_refresh = memnew(Button);
+		vmem_refresh->set_flat(true);
 		vmem_hb->add_child(vmem_refresh);
-		vmem_export = memnew(ToolButton);
+		vmem_export = memnew(Button);
+		vmem_export->set_flat(true);
 		vmem_export->set_tooltip(TTR("Export list to a CSV file"));
 		vmem_hb->add_child(vmem_export);
 		vmem_vb->add_child(vmem_hb);

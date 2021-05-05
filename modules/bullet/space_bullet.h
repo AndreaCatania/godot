@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,8 +31,8 @@
 #ifndef SPACE_BULLET_H
 #define SPACE_BULLET_H
 
-#include "core/variant.h"
-#include "core/vector.h"
+#include "core/templates/vector.h"
+#include "core/variant/variant.h"
 #include "godot_result_callbacks.h"
 #include "rid_bullet.h"
 #include "servers/physics_server_3d.h"
@@ -76,14 +76,14 @@ private:
 public:
 	BulletPhysicsDirectSpaceState(SpaceBullet *p_space);
 
-	virtual int intersect_point(const Vector3 &p_point, ShapeResult *r_results, int p_result_max, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false);
-	virtual bool intersect_ray(const Vector3 &p_from, const Vector3 &p_to, RayResult &r_result, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false, bool p_pick_ray = false);
-	virtual int intersect_shape(const RID &p_shape, const Transform &p_xform, float p_margin, ShapeResult *r_results, int p_result_max, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false);
-	virtual bool cast_motion(const RID &p_shape, const Transform &p_xform, const Vector3 &p_motion, float p_margin, float &r_closest_safe, float &r_closest_unsafe, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false, ShapeRestInfo *r_info = nullptr);
+	virtual int intersect_point(const Vector3 &p_point, ShapeResult *r_results, int p_result_max, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false) override;
+	virtual bool intersect_ray(const Vector3 &p_from, const Vector3 &p_to, RayResult &r_result, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false, bool p_pick_ray = false) override;
+	virtual int intersect_shape(const RID &p_shape, const Transform &p_xform, real_t p_margin, ShapeResult *r_results, int p_result_max, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false) override;
+	virtual bool cast_motion(const RID &p_shape, const Transform &p_xform, const Vector3 &p_motion, real_t p_margin, real_t &r_closest_safe, real_t &r_closest_unsafe, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false, ShapeRestInfo *r_info = nullptr) override;
 	/// Returns the list of contacts pairs in this order: Local contact, other body contact
-	virtual bool collide_shape(RID p_shape, const Transform &p_shape_xform, float p_margin, Vector3 *r_results, int p_result_max, int &r_result_count, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false);
-	virtual bool rest_info(RID p_shape, const Transform &p_shape_xform, float p_margin, ShapeRestInfo *r_info, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false);
-	virtual Vector3 get_closest_point_to_object_volume(RID p_object, const Vector3 p_point) const;
+	virtual bool collide_shape(RID p_shape, const Transform &p_shape_xform, real_t p_margin, Vector3 *r_results, int p_result_max, int &r_result_count, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false) override;
+	virtual bool rest_info(RID p_shape, const Transform &p_shape_xform, real_t p_margin, ShapeRestInfo *r_info, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_mask = 0xFFFFFFFF, bool p_collide_with_bodies = true, bool p_collide_with_areas = false) override;
+	virtual Vector3 get_closest_point_to_object_volume(RID p_object, const Vector3 p_point) const override;
 };
 
 class SpaceBullet : public RIDBullet {
@@ -100,12 +100,12 @@ class SpaceBullet : public RIDBullet {
 	btGhostPairCallback *ghostPairCallback = nullptr;
 	GodotFilterCallback *godotFilterCallback = nullptr;
 
-	btGjkEpaPenetrationDepthSolver *gjk_epa_pen_solver;
-	btVoronoiSimplexSolver *gjk_simplex_solver;
+	btGjkEpaPenetrationDepthSolver *gjk_epa_pen_solver = nullptr;
+	btVoronoiSimplexSolver *gjk_simplex_solver = nullptr;
 
 	BulletPhysicsDirectSpaceState *direct_access;
 	Vector3 gravityDirection = Vector3(0, -1, 0);
-	real_t gravityMagnitude = 10;
+	real_t gravityMagnitude = 10.0;
 
 	real_t linear_damp = 0.0;
 	real_t angular_damp = 0.0;
@@ -124,9 +124,12 @@ public:
 	real_t get_delta_time() { return delta_time; }
 	void step(real_t p_delta_time);
 
-	_FORCE_INLINE_ btBroadphaseInterface *get_broadphase() { return broadphase; }
-	_FORCE_INLINE_ btCollisionDispatcher *get_dispatcher() { return dispatcher; }
-	_FORCE_INLINE_ btSoftBodyWorldInfo *get_soft_body_world_info() { return soft_body_world_info; }
+	_FORCE_INLINE_ btBroadphaseInterface *get_broadphase() const { return broadphase; }
+	_FORCE_INLINE_ btDefaultCollisionConfiguration *get_collision_configuration() const { return collisionConfiguration; }
+	_FORCE_INLINE_ btCollisionDispatcher *get_dispatcher() const { return dispatcher; }
+	_FORCE_INLINE_ btConstraintSolver *get_solver() const { return solver; }
+	_FORCE_INLINE_ btDiscreteDynamicsWorld *get_dynamic_world() const { return dynamicsWorld; }
+	_FORCE_INLINE_ btSoftBodyWorldInfo *get_soft_body_world_info() const { return soft_body_world_info; }
 	_FORCE_INLINE_ bool is_using_soft_world() { return soft_body_world_info; }
 
 	/// Used to set some parameters to Bullet world
@@ -148,6 +151,7 @@ public:
 	void reload_collision_filters(AreaBullet *p_area);
 
 	void add_rigid_body(RigidBodyBullet *p_body);
+	void remove_rigid_body_constraints(RigidBodyBullet *p_body);
 	void remove_rigid_body(RigidBodyBullet *p_body);
 	void reload_collision_filters(RigidBodyBullet *p_body);
 
@@ -164,7 +168,7 @@ public:
 	BulletPhysicsDirectSpaceState *get_direct_state();
 
 	void set_debug_contacts(int p_amount) { contactDebug.resize(p_amount); }
-	_FORCE_INLINE_ bool is_debugging_contacts() const { return !contactDebug.empty(); }
+	_FORCE_INLINE_ bool is_debugging_contacts() const { return !contactDebug.is_empty(); }
 	_FORCE_INLINE_ void reset_debug_contact_count() {
 		contactDebugCount = 0;
 	}
@@ -185,7 +189,7 @@ public:
 	real_t get_angular_damp() const { return angular_damp; }
 
 	bool test_body_motion(RigidBodyBullet *p_body, const Transform &p_from, const Vector3 &p_motion, bool p_infinite_inertia, PhysicsServer3D::MotionResult *r_result, bool p_exclude_raycast_shapes);
-	int test_ray_separation(RigidBodyBullet *p_body, const Transform &p_transform, bool p_infinite_inertia, Vector3 &r_recover_motion, PhysicsServer3D::SeparationResult *r_results, int p_result_max, float p_margin);
+	int test_ray_separation(RigidBodyBullet *p_body, const Transform &p_transform, bool p_infinite_inertia, Vector3 &r_recover_motion, PhysicsServer3D::SeparationResult *r_results, int p_result_max, real_t p_margin);
 
 private:
 	void create_empty_world(bool p_create_soft_world);

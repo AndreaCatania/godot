@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -39,16 +39,16 @@ class CSGShape3DGizmoPlugin : public EditorNode3DGizmoPlugin {
 	GDCLASS(CSGShape3DGizmoPlugin, EditorNode3DGizmoPlugin);
 
 public:
-	bool has_gizmo(Node3D *p_spatial);
-	String get_name() const;
-	int get_priority() const;
-	bool is_selectable_when_hidden() const;
-	void redraw(EditorNode3DGizmo *p_gizmo);
+	bool has_gizmo(Node3D *p_spatial) override;
+	String get_gizmo_name() const override;
+	int get_priority() const override;
+	bool is_selectable_when_hidden() const override;
+	void redraw(EditorNode3DGizmo *p_gizmo) override;
 
-	String get_handle_name(const EditorNode3DGizmo *p_gizmo, int p_idx) const;
-	Variant get_handle_value(EditorNode3DGizmo *p_gizmo, int p_idx) const;
-	void set_handle(EditorNode3DGizmo *p_gizmo, int p_idx, Camera3D *p_camera, const Point2 &p_point);
-	void commit_handle(EditorNode3DGizmo *p_gizmo, int p_idx, const Variant &p_restore, bool p_cancel);
+	String get_handle_name(const EditorNode3DGizmo *p_gizmo, int p_idx) const override;
+	Variant get_handle_value(EditorNode3DGizmo *p_gizmo, int p_idx) const override;
+	void set_handle(EditorNode3DGizmo *p_gizmo, int p_idx, Camera3D *p_camera, const Point2 &p_point) override;
+	void commit_handle(EditorNode3DGizmo *p_gizmo, int p_idx, const Variant &p_restore, bool p_cancel) override;
 
 	CSGShape3DGizmoPlugin();
 };

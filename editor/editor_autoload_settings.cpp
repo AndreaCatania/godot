@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,8 +30,8 @@
 
 #include "editor_autoload_settings.h"
 
-#include "core/global_constants.h"
-#include "core/project_settings.h"
+#include "core/config/project_settings.h"
+#include "core/core_constants.h"
 #include "editor_node.h"
 #include "editor_scale.h"
 #include "project_settings_editor.h"
@@ -89,8 +89,8 @@ bool EditorAutoloadSettings::_autoload_name_is_valid(const String &p_name, Strin
 		}
 	}
 
-	for (int i = 0; i < GlobalConstants::get_global_constant_count(); i++) {
-		if (GlobalConstants::get_global_constant_name(i) == p_name) {
+	for (int i = 0; i < CoreConstants::get_global_constant_count(); i++) {
+		if (CoreConstants::get_global_constant_name(i) == p_name) {
 			if (r_error) {
 				*r_error = TTR("Invalid name.") + "\n" + TTR("Must not collide with an existing global constant name.");
 			}
@@ -402,7 +402,7 @@ void EditorAutoloadSettings::update_autoload() {
 		String name = pi.name.get_slice("/", 1);
 		String path = ProjectSettings::get_singleton()->get(pi.name);
 
-		if (name.empty()) {
+		if (name.is_empty()) {
 			continue;
 		}
 
@@ -477,6 +477,8 @@ void EditorAutoloadSettings::update_autoload() {
 			info.node->queue_delete();
 			info.node = nullptr;
 		}
+
+		ProjectSettings::get_singleton()->remove_autoload(info.name);
 	}
 
 	// Load new/changed autoloads
@@ -502,6 +504,12 @@ void EditorAutoloadSettings::update_autoload() {
 				ScriptServer::get_language(i)->add_named_global_constant(info->name, info->node);
 			}
 		}
+
+		ProjectSettings::AutoloadInfo prop_info;
+		prop_info.name = info->name;
+		prop_info.path = info->path;
+		prop_info.is_singleton = info->is_singleton;
+		ProjectSettings::get_singleton()->add_autoload(prop_info);
 
 		if (!info->in_editor && !info->is_singleton) {
 			// No reason to keep this node
@@ -674,18 +682,18 @@ bool EditorAutoloadSettings::autoload_add(const String &p_name, const String &p_
 
 	String error;
 	if (!_autoload_name_is_valid(name, &error)) {
-		EditorNode::get_singleton()->show_warning(error);
+		EditorNode::get_singleton()->show_warning(TTR("Can't add autoload:") + "\n" + error);
 		return false;
 	}
 
 	const String &path = p_path;
 	if (!FileAccess::exists(path)) {
-		EditorNode::get_singleton()->show_warning(TTR("Invalid path.") + "\n" + TTR("File does not exist."));
+		EditorNode::get_singleton()->show_warning(TTR("Can't add autoload:") + "\n" + vformat(TTR("%s is an invalid path. File does not exist."), path));
 		return false;
 	}
 
 	if (!path.begins_with("res://")) {
-		EditorNode::get_singleton()->show_warning(TTR("Invalid path.") + "\n" + TTR("Not in resource path."));
+		EditorNode::get_singleton()->show_warning(TTR("Can't add autoload:") + "\n" + vformat(TTR("%s is an invalid path. Not in resource path (res://)."), path));
 		return false;
 	}
 
@@ -766,7 +774,7 @@ EditorAutoloadSettings::EditorAutoloadSettings() {
 		String name = pi.name.get_slice("/", 1);
 		String path = ProjectSettings::get_singleton()->get(pi.name);
 
-		if (name.empty()) {
+		if (name.is_empty()) {
 			continue;
 		}
 
@@ -911,5 +919,5 @@ void EditorAutoloadSettings::_set_autoload_add_path(const String &p_text) {
 }
 
 void EditorAutoloadSettings::_browse_autoload_add_path() {
-	file_dialog->popup_centered_ratio();
+	file_dialog->popup_file_dialog();
 }

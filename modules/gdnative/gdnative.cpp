@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,11 +30,11 @@
 
 #include "gdnative.h"
 
-#include "core/global_constants.h"
+#include "core/config/project_settings.h"
+#include "core/core_constants.h"
 #include "core/io/file_access_encrypted.h"
 #include "core/os/file_access.h"
 #include "core/os/os.h"
-#include "core/project_settings.h"
 
 #include "scene/main/scene_tree.h"
 
@@ -110,6 +110,16 @@ bool GDNativeLibrary::_get(const StringName &p_name, Variant &r_property) const 
 	return false;
 }
 
+void GDNativeLibrary::reset_state() {
+	config_file.instance();
+	current_library_path = "";
+	current_dependencies.clear();
+	symbol_prefix = default_symbol_prefix;
+	load_once = default_load_once;
+	singleton = default_singleton;
+	reloadable = default_reloadable;
+}
+
 void GDNativeLibrary::_get_property_list(List<PropertyInfo> *p_list) const {
 	// set entries
 	List<String> entry_key_list;
@@ -149,6 +159,8 @@ void GDNativeLibrary::_get_property_list(List<PropertyInfo> *p_list) const {
 }
 
 void GDNativeLibrary::set_config_file(Ref<ConfigFile> p_config_file) {
+	ERR_FAIL_COND(p_config_file.is_null());
+
 	set_singleton(p_config_file->get_value("general", "singleton", default_singleton));
 	set_load_once(p_config_file->get_value("general", "load_once", default_load_once));
 	set_symbol_prefix(p_config_file->get_value("general", "symbol_prefix", default_symbol_prefix));
@@ -286,13 +298,31 @@ bool GDNative::initialize() {
 	}
 
 	String lib_path = library->get_current_library_path();
-	if (lib_path.empty()) {
+	if (lib_path.is_empty()) {
 		ERR_PRINT("No library set for this platform");
 		return false;
 	}
 #ifdef IPHONE_ENABLED
-	// on iOS we use static linking
+	// On iOS we use static linking by default.
 	String path = "";
+
+	// On iOS dylibs is not allowed, but can be replaced with .framework or .xcframework.
+	// If they are used, we can run dlopen on them.
+	// They should be located under Frameworks directory, so we need to replace library path.
+	if (!lib_path.ends_with(".a")) {
+		path = ProjectSettings::get_singleton()->globalize_path(lib_path);
+
+		if (!FileAccess::exists(path)) {
+			String lib_name = lib_path.get_basename().get_file();
+			String framework_path_format = "Frameworks/$name.framework/$name";
+
+			Dictionary format_dict;
+			format_dict["name"] = lib_name;
+			String framework_path = framework_path_format.format(format_dict, "$_");
+
+			path = OS::get_singleton()->get_executable_path().get_base_dir().plus_file(framework_path);
+		}
+	}
 #elif defined(ANDROID_ENABLED)
 	// On Android dynamic libraries are located separately from resource assets,
 	// we should pass library name to dlopen(). The library name is flattened
@@ -490,7 +520,7 @@ Error GDNative::get_symbol(StringName p_procedure_name, void *&r_handle, bool p_
 	return result;
 }
 
-RES GDNativeLibraryResourceLoader::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, bool p_no_cache) {
+RES GDNativeLibraryResourceLoader::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, CacheMode p_cache_mode) {
 	Ref<GDNativeLibrary> lib;
 	lib.instance();
 

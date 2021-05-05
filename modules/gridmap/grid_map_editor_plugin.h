@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -33,7 +33,6 @@
 
 #include "editor/editor_node.h"
 #include "editor/editor_plugin.h"
-#include "editor/pane_drag.h"
 #include "grid_map.h"
 
 class Node3DEditorPlugin;
@@ -42,12 +41,10 @@ class GridMapEditor : public VBoxContainer {
 	GDCLASS(GridMapEditor, VBoxContainer);
 
 	enum {
-
 		GRID_CURSOR_SIZE = 50
 	};
 
 	enum InputAction {
-
 		INPUT_NONE,
 		INPUT_PAINT,
 		INPUT_ERASE,
@@ -57,7 +54,6 @@ class GridMapEditor : public VBoxContainer {
 	};
 
 	enum ClipMode {
-
 		CLIP_DISABLED,
 		CLIP_ABOVE,
 		CLIP_BELOW
@@ -69,13 +65,13 @@ class GridMapEditor : public VBoxContainer {
 	};
 
 	UndoRedo *undo_redo;
-	InputAction input_action;
+	InputAction input_action = INPUT_NONE;
 	Panel *panel;
 	MenuButton *options;
 	SpinBox *floor;
-	double accumulated_floor_delta;
-	ToolButton *mode_thumbnail;
-	ToolButton *mode_list;
+	double accumulated_floor_delta = 0.0;
+	Button *mode_thumbnail;
+	Button *mode_list;
 	LineEdit *search_box;
 	HSlider *size_slider;
 	HBoxContainer *spatial_editor_hb;
@@ -85,20 +81,20 @@ class GridMapEditor : public VBoxContainer {
 	Label *spin_box_label;
 
 	struct SetItem {
-		Vector3 pos;
-		int new_value;
-		int new_orientation;
-		int old_value;
-		int old_orientation;
+		Vector3i position;
+		int new_value = 0;
+		int new_orientation = 0;
+		int old_value = 0;
+		int old_orientation = 0;
 	};
 
 	List<SetItem> set_items;
 
-	GridMap *node;
+	GridMap *node = nullptr;
 	MeshLibrary *last_mesh_library;
-	ClipMode clip_mode;
+	ClipMode clip_mode = CLIP_DISABLED;
 
-	bool lock_view;
+	bool lock_view = false;
 	Transform grid_xform;
 	Transform edit_grid_xform;
 	Vector3::Axis edit_axis;
@@ -116,9 +112,9 @@ class GridMapEditor : public VBoxContainer {
 	RID paste_instance;
 
 	struct ClipboardItem {
-		int cell_item;
+		int cell_item = 0;
 		Vector3 grid_offset;
-		int orientation;
+		int orientation = 0;
 		RID instance;
 	};
 
@@ -129,14 +125,14 @@ class GridMapEditor : public VBoxContainer {
 	Ref<StandardMaterial3D> outer_mat;
 	Ref<StandardMaterial3D> selection_floor_mat;
 
-	bool updating;
+	bool updating = false;
 
 	struct Selection {
 		Vector3 click;
 		Vector3 current;
 		Vector3 begin;
 		Vector3 end;
-		bool active;
+		bool active = false;
 	} selection;
 	Selection last_selection;
 
@@ -145,21 +141,20 @@ class GridMapEditor : public VBoxContainer {
 		Vector3 current;
 		Vector3 begin;
 		Vector3 end;
-		int orientation;
+		int orientation = 0;
 	};
 	PasteIndicator paste_indicator;
 
-	bool cursor_visible;
+	bool cursor_visible = false;
 	Transform cursor_transform;
 
 	Vector3 cursor_origin;
 
-	int display_mode;
-	int selected_palette;
-	int cursor_rot;
+	int display_mode = DISPLAY_THUMBNAIL;
+	int selected_palette = -1;
+	int cursor_rot = 0;
 
 	enum Menu {
-
 		MENU_OPTION_NEXT_LEVEL,
 		MENU_OPTION_PREV_LEVEL,
 		MENU_OPTION_LOCK_VIEW,
@@ -256,12 +251,12 @@ protected:
 	void _notification(int p_what);
 
 public:
-	virtual bool forward_spatial_gui_input(Camera3D *p_camera, const Ref<InputEvent> &p_event) { return grid_map_editor->forward_spatial_input_event(p_camera, p_event); }
-	virtual String get_name() const { return "GridMap"; }
-	bool has_main_screen() const { return false; }
-	virtual void edit(Object *p_object);
-	virtual bool handles(Object *p_object) const;
-	virtual void make_visible(bool p_visible);
+	virtual bool forward_spatial_gui_input(Camera3D *p_camera, const Ref<InputEvent> &p_event) override { return grid_map_editor->forward_spatial_input_event(p_camera, p_event); }
+	virtual String get_name() const override { return "GridMap"; }
+	bool has_main_screen() const override { return false; }
+	virtual void edit(Object *p_object) override;
+	virtual bool handles(Object *p_object) const override;
+	virtual void make_visible(bool p_visible) override;
 
 	GridMapEditorPlugin(EditorNode *p_node);
 	~GridMapEditorPlugin();

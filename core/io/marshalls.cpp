@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,9 +30,9 @@
 
 #include "marshalls.h"
 
+#include "core/object/reference.h"
 #include "core/os/keyboard.h"
-#include "core/print_string.h"
-#include "core/reference.h"
+#include "core/string/print_string.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -420,7 +420,7 @@ Error decode_variant(Variant &r_variant, const uint8_t *p_buffer, int p_len, int
 			}
 
 		} break;
-		case Variant::_RID: {
+		case Variant::RID: {
 			r_variant = RID();
 		} break;
 		case Variant::OBJECT: {
@@ -851,7 +851,7 @@ static void _encode_string(const String &p_string, uint8_t *&buf, int &r_len) {
 	if (buf) {
 		encode_uint32(utf8.length(), buf);
 		buf += 4;
-		copymem(buf, utf8.get_data(), utf8.length());
+		memcpy(buf, utf8.get_data(), utf8.length());
 		buf += utf8.length();
 	}
 
@@ -995,7 +995,7 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 				if (buf) {
 					encode_uint32(utf8.length(), buf);
 					buf += 4;
-					copymem(buf, utf8.get_data(), utf8.length());
+					memcpy(buf, utf8.get_data(), utf8.length());
 					buf += pad + utf8.length();
 				}
 
@@ -1003,10 +1003,7 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 			}
 
 		} break;
-		case Variant::STRING: {
-			_encode_string(p_variant, buf, r_len);
-
-		} break;
+		case Variant::STRING:
 		case Variant::STRING_NAME: {
 			_encode_string(p_variant, buf, r_len);
 
@@ -1082,7 +1079,7 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 				Transform2D val = p_variant;
 				for (int i = 0; i < 3; i++) {
 					for (int j = 0; j < 2; j++) {
-						copymem(&buf[(i * 2 + j) * 4], &val.elements[i][j], sizeof(float));
+						memcpy(&buf[(i * 2 + j) * 4], &val.elements[i][j], sizeof(float));
 					}
 				}
 			}
@@ -1133,7 +1130,7 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 				Basis val = p_variant;
 				for (int i = 0; i < 3; i++) {
 					for (int j = 0; j < 3; j++) {
-						copymem(&buf[(i * 3 + j) * 4], &val.elements[i][j], sizeof(float));
+						memcpy(&buf[(i * 3 + j) * 4], &val.elements[i][j], sizeof(float));
 					}
 				}
 			}
@@ -1146,7 +1143,7 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 				Transform val = p_variant;
 				for (int i = 0; i < 3; i++) {
 					for (int j = 0; j < 3; j++) {
-						copymem(&buf[(i * 3 + j) * 4], &val.basis.elements[i][j], sizeof(float));
+						memcpy(&buf[(i * 3 + j) * 4], &val.basis.elements[i][j], sizeof(float));
 					}
 				}
 
@@ -1172,7 +1169,7 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 			r_len += 4 * 4;
 
 		} break;
-		case Variant::_RID: {
+		case Variant::RID: {
 		} break;
 		case Variant::CALLABLE: {
 		} break;
@@ -1261,7 +1258,7 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 				if (buf) {
 					encode_uint32(utf8.length()+1,buf);
 					buf+=4;
-					copymem(buf,utf8.get_data(),utf8.length()+1);
+					memcpy(buf,utf8.get_data(),utf8.length()+1);
 				}
 
 				r_len+=4+utf8.length()+1;
@@ -1317,7 +1314,7 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 				encode_uint32(datalen, buf);
 				buf += 4;
 				const uint8_t *r = data.ptr();
-				copymem(buf, &r[0], datalen * datasize);
+				memcpy(buf, &r[0], datalen * datasize);
 				buf += datalen * datasize;
 			}
 
@@ -1415,7 +1412,7 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 				if (buf) {
 					encode_uint32(utf8.length() + 1, buf);
 					buf += 4;
-					copymem(buf, utf8.get_data(), utf8.length() + 1);
+					memcpy(buf, utf8.get_data(), utf8.length() + 1);
 					buf += utf8.length() + 1;
 				}
 

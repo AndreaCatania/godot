@@ -24,6 +24,7 @@ def _build_gdnative_api_struct_header(api):
         "#include <net/godot_net.h>",
         "#include <pluginscript/godot_pluginscript.h>",
         "#include <videodecoder/godot_videodecoder.h>",
+        "#include <text/godot_text.h>",
         "",
         "#ifdef __cplusplus",
         'extern "C" {',
@@ -74,7 +75,7 @@ def _build_gdnative_api_struct_header(api):
 
         ret_val += [
             "typedef struct godot_gdnative_core_"
-            + ("{0}_{1}".format(core["version"]["major"], core["version"]["minor"]))
+            + "{0}_{1}".format(core["version"]["major"], core["version"]["minor"])
             + "_api_struct {",
             "\tunsigned int type;",
             "\tgodot_gdnative_api_version version;",
@@ -185,7 +186,7 @@ def _build_gdnative_api_struct_source(api):
 
         ret_val += [
             "extern const godot_gdnative_core_"
-            + ("{0}_{1}_api_struct api_{0}_{1}".format(core["version"]["major"], core["version"]["minor"]))
+            + "{0}_{1}_api_struct api_{0}_{1}".format(core["version"]["major"], core["version"]["minor"])
             + " = {",
             "\tGDNATIVE_" + core["type"] + ",",
             "\t{" + str(core["version"]["major"]) + ", " + str(core["version"]["minor"]) + "},",
@@ -228,7 +229,16 @@ def _build_gdnative_api_struct_source(api):
         "extern const godot_gdnative_core_api_struct api_struct = {",
         "\tGDNATIVE_" + api["core"]["type"] + ",",
         "\t{" + str(api["core"]["version"]["major"]) + ", " + str(api["core"]["version"]["minor"]) + "},",
-        "\t(const godot_gdnative_api_struct *)&api_1_1,",
+        "\t"
+        + (
+            "nullptr, "
+            if not api["core"]["next"]
+            else (
+                "(const godot_gdnative_api_struct *)& api_{0}_{1},".format(
+                    api["core"]["next"]["version"]["major"], api["core"]["next"]["version"]["minor"]
+                )
+            )
+        ),
         "\t" + str(len(api["extensions"])) + ",",
         "\tgdnative_extensions_pointers,",
     ]

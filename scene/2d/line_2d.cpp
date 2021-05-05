@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,6 +31,7 @@
 #include "line_2d.h"
 
 #include "core/core_string_names.h"
+#include "core/math/geometry_2d.h"
 #include "line_builder.h"
 
 // Needed so we can bind functions
@@ -39,15 +40,6 @@ VARIANT_ENUM_CAST(Line2D::LineCapMode)
 VARIANT_ENUM_CAST(Line2D::LineTextureMode)
 
 Line2D::Line2D() {
-	_joint_mode = LINE_JOINT_SHARP;
-	_begin_cap_mode = LINE_CAP_NONE;
-	_end_cap_mode = LINE_CAP_NONE;
-	_width = 10;
-	_default_color = Color(1, 1, 1);
-	_texture_mode = LINE_TEXTURE_NONE;
-	_sharp_limit = 2.f;
-	_round_precision = 8;
-	_antialiased = false;
 }
 
 #ifdef TOOLS_ENABLED
@@ -72,7 +64,7 @@ bool Line2D::_edit_is_selected_on_click(const Point2 &p_point, double p_toleranc
 	const real_t d = _width / 2 + p_tolerance;
 	const Vector2 *points = _points.ptr();
 	for (int i = 0; i < _points.size() - 1; i++) {
-		Vector2 p = Geometry::get_closest_point_to_segment_2d(p_point, &points[i]);
+		Vector2 p = Geometry2D::get_closest_point_to_segment(p_point, &points[i]);
 		if (p.distance_to(p_point) <= d) {
 			return true;
 		}
@@ -124,6 +116,7 @@ Vector<Vector2> Line2D::get_points() const {
 }
 
 void Line2D::set_point_position(int i, Vector2 p_pos) {
+	ERR_FAIL_INDEX(i, _points.size());
 	_points.set(i, p_pos);
 	update();
 }
@@ -176,7 +169,7 @@ void Line2D::set_gradient(const Ref<Gradient> &p_gradient) {
 
 	_gradient = p_gradient;
 
-	// Connect to the gradient so the line will update when the ColorRamp is changed
+	// Connect to the gradient so the line will update when the Gradient is changed
 	if (_gradient.is_valid()) {
 		_gradient->connect(CoreStringNames::get_singleton()->changed, callable_mp(this, &Line2D::_gradient_changed));
 	}

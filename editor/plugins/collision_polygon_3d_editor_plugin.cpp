@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,6 +32,7 @@
 
 #include "canvas_item_editor_plugin.h"
 #include "core/input/input.h"
+#include "core/math/geometry_2d.h"
 #include "core/os/file_access.h"
 #include "core/os/keyboard.h"
 #include "editor/editor_settings.h"
@@ -141,7 +142,7 @@ bool CollisionPolygon3DEditor::forward_spatial_gui_input(Camera3D *p_camera, con
 
 		switch (mode) {
 			case MODE_CREATE: {
-				if (mb->get_button_index() == BUTTON_LEFT && mb->is_pressed()) {
+				if (mb->get_button_index() == MOUSE_BUTTON_LEFT && mb->is_pressed()) {
 					if (!wip_active) {
 						wip.clear();
 						wip.push_back(cpoint);
@@ -165,14 +166,14 @@ bool CollisionPolygon3DEditor::forward_spatial_gui_input(Camera3D *p_camera, con
 							return true;
 						}
 					}
-				} else if (mb->get_button_index() == BUTTON_RIGHT && mb->is_pressed() && wip_active) {
+				} else if (mb->get_button_index() == MOUSE_BUTTON_RIGHT && mb->is_pressed() && wip_active) {
 					_wip_close();
 				}
 
 			} break;
 
 			case MODE_EDIT: {
-				if (mb->get_button_index() == BUTTON_LEFT) {
+				if (mb->get_button_index() == MOUSE_BUTTON_LEFT) {
 					if (mb->is_pressed()) {
 						if (mb->get_control()) {
 							if (poly.size() < 3) {
@@ -196,7 +197,7 @@ bool CollisionPolygon3DEditor::forward_spatial_gui_input(Camera3D *p_camera, con
 									p_camera->unproject_position(gt.xform(Vector3(poly[(i + 1) % poly.size()].x, poly[(i + 1) % poly.size()].y, depth)))
 								};
 
-								Vector2 cp = Geometry::get_closest_point_to_segment_2d(gpoint, points);
+								Vector2 cp = Geometry2D::get_closest_point_to_segment(gpoint, points);
 								if (cp.distance_squared_to(points[0]) < CMP_EPSILON2 || cp.distance_squared_to(points[1]) < CMP_EPSILON2) {
 									continue; //not valid to reuse point
 								}
@@ -266,7 +267,7 @@ bool CollisionPolygon3DEditor::forward_spatial_gui_input(Camera3D *p_camera, con
 						}
 					}
 				}
-				if (mb->get_button_index() == BUTTON_RIGHT && mb->is_pressed() && edited_point == -1) {
+				if (mb->get_button_index() == MOUSE_BUTTON_RIGHT && mb->is_pressed() && edited_point == -1) {
 					int closest_idx = -1;
 					Vector2 closest_pos;
 					real_t closest_dist = 1e10;
@@ -300,7 +301,7 @@ bool CollisionPolygon3DEditor::forward_spatial_gui_input(Camera3D *p_camera, con
 	Ref<InputEventMouseMotion> mm = p_event;
 
 	if (mm.is_valid()) {
-		if (edited_point != -1 && (wip_active || mm->get_button_mask() & BUTTON_MASK_LEFT)) {
+		if (edited_point != -1 && (wip_active || mm->get_button_mask() & MOUSE_BUTTON_MASK_LEFT)) {
 			Vector2 gpoint = mm->get_position();
 
 			Vector3 ray_from = p_camera->project_ray_origin(gpoint);
@@ -500,12 +501,14 @@ CollisionPolygon3DEditor::CollisionPolygon3DEditor(EditorNode *p_editor) {
 	undo_redo = EditorNode::get_undo_redo();
 
 	add_child(memnew(VSeparator));
-	button_create = memnew(ToolButton);
+	button_create = memnew(Button);
+	button_create->set_flat(true);
 	add_child(button_create);
 	button_create->connect("pressed", callable_mp(this, &CollisionPolygon3DEditor::_menu_option), varray(MODE_CREATE));
 	button_create->set_toggle_mode(true);
 
-	button_edit = memnew(ToolButton);
+	button_edit = memnew(Button);
+	button_edit->set_flat(true);
 	add_child(button_edit);
 	button_edit->connect("pressed", callable_mp(this, &CollisionPolygon3DEditor::_menu_option), varray(MODE_EDIT));
 	button_edit->set_toggle_mode(true);

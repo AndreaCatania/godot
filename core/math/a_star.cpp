@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,12 +30,12 @@
 
 #include "a_star.h"
 
-#include "core/math/geometry.h"
-#include "core/script_language.h"
+#include "core/math/geometry_3d.h"
+#include "core/object/script_language.h"
 #include "scene/scene_string_names.h"
 
 int AStar::get_available_point_id() const {
-	if (points.empty()) {
+	if (points.is_empty()) {
 		return 1;
 	}
 
@@ -280,10 +280,16 @@ int AStar::get_closest_point(const Vector3 &p_point, bool p_include_disabled) co
 			continue; // Disabled points should not be considered.
 		}
 
+		// Keep the closest point's ID, and in case of multiple closest IDs,
+		// the smallest one (makes it deterministic).
 		real_t d = p_point.distance_squared_to((*it.value)->pos);
-		if (closest_id < 0 || d < closest_dist) {
+		int id = *(it.key);
+		if (d <= closest_dist) {
+			if (d == closest_dist && id > closest_id) { // Keep lowest ID.
+				continue;
+			}
 			closest_dist = d;
-			closest_id = *(it.key);
+			closest_id = id;
 		}
 	}
 
@@ -291,7 +297,6 @@ int AStar::get_closest_point(const Vector3 &p_point, bool p_include_disabled) co
 }
 
 Vector3 AStar::get_closest_position_in_segment(const Vector3 &p_point) const {
-	bool found = false;
 	real_t closest_dist = 1e20;
 	Vector3 closest_point;
 
@@ -309,12 +314,11 @@ Vector3 AStar::get_closest_position_in_segment(const Vector3 &p_point) const {
 			to_point->pos,
 		};
 
-		Vector3 p = Geometry::get_closest_point_to_segment(p_point, segment);
+		Vector3 p = Geometry3D::get_closest_point_to_segment(p_point, segment);
 		real_t d = p_point.distance_squared_to(p);
-		if (!found || d < closest_dist) {
+		if (d < closest_dist) {
 			closest_point = p;
 			closest_dist = d;
-			found = true;
 		}
 	}
 
@@ -337,7 +341,7 @@ bool AStar::_solve(Point *begin_point, Point *end_point) {
 	begin_point->f_score = _estimate_cost(begin_point->id, end_point->id);
 	open_list.push_back(begin_point);
 
-	while (!open_list.empty()) {
+	while (!open_list.is_empty()) {
 		Point *p = open_list[0]; // The currently processed point
 
 		if (p == end_point) {
@@ -801,7 +805,7 @@ bool AStar2D::_solve(AStar::Point *begin_point, AStar::Point *end_point) {
 	begin_point->f_score = _estimate_cost(begin_point->id, end_point->id);
 	open_list.push_back(begin_point);
 
-	while (!open_list.empty()) {
+	while (!open_list.is_empty()) {
 		AStar::Point *p = open_list[0]; // The currently processed point
 
 		if (p == end_point) {

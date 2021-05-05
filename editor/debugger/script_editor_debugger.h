@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -52,7 +52,9 @@ class ItemList;
 class EditorProfiler;
 class EditorVisualProfiler;
 class EditorNetworkProfiler;
+class EditorPerformanceProfiler;
 class SceneDebuggerTree;
+class EditorDebuggerPlugin;
 
 class ScriptEditorDebugger : public MarginContainer {
 	GDCLASS(ScriptEditorDebugger, MarginContainer);
@@ -70,6 +72,11 @@ private:
 		PROFILER_NETWORK,
 		PROFILER_VISUAL,
 		PROFILER_SCRIPTS_SERVERS
+	};
+
+	enum Actions {
+		ACTION_COPY_ERROR,
+		ACTION_OPEN_SOURCE,
 	};
 
 	AcceptDialog *msgdialog;
@@ -113,15 +120,7 @@ private:
 	// Each debugger should have it's tree in the future I guess.
 	const Tree *editor_remote_tree = nullptr;
 
-	List<Vector<float>> perf_history;
-	Vector<float> perf_max;
-	Vector<TreeItem *> perf_items;
-
 	Map<int, String> profiler_signature;
-
-	Tree *perf_monitors;
-	Control *perf_draw;
-	Label *info_message;
 
 	Tree *vmem_tree;
 	Button *vmem_refresh;
@@ -141,6 +140,7 @@ private:
 	EditorProfiler *profiler;
 	EditorVisualProfiler *visual_profiler;
 	EditorNetworkProfiler *network_profiler;
+	EditorPerformanceProfiler *performance_profiler;
 
 	EditorNode *editor;
 
@@ -152,8 +152,10 @@ private:
 
 	EditorDebuggerNode::CameraOverride camera_override;
 
-	void _performance_draw();
-	void _performance_select();
+	Map<Ref<Script>, EditorDebuggerPlugin *> debugger_plugins;
+
+	Map<StringName, Callable> captures;
+
 	void _stack_dump_frame_selected();
 
 	void _file_selected(const String &p_file);
@@ -260,7 +262,17 @@ public:
 
 	bool is_skip_breakpoints();
 
-	virtual Size2 get_minimum_size() const;
+	virtual Size2 get_minimum_size() const override;
+
+	void add_debugger_plugin(const Ref<Script> &p_script);
+	void remove_debugger_plugin(const Ref<Script> &p_script);
+
+	void send_message(const String &p_message, const Array &p_args);
+
+	void register_message_capture(const StringName &p_name, const Callable &p_callable);
+	void unregister_message_capture(const StringName &p_name);
+	bool has_capture(const StringName &p_name);
+
 	ScriptEditorDebugger(EditorNode *p_editor = nullptr);
 	~ScriptEditorDebugger();
 };

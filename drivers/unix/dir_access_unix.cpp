@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,9 +32,9 @@
 
 #if defined(UNIX_ENABLED) || defined(LIBC_FILEIO_ENABLED)
 
-#include "core/list.h"
 #include "core/os/memory.h"
-#include "core/print_string.h"
+#include "core/string/print_string.h"
+#include "core/templates/list.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -102,6 +102,28 @@ bool DirAccessUnix::dir_exists(String p_dir) {
 	return (success && S_ISDIR(flags.st_mode));
 }
 
+bool DirAccessUnix::is_readable(String p_dir) {
+	GLOBAL_LOCK_FUNCTION
+
+	if (p_dir.is_rel_path()) {
+		p_dir = get_current_dir().plus_file(p_dir);
+	}
+
+	p_dir = fix_path(p_dir);
+	return (access(p_dir.utf8().get_data(), R_OK) == 0);
+}
+
+bool DirAccessUnix::is_writable(String p_dir) {
+	GLOBAL_LOCK_FUNCTION
+
+	if (p_dir.is_rel_path()) {
+		p_dir = get_current_dir().plus_file(p_dir);
+	}
+
+	p_dir = fix_path(p_dir);
+	return (access(p_dir.utf8().get_data(), W_OK) == 0);
+}
+
 uint64_t DirAccessUnix::get_modified_time(String p_file) {
 	if (p_file.is_rel_path()) {
 		p_file = current_dir.plus_file(p_file);
@@ -152,7 +174,7 @@ String DirAccessUnix::get_next() {
 		_cisdir = (entry->d_type == DT_DIR);
 	}
 
-	_cishidden = (fname != "." && fname != ".." && fname.begins_with("."));
+	_cishidden = is_hidden(fname);
 
 	return fname;
 }
@@ -204,8 +226,9 @@ static void _get_drives(List<String> *list) {
 		while (getmntent_r(mtab, &mnt, strings, sizeof(strings))) {
 			if (mnt.mnt_dir != nullptr && _filter_drive(&mnt)) {
 				// Avoid duplicates
-				if (!list->find(mnt.mnt_dir)) {
-					list->push_back(mnt.mnt_dir);
+				String name = String::utf8(mnt.mnt_dir);
+				if (!list->find(name)) {
+					list->push_back(name);
 				}
 			}
 		}
@@ -218,8 +241,9 @@ static void _get_drives(List<String> *list) {
 	const char *home = getenv("HOME");
 	if (home) {
 		// Only add if it's not a duplicate
-		if (!list->find(home)) {
-			list->push_back(home);
+		String home_name = String::utf8(home);
+		if (!list->find(home_name)) {
+			list->push_back(home_name);
 		}
 
 		// Check $HOME/.config/gtk-3.0/bookmarks
@@ -232,7 +256,7 @@ static void _get_drives(List<String> *list) {
 				// Parse only file:// links
 				if (strncmp(string, "file://", 7) == 0) {
 					// Strip any unwanted edges on the strings and push_back if it's not a duplicate
-					String fpath = String(string + 7).strip_edges().split_spaces()[0].percent_decode();
+					String fpath = String::utf8(string + 7).strip_edges().split_spaces()[0].uri_decode();
 					if (!list->find(fpath)) {
 						list->push_back(fpath);
 					}
@@ -398,6 +422,10 @@ size_t DirAccessUnix::get_space_left() {
 
 String DirAccessUnix::get_filesystem_type() const {
 	return ""; //TODO this should be implemented
+}
+
+bool DirAccessUnix::is_hidden(const String &p_name) {
+	return p_name != "." && p_name != ".." && p_name.begins_with(".");
 }
 
 DirAccessUnix::DirAccessUnix() {

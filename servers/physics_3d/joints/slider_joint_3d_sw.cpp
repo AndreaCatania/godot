@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -105,7 +105,6 @@ void SliderJoint3DSW::initParams() {
 	m_targetAngMotorVelocity = real_t(0.);
 	m_maxAngMotorForce = real_t(0.);
 	m_accumulatedAngMotorImpulse = real_t(0.0);
-
 } // SliderJointSW::initParams()
 
 //-----------------------------------------------------------------------------
@@ -128,6 +127,13 @@ SliderJoint3DSW::SliderJoint3DSW(Body3DSW *rbA, Body3DSW *rbB, const Transform &
 //-----------------------------------------------------------------------------
 
 bool SliderJoint3DSW::setup(real_t p_step) {
+	dynamic_A = (A->get_mode() > PhysicsServer3D::BODY_MODE_KINEMATIC);
+	dynamic_B = (B->get_mode() > PhysicsServer3D::BODY_MODE_KINEMATIC);
+
+	if (!dynamic_A && !dynamic_B) {
+		return false;
+	}
+
 	//calculate transforms
 	m_calculatedTransformA = A->get_transform() * m_frameInA;
 	m_calculatedTransformB = B->get_transform() * m_frameInB;
@@ -197,8 +203,12 @@ void SliderJoint3DSW::solve(real_t p_step) {
 		// calcutate and apply impulse
 		real_t normalImpulse = softness * (restitution * depth / p_step - damping * rel_vel) * m_jacLinDiagABInv[i];
 		Vector3 impulse_vector = normal * normalImpulse;
-		A->apply_impulse(m_relPosA, impulse_vector);
-		B->apply_impulse(m_relPosB, -impulse_vector);
+		if (dynamic_A) {
+			A->apply_impulse(impulse_vector, m_relPosA);
+		}
+		if (dynamic_B) {
+			B->apply_impulse(-impulse_vector, m_relPosB);
+		}
 		if (m_poweredLinMotor && (!i)) { // apply linear motor
 			if (m_accumulatedLinMotorImpulse < m_maxLinMotorForce) {
 				real_t desiredMotorVel = m_targetLinMotorVelocity;
@@ -218,8 +228,12 @@ void SliderJoint3DSW::solve(real_t p_step) {
 				m_accumulatedLinMotorImpulse = new_acc;
 				// apply clamped impulse
 				impulse_vector = normal * normalImpulse;
-				A->apply_impulse(m_relPosA, impulse_vector);
-				B->apply_impulse(m_relPosB, -impulse_vector);
+				if (dynamic_A) {
+					A->apply_impulse(impulse_vector, m_relPosA);
+				}
+				if (dynamic_B) {
+					B->apply_impulse(-impulse_vector, m_relPosB);
+				}
 			}
 		}
 	}
@@ -253,8 +267,12 @@ void SliderJoint3DSW::solve(real_t p_step) {
 		angularError *= (real_t(1.) / denom2) * m_restitutionOrthoAng * m_softnessOrthoAng;
 	}
 	// apply impulse
-	A->apply_torque_impulse(-velrelOrthog + angularError);
-	B->apply_torque_impulse(velrelOrthog - angularError);
+	if (dynamic_A) {
+		A->apply_torque_impulse(-velrelOrthog + angularError);
+	}
+	if (dynamic_B) {
+		B->apply_torque_impulse(velrelOrthog - angularError);
+	}
 	real_t impulseMag;
 	//solve angular limits
 	if (m_solveAngLim) {
@@ -265,8 +283,12 @@ void SliderJoint3DSW::solve(real_t p_step) {
 		impulseMag *= m_kAngle * m_softnessDirAng;
 	}
 	Vector3 impulse = axisA * impulseMag;
-	A->apply_torque_impulse(impulse);
-	B->apply_torque_impulse(-impulse);
+	if (dynamic_A) {
+		A->apply_torque_impulse(impulse);
+	}
+	if (dynamic_B) {
+		B->apply_torque_impulse(-impulse);
+	}
 	//apply angular motor
 	if (m_poweredAngMotor) {
 		if (m_accumulatedAngMotorImpulse < m_maxAngMotorForce) {
@@ -291,8 +313,12 @@ void SliderJoint3DSW::solve(real_t p_step) {
 			m_accumulatedAngMotorImpulse = new_acc;
 			// apply clamped impulse
 			Vector3 motorImp = angImpulse * axisA;
-			A->apply_torque_impulse(motorImp);
-			B->apply_torque_impulse(-motorImp);
+			if (dynamic_A) {
+				A->apply_torque_impulse(motorImp);
+			}
+			if (dynamic_B) {
+				B->apply_torque_impulse(-motorImp);
+			}
 		}
 	}
 } // SliderJointSW::solveConstraint()

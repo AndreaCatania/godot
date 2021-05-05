@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,17 +30,18 @@
 
 #include "os.h"
 
+#include "core/config/project_settings.h"
 #include "core/input/input.h"
 #include "core/os/dir_access.h"
 #include "core/os/file_access.h"
 #include "core/os/midi_driver.h"
-#include "core/project_settings.h"
 #include "core/version_generated.gen.h"
 #include "servers/audio_server.h"
 
 #include <stdarg.h>
 
 OS *OS::singleton = nullptr;
+uint64_t OS::target_ticks = 0;
 
 OS *OS::get_singleton() {
 	return singleton;
@@ -79,19 +80,7 @@ String OS::get_iso_date_time(bool local) const {
 		   timezone;
 }
 
-uint64_t OS::get_splash_tick_msec() const {
-	return _msec_splash;
-}
-
-uint64_t OS::get_unix_time() const {
-	return 0;
-}
-
-uint64_t OS::get_system_time_secs() const {
-	return 0;
-}
-
-uint64_t OS::get_system_time_msecs() const {
+double OS::get_unix_time() const {
 	return 0;
 }
 
@@ -117,10 +106,18 @@ void OS::add_logger(Logger *p_logger) {
 }
 
 void OS::print_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, Logger::ErrorType p_type) {
+	if (!_stderr_enabled) {
+		return;
+	}
+
 	_logger->log_error(p_function, p_file, p_line, p_code, p_rationale, p_type);
 }
 
 void OS::print(const char *p_format, ...) {
+	if (!_stdout_enabled) {
+		return;
+	}
+
 	va_list argp;
 	va_start(argp, p_format);
 
@@ -130,6 +127,10 @@ void OS::print(const char *p_format, ...) {
 }
 
 void OS::printerr(const char *p_format, ...) {
+	if (!_stderr_enabled) {
+		return;
+	}
+
 	va_list argp;
 	va_start(argp, p_format);
 
@@ -168,6 +169,26 @@ void OS::vibrate_handheld(int p_duration_ms) {
 
 bool OS::is_stdout_verbose() const {
 	return _verbose_stdout;
+}
+
+bool OS::is_stdout_debug_enabled() const {
+	return _debug_stdout;
+}
+
+bool OS::is_stdout_enabled() const {
+	return _stdout_enabled;
+}
+
+bool OS::is_stderr_enabled() const {
+	return _stderr_enabled;
+}
+
+void OS::set_stdout_enabled(bool p_enabled) {
+	_stdout_enabled = p_enabled;
+}
+
+void OS::set_stderr_enabled(bool p_enabled) {
+	_stderr_enabled = p_enabled;
 }
 
 void OS::dump_memory_to_file(const char *p_file) {
@@ -457,27 +478,62 @@ PackedStringArray OS::get_connected_midi_inputs() {
 	}
 
 	PackedStringArray list;
-	return list;
+	ERR_FAIL_V_MSG(list, vformat("MIDI input isn't supported on %s.", OS::get_singleton()->get_name()));
 }
 
 void OS::open_midi_inputs() {
 	if (MIDIDriver::get_singleton()) {
 		MIDIDriver::get_singleton()->open();
+	} else {
+		ERR_PRINT(vformat("MIDI input isn't supported on %s.", OS::get_singleton()->get_name()));
 	}
 }
 
 void OS::close_midi_inputs() {
 	if (MIDIDriver::get_singleton()) {
 		MIDIDriver::get_singleton()->close();
+	} else {
+		ERR_PRINT(vformat("MIDI input isn't supported on %s.", OS::get_singleton()->get_name()));
+	}
+}
+
+void OS::add_frame_delay(bool p_can_draw) {
+	const uint32_t frame_delay = Engine::get_singleton()->get_frame_delay();
+	if (frame_delay) {
+		// Add fixed frame delay to decrease CPU/GPU usage. This doesn't take
+		// the actual frame time into account.
+		// Due to the high fluctuation of the actual sleep duration, it's not recommended
+		// to use this as a FPS limiter.
+		delay_usec(frame_delay * 1000);
+	}
+
+	// Add a dynamic frame delay to decrease CPU/GPU usage. This takes the
+	// previous frame time into account for a smoother result.
+	uint64_t dynamic_delay = 0;
+	if (is_in_low_processor_usage_mode() || !p_can_draw) {
+		dynamic_delay = get_low_processor_usage_mode_sleep_usec();
+	}
+	const int target_fps = Engine::get_singleton()->get_target_fps();
+	if (target_fps > 0 && !Engine::get_singleton()->is_editor_hint()) {
+		// Override the low processor usage mode sleep delay if the target FPS is lower.
+		dynamic_delay = MAX(dynamic_delay, (uint64_t)(1000000 / target_fps));
+	}
+
+	if (dynamic_delay > 0) {
+		target_ticks += dynamic_delay;
+		uint64_t current_ticks = get_ticks_usec();
+
+		if (current_ticks < target_ticks) {
+			delay_usec(target_ticks - current_ticks);
+		}
+
+		current_ticks = get_ticks_usec();
+		target_ticks = MIN(MAX(target_ticks, current_ticks - dynamic_delay), current_ticks + dynamic_delay);
 	}
 }
 
 OS::OS() {
-	void *volatile stack_bottom;
-
 	singleton = this;
-
-	_stack_bottom = (void *)(&stack_bottom);
 
 	Vector<Logger *> loggers;
 	loggers.push_back(memnew(StdLogger));

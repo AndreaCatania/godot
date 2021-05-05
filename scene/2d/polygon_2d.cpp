@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,7 +30,7 @@
 
 #include "polygon_2d.h"
 
-#include "core/math/geometry.h"
+#include "core/math/geometry_2d.h"
 #include "skeleton_2d.h"
 
 #ifdef TOOLS_ENABLED
@@ -86,9 +86,15 @@ bool Polygon2D::_edit_is_selected_on_click(const Point2 &p_point, double p_toler
 	if (internal_vertices > 0) {
 		polygon2d.resize(polygon2d.size() - internal_vertices);
 	}
-	return Geometry::is_point_in_polygon(p_point - get_offset(), polygon2d);
+	return Geometry2D::is_point_in_polygon(p_point - get_offset(), polygon2d);
 }
 #endif
+
+void Polygon2D::_validate_property(PropertyInfo &property) const {
+	if (!invert && property.name == "invert_border") {
+		property.usage = PROPERTY_USAGE_NOEDITOR;
+	}
+}
 
 void Polygon2D::_skeleton_bone_setup_changed() {
 	update();
@@ -154,8 +160,8 @@ void Polygon2D::_notification(int p_what) {
 			if (invert) {
 				Rect2 bounds;
 				int highest_idx = -1;
-				float highest_y = -1e20;
-				float sum = 0;
+				real_t highest_y = -1e20;
+				real_t sum = 0.0;
 
 				for (int i = 0; i < len; i++) {
 					if (i == 0) {
@@ -273,7 +279,7 @@ void Polygon2D::_notification(int p_what) {
 
 				//normalize the weights
 				for (int i = 0; i < vc; i++) {
-					float tw = 0;
+					real_t tw = 0.0;
 					for (int j = 0; j < 4; j++) {
 						tw += weightsw[i * 4 + j];
 					}
@@ -300,9 +306,9 @@ void Polygon2D::_notification(int p_what) {
 			}
 
 			if (invert || polygons.size() == 0) {
-				Vector<int> indices = Geometry::triangulate_polygon(points);
+				Vector<int> indices = Geometry2D::triangulate_polygon(points);
 				if (indices.size()) {
-					RS::get_singleton()->canvas_item_add_triangle_array(get_canvas_item(), indices, points, colors, uvs, bones, weights, texture.is_valid() ? texture->get_rid() : RID(), -1, normal_map.is_valid() ? normal_map->get_rid() : RID(), specular_map.is_valid() ? specular_map->get_rid() : RID(), Color(specular_color.r, specular_color.g, specular_color.b, shininess));
+					RS::get_singleton()->canvas_item_add_triangle_array(get_canvas_item(), indices, points, colors, uvs, bones, weights, texture.is_valid() ? texture->get_rid() : RID(), -1);
 				}
 			} else {
 				//draw individual polygons
@@ -323,7 +329,7 @@ void Polygon2D::_notification(int p_what) {
 						ERR_CONTINUE(idx < 0 || idx >= points.size());
 						tmp_points.write[j] = points[r[j]];
 					}
-					Vector<int> indices = Geometry::triangulate_polygon(tmp_points);
+					Vector<int> indices = Geometry2D::triangulate_polygon(tmp_points);
 					int ic2 = indices.size();
 					const int *r2 = indices.ptr();
 
@@ -417,42 +423,6 @@ Ref<Texture2D> Polygon2D::get_texture() const {
 	return texture;
 }
 
-void Polygon2D::set_normal_map(const Ref<Texture2D> &p_normal_map) {
-	normal_map = p_normal_map;
-	update();
-}
-
-Ref<Texture2D> Polygon2D::get_normal_map() const {
-	return normal_map;
-}
-
-void Polygon2D::set_specular_map(const Ref<Texture2D> &p_specular_map) {
-	specular_map = p_specular_map;
-	update();
-}
-
-Ref<Texture2D> Polygon2D::get_specular_map() const {
-	return specular_map;
-}
-
-void Polygon2D::set_specular_color(const Color &p_specular_color) {
-	specular_color = p_specular_color;
-	update();
-}
-
-Color Polygon2D::get_specular_color() const {
-	return specular_color;
-}
-
-void Polygon2D::set_shininess(float p_shininess) {
-	shininess = CLAMP(p_shininess, 0.0, 1.0);
-	update();
-}
-
-float Polygon2D::get_shininess() const {
-	return shininess;
-}
-
 void Polygon2D::set_texture_offset(const Vector2 &p_offset) {
 	tex_ofs = p_offset;
 	update();
@@ -462,20 +432,20 @@ Vector2 Polygon2D::get_texture_offset() const {
 	return tex_ofs;
 }
 
-void Polygon2D::set_texture_rotation(float p_rot) {
+void Polygon2D::set_texture_rotation(real_t p_rot) {
 	tex_rot = p_rot;
 	update();
 }
 
-float Polygon2D::get_texture_rotation() const {
+real_t Polygon2D::get_texture_rotation() const {
 	return tex_rot;
 }
 
-void Polygon2D::set_texture_rotation_degrees(float p_rot) {
+void Polygon2D::set_texture_rotation_degrees(real_t p_rot) {
 	set_texture_rotation(Math::deg2rad(p_rot));
 }
 
-float Polygon2D::get_texture_rotation_degrees() const {
+real_t Polygon2D::get_texture_rotation_degrees() const {
 	return Math::rad2deg(get_texture_rotation());
 }
 
@@ -491,6 +461,7 @@ Size2 Polygon2D::get_texture_scale() const {
 void Polygon2D::set_invert(bool p_invert) {
 	invert = p_invert;
 	update();
+	notify_property_list_changed();
 }
 
 bool Polygon2D::get_invert() const {
@@ -506,12 +477,12 @@ bool Polygon2D::get_antialiased() const {
 	return antialiased;
 }
 
-void Polygon2D::set_invert_border(float p_invert_border) {
+void Polygon2D::set_invert_border(real_t p_invert_border) {
 	invert_border = p_invert_border;
 	update();
 }
 
-float Polygon2D::get_invert_border() const {
+real_t Polygon2D::get_invert_border() const {
 	return invert_border;
 }
 
@@ -519,7 +490,6 @@ void Polygon2D::set_offset(const Vector2 &p_offset) {
 	offset = p_offset;
 	rect_cache_dirty = true;
 	update();
-	_change_notify("offset");
 }
 
 Vector2 Polygon2D::get_offset() const {
@@ -616,18 +586,6 @@ void Polygon2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_texture", "texture"), &Polygon2D::set_texture);
 	ClassDB::bind_method(D_METHOD("get_texture"), &Polygon2D::get_texture);
 
-	ClassDB::bind_method(D_METHOD("set_normal_map", "normal_map"), &Polygon2D::set_normal_map);
-	ClassDB::bind_method(D_METHOD("get_normal_map"), &Polygon2D::get_normal_map);
-
-	ClassDB::bind_method(D_METHOD("set_specular_map", "specular_map"), &Polygon2D::set_specular_map);
-	ClassDB::bind_method(D_METHOD("get_specular_map"), &Polygon2D::get_specular_map);
-
-	ClassDB::bind_method(D_METHOD("set_specular_color", "specular_color"), &Polygon2D::set_specular_color);
-	ClassDB::bind_method(D_METHOD("get_specular_color"), &Polygon2D::get_specular_color);
-
-	ClassDB::bind_method(D_METHOD("set_shininess", "shininess"), &Polygon2D::set_shininess);
-	ClassDB::bind_method(D_METHOD("get_shininess"), &Polygon2D::get_shininess);
-
 	ClassDB::bind_method(D_METHOD("set_texture_offset", "texture_offset"), &Polygon2D::set_texture_offset);
 	ClassDB::bind_method(D_METHOD("get_texture_offset"), &Polygon2D::get_texture_offset);
 
@@ -680,11 +638,6 @@ void Polygon2D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "texture_scale"), "set_texture_scale", "get_texture_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "texture_rotation_degrees", PROPERTY_HINT_RANGE, "-360,360,0.1,or_lesser,or_greater"), "set_texture_rotation_degrees", "get_texture_rotation_degrees");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "texture_rotation", PROPERTY_HINT_NONE, "", 0), "set_texture_rotation", "get_texture_rotation");
-	ADD_GROUP("Lighting", "");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "normal_map", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_normal_map", "get_normal_map");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "specular_map", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_specular_map", "get_specular_map");
-	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "specular_color", PROPERTY_HINT_COLOR_NO_ALPHA), "set_specular_color", "get_specular_color");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "shininess", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_shininess", "get_shininess");
 	ADD_GROUP("Skeleton", "");
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "skeleton", PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Skeleton2D"), "set_skeleton", "get_skeleton");
 
@@ -702,16 +655,4 @@ void Polygon2D::_bind_methods() {
 }
 
 Polygon2D::Polygon2D() {
-	invert = false;
-	invert_border = 100;
-	antialiased = false;
-	tex_rot = 0;
-	tex_tile = true;
-	tex_scale = Vector2(1, 1);
-	color = Color(1, 1, 1);
-	rect_cache_dirty = true;
-	internal_vertices = 0;
-
-	specular_color = Color(1, 1, 1, 1);
-	shininess = 1.0;
 }

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,7 +30,7 @@
 
 #include "path_3d.h"
 
-#include "core/engine.h"
+#include "core/config/engine.h"
 #include "scene/scene_string_names.h"
 
 void Path3D::_notification(int p_what) {
@@ -50,7 +50,7 @@ void Path3D::_curve_changed() {
 		for (int i = 0; i < get_child_count(); i++) {
 			PathFollow3D *child = Object::cast_to<PathFollow3D>(get_child(i));
 			if (child) {
-				child->update_configuration_warning();
+				child->update_configuration_warnings();
 			}
 		}
 	}
@@ -77,28 +77,20 @@ void Path3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_curve", "curve"), &Path3D::set_curve);
 	ClassDB::bind_method(D_METHOD("get_curve"), &Path3D::get_curve);
 
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "curve", PROPERTY_HINT_RESOURCE_TYPE, "Curve3D"), "set_curve", "get_curve");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "curve", PROPERTY_HINT_RESOURCE_TYPE, "Curve3D", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT), "set_curve", "get_curve");
 
 	ADD_SIGNAL(MethodInfo("curve_changed"));
 }
 
-Path3D::Path3D() {
-	set_curve(Ref<Curve3D>(memnew(Curve3D))); //create one by default
-}
-
 //////////////
 
-void PathFollow3D::_update_transform() {
+void PathFollow3D::_update_transform(bool p_update_xyz_rot) {
 	if (!path) {
 		return;
 	}
 
 	Ref<Curve3D> c = path->get_curve();
 	if (!c.is_valid()) {
-		return;
-	}
-
-	if (delta_offset == 0) {
 		return;
 	}
 
@@ -160,45 +152,47 @@ void PathFollow3D::_update_transform() {
 
 		t.origin = pos;
 
-		Vector3 t_prev = (pos - c->interpolate_baked(offset - delta_offset, cubic)).normalized();
-		Vector3 t_cur = (c->interpolate_baked(offset + delta_offset, cubic) - pos).normalized();
+		if (p_update_xyz_rot && delta_offset != 0) { // Only update rotation if some parameter has changed - i.e. not on addition to scene tree.
+			Vector3 t_prev = (pos - c->interpolate_baked(offset - delta_offset, cubic)).normalized();
+			Vector3 t_cur = (c->interpolate_baked(offset + delta_offset, cubic) - pos).normalized();
 
-		Vector3 axis = t_prev.cross(t_cur);
-		float dot = t_prev.dot(t_cur);
-		float angle = Math::acos(CLAMP(dot, -1, 1));
+			Vector3 axis = t_prev.cross(t_cur);
+			float dot = t_prev.dot(t_cur);
+			float angle = Math::acos(CLAMP(dot, -1, 1));
 
-		if (likely(!Math::is_zero_approx(angle))) {
-			if (rotation_mode == ROTATION_Y) {
-				// assuming we're referring to global Y-axis. is this correct?
-				axis.x = 0;
-				axis.z = 0;
-			} else if (rotation_mode == ROTATION_XY) {
-				axis.z = 0;
-			} else if (rotation_mode == ROTATION_XYZ) {
-				// all components are allowed
+			if (likely(!Math::is_zero_approx(angle))) {
+				if (rotation_mode == ROTATION_Y) {
+					// assuming we're referring to global Y-axis. is this correct?
+					axis.x = 0;
+					axis.z = 0;
+				} else if (rotation_mode == ROTATION_XY) {
+					axis.z = 0;
+				} else if (rotation_mode == ROTATION_XYZ) {
+					// all components are allowed
+				}
+
+				if (likely(!Math::is_zero_approx(axis.length()))) {
+					t.rotate_basis(axis.normalized(), angle);
+				}
 			}
 
-			if (likely(!Math::is_zero_approx(axis.length()))) {
-				t.rotate_basis(axis.normalized(), angle);
-			}
-		}
+			// do the additional tilting
+			float tilt_angle = c->interpolate_baked_tilt(offset);
+			Vector3 tilt_axis = t_cur; // not sure what tilt is supposed to do, is this correct??
 
-		// do the additional tilting
-		float tilt_angle = c->interpolate_baked_tilt(offset);
-		Vector3 tilt_axis = t_cur; // not sure what tilt is supposed to do, is this correct??
+			if (likely(!Math::is_zero_approx(Math::abs(tilt_angle)))) {
+				if (rotation_mode == ROTATION_Y) {
+					tilt_axis.x = 0;
+					tilt_axis.z = 0;
+				} else if (rotation_mode == ROTATION_XY) {
+					tilt_axis.z = 0;
+				} else if (rotation_mode == ROTATION_XYZ) {
+					// all components are allowed
+				}
 
-		if (likely(!Math::is_zero_approx(Math::abs(tilt_angle)))) {
-			if (rotation_mode == ROTATION_Y) {
-				tilt_axis.x = 0;
-				tilt_axis.z = 0;
-			} else if (rotation_mode == ROTATION_XY) {
-				tilt_axis.z = 0;
-			} else if (rotation_mode == ROTATION_XYZ) {
-				// all components are allowed
-			}
-
-			if (likely(!Math::is_zero_approx(tilt_axis.length()))) {
-				t.rotate_basis(tilt_axis.normalized(), tilt_angle);
+				if (likely(!Math::is_zero_approx(tilt_axis.length()))) {
+					t.rotate_basis(tilt_axis.normalized(), tilt_angle);
+				}
 			}
 		}
 
@@ -217,7 +211,7 @@ void PathFollow3D::_notification(int p_what) {
 			if (parent) {
 				path = Object::cast_to<Path3D>(parent);
 				if (path) {
-					_update_transform();
+					_update_transform(false);
 				}
 			}
 
@@ -247,21 +241,21 @@ void PathFollow3D::_validate_property(PropertyInfo &property) const {
 	}
 }
 
-String PathFollow3D::get_configuration_warning() const {
-	if (!is_visible_in_tree() || !is_inside_tree()) {
-		return String();
-	}
+TypedArray<String> PathFollow3D::get_configuration_warnings() const {
+	TypedArray<String> warnings = Node::get_configuration_warnings();
 
-	if (!Object::cast_to<Path3D>(get_parent())) {
-		return TTR("PathFollow3D only works when set as a child of a Path3D node.");
-	} else {
-		Path3D *path = Object::cast_to<Path3D>(get_parent());
-		if (path->get_curve().is_valid() && !path->get_curve()->is_up_vector_enabled() && rotation_mode == ROTATION_ORIENTED) {
-			return TTR("PathFollow3D's ROTATION_ORIENTED requires \"Up Vector\" to be enabled in its parent Path3D's Curve resource.");
+	if (is_visible_in_tree() && is_inside_tree()) {
+		if (!Object::cast_to<Path3D>(get_parent())) {
+			warnings.push_back(TTR("PathFollow3D only works when set as a child of a Path3D node."));
+		} else {
+			Path3D *path = Object::cast_to<Path3D>(get_parent());
+			if (path->get_curve().is_valid() && !path->get_curve()->is_up_vector_enabled() && rotation_mode == ROTATION_ORIENTED) {
+				warnings.push_back(TTR("PathFollow3D's ROTATION_ORIENTED requires \"Up Vector\" to be enabled in its parent Path3D's Curve resource."));
+			}
 		}
 	}
 
-	return String();
+	return warnings;
 }
 
 void PathFollow3D::_bind_methods() {
@@ -321,8 +315,6 @@ void PathFollow3D::set_offset(float p_offset) {
 
 		_update_transform();
 	}
-	_change_notify("offset");
-	_change_notify("unit_offset");
 }
 
 void PathFollow3D::set_h_offset(float p_h_offset) {
@@ -368,7 +360,7 @@ float PathFollow3D::get_unit_offset() const {
 void PathFollow3D::set_rotation_mode(RotationMode p_rotation_mode) {
 	rotation_mode = p_rotation_mode;
 
-	update_configuration_warning();
+	update_configuration_warnings();
 	_update_transform();
 }
 
@@ -382,15 +374,4 @@ void PathFollow3D::set_loop(bool p_loop) {
 
 bool PathFollow3D::has_loop() const {
 	return loop;
-}
-
-PathFollow3D::PathFollow3D() {
-	offset = 0;
-	delta_offset = 0;
-	h_offset = 0;
-	v_offset = 0;
-	path = nullptr;
-	rotation_mode = ROTATION_XYZ;
-	cubic = true;
-	loop = true;
 }

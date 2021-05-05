@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -201,10 +201,9 @@ bool VideoPlayer::has_expand() const {
 
 void VideoPlayer::set_stream(const Ref<VideoStream> &p_stream) {
 	stop();
+
 	AudioServer::get_singleton()->lock();
 	mix_buffer.resize(AudioServer::get_singleton()->thread_get_mix_buffer_size());
-	AudioServer::get_singleton()->unlock();
-
 	stream = p_stream;
 	if (stream.is_valid()) {
 		stream->set_audio_track(audio_track);
@@ -212,6 +211,7 @@ void VideoPlayer::set_stream(const Ref<VideoStream> &p_stream) {
 	} else {
 		playback = Ref<VideoStreamPlayback>();
 	}
+	AudioServer::get_singleton()->unlock();
 
 	if (!playback.is_null()) {
 		playback->set_loop(loops);
@@ -462,25 +462,7 @@ void VideoPlayer::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "bus", PROPERTY_HINT_ENUM, ""), "set_bus", "get_bus");
 }
 
-VideoPlayer::VideoPlayer() {
-	volume = 1;
-	loops = false;
-	paused = false;
-	autoplay = false;
-	expand = true;
-
-	audio_track = 0;
-	bus_index = 0;
-
-	buffering_ms = 500;
-
-	//	internal_stream.player=this;
-	//	stream_rid=AudioServer::get_singleton()->audio_stream_create(&internal_stream);
-	last_audio_time = 0;
-
-	wait_resampler = 0;
-	wait_resampler_limit = 2;
-};
+VideoPlayer::VideoPlayer() {}
 
 VideoPlayer::~VideoPlayer() {
 	//	if (stream_rid.is_valid())

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -69,13 +69,13 @@ private:
 	Rect2 bottom_child_rect;
 
 	Rect2 keying_rect;
-	bool keying_hover;
+	bool keying_hover = false;
 	Rect2 revert_rect;
-	bool revert_hover;
+	bool revert_hover = false;
 	Rect2 check_rect;
-	bool check_hover;
+	bool check_hover = false;
 	Rect2 delete_rect;
-	bool delete_hover;
+	bool delete_hover = false;
 
 	bool can_revert;
 
@@ -98,6 +98,8 @@ private:
 
 	mutable String tooltip_text;
 
+	Map<StringName, Variant> cache;
+
 protected:
 	void _notification(int p_what);
 	static void _bind_methods();
@@ -107,7 +109,7 @@ protected:
 public:
 	void emit_changed(const StringName &p_property, const Variant &p_value, const StringName &p_field = StringName(), bool p_changing = false);
 
-	virtual Size2 get_minimum_size() const;
+	virtual Size2 get_minimum_size() const override;
 
 	void set_label(const String &p_label);
 	String get_label() const;
@@ -151,7 +153,9 @@ public:
 	virtual void expand_all_folding();
 	virtual void collapse_all_folding();
 
-	virtual Variant get_drag_data(const Point2 &p_point);
+	virtual Variant get_drag_data(const Point2 &p_point) override;
+	virtual void update_cache();
+	virtual bool is_cache_valid() const;
 
 	void set_selectable(bool p_selectable);
 	bool is_selectable() const;
@@ -160,7 +164,7 @@ public:
 	float get_name_split_ratio() const;
 
 	void set_object_and_property(Object *p_object, const StringName &p_property);
-	virtual Control *make_custom_tooltip(const String &p_text) const;
+	virtual Control *make_custom_tooltip(const String &p_text) const override;
 
 	String get_tooltip_text() const;
 
@@ -176,7 +180,7 @@ class EditorInspectorPlugin : public Reference {
 
 	friend class EditorInspector;
 	struct AddedEditor {
-		Control *property_editor;
+		Control *property_editor = nullptr;
 		Vector<String> properties;
 		String label;
 	};
@@ -212,8 +216,8 @@ protected:
 	static void _bind_methods();
 
 public:
-	virtual Size2 get_minimum_size() const;
-	virtual Control *make_custom_tooltip(const String &p_text) const;
+	virtual Size2 get_minimum_size() const override;
+	virtual Control *make_custom_tooltip(const String &p_text) const override;
 
 	String get_tooltip_text() const;
 
@@ -231,6 +235,9 @@ class EditorInspectorSection : public Container {
 	Color bg_color;
 	bool foldable;
 
+	Timer *dropping_unfold_timer;
+	bool dropping;
+
 	void _test_unfold();
 
 protected:
@@ -239,7 +246,7 @@ protected:
 	void _gui_input(const Ref<InputEvent> &p_event);
 
 public:
-	virtual Size2 get_minimum_size() const;
+	virtual Size2 get_minimum_size() const override;
 
 	void setup(const String &p_section, const String &p_label, Object *p_object, const Color &p_bg_color, bool p_foldable);
 	VBoxContainer *get_vbox();
@@ -306,6 +313,8 @@ class EditorInspector : public ScrollContainer {
 	String property_prefix; //used for sectioned inspector
 	String object_class;
 
+	bool restrict_to_basic = false;
+
 	void _edit_set(const String &p_name, const Variant &p_value, bool p_refresh_all, const String &p_changed_field);
 
 	void _property_changed(const String &p_path, const Variant &p_value, const String &p_name = "", bool p_changing = false);
@@ -323,7 +332,7 @@ class EditorInspector : public ScrollContainer {
 
 	void _node_removed(Node *p_node);
 
-	void _changed_callback(Object *p_changed, const char *p_prop);
+	void _changed_callback();
 	void _edit_request_change(Object *p_object, const String &p_prop);
 
 	void _filter_changed(const String &p_text);
@@ -332,8 +341,11 @@ class EditorInspector : public ScrollContainer {
 	void _vscroll_changed(double);
 
 	void _feature_profile_changed();
+	void _update_script_class_properties(const Object &p_object, List<PropertyInfo> &r_list) const;
 
 	bool _is_property_disabled_by_feature_profile(const StringName &p_property);
+
+	void _update_inspector_bg();
 
 protected:
 	static void _bind_methods();
@@ -352,9 +364,6 @@ public:
 
 	void update_tree();
 	void update_property(const String &p_prop);
-
-	void refresh();
-
 	void edit(Object *p_object);
 	Object *get_edited_object();
 
@@ -389,8 +398,11 @@ public:
 
 	void set_use_wide_editors(bool p_enable);
 	void set_sub_inspector(bool p_enable);
+	bool is_sub_inspector() const { return sub_inspector; }
 
 	void set_use_deletable_properties(bool p_enabled);
+
+	void set_restrict_to_basic_settings(bool p_restrict);
 
 	EditorInspector();
 };

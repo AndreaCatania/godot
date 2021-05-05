@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -54,7 +54,7 @@ void BakedLightmapEditorPlugin::_bake_select_file(const String &p_file) {
 				scene_path = scene_path.get_basename() + ".lmbake";
 
 				file_dialog->set_current_path(scene_path);
-				file_dialog->popup_centered_ratio();
+				file_dialog->popup_file_dialog();
 
 			} break;
 			case BakedLightmap::BAKE_ERROR_NO_MESHES:
@@ -117,7 +117,8 @@ void BakedLightmapEditorPlugin::_bind_methods() {
 
 BakedLightmapEditorPlugin::BakedLightmapEditorPlugin(EditorNode *p_node) {
 	editor = p_node;
-	bake = memnew(ToolButton);
+	bake = memnew(Button);
+	bake->set_flat(true);
 	bake->set_icon(editor->get_gui_base()->get_theme_icon("Bake", "EditorIcons"));
 	bake->set_text(TTR("Bake Lightmaps"));
 	bake->hide();

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -62,35 +62,35 @@ private:
 		SYSCH_MAX
 	};
 
-	bool active;
-	bool server;
+	bool active = false;
+	bool server = false;
 
-	uint32_t unique_id;
+	uint32_t unique_id = 0;
 
-	int target_peer;
-	TransferMode transfer_mode;
-	int transfer_channel;
-	int channel_count;
-	bool always_ordered;
+	int target_peer = 0;
+	TransferMode transfer_mode = TRANSFER_MODE_RELIABLE;
+	int transfer_channel = -1;
+	int channel_count = SYSCH_MAX;
+	bool always_ordered = false;
 
 	ENetEvent event;
-	ENetPeer *peer;
-	ENetHost *host;
+	ENetPeer *peer = nullptr;
+	ENetHost *host = nullptr;
 
-	bool refuse_connections;
-	bool server_relay;
+	bool refuse_connections = false;
+	bool server_relay = true;
 
-	ConnectionStatus connection_status;
+	ConnectionStatus connection_status = CONNECTION_DISCONNECTED;
 
 	Map<int, ENetPeer *> peer_map;
 
 	struct Packet {
-		ENetPacket *packet;
-		int from;
-		int channel;
+		ENetPacket *packet = nullptr;
+		int from = 0;
+		int channel = 0;
 	};
 
-	CompressionMode compression_mode;
+	CompressionMode compression_mode = COMPRESS_NONE;
 
 	List<Packet> incoming_packets;
 
@@ -110,47 +110,49 @@ private:
 
 	IP_Address bind_ip;
 
-	bool dtls_enabled;
+	bool dtls_enabled = false;
 	Ref<CryptoKey> dtls_key;
 	Ref<X509Certificate> dtls_cert;
-	bool dtls_verify;
+	bool dtls_verify = true;
 
 protected:
 	static void _bind_methods();
 
 public:
-	virtual void set_transfer_mode(TransferMode p_mode);
-	virtual TransferMode get_transfer_mode() const;
-	virtual void set_target_peer(int p_peer);
+	virtual void set_transfer_mode(TransferMode p_mode) override;
+	virtual TransferMode get_transfer_mode() const override;
+	virtual void set_target_peer(int p_peer) override;
 
-	virtual int get_packet_peer() const;
+	virtual int get_packet_peer() const override;
 
 	virtual IP_Address get_peer_address(int p_peer_id) const;
 	virtual int get_peer_port(int p_peer_id) const;
+	virtual int get_local_port() const;
+	void set_peer_timeout(int p_peer_id, int p_timeout_limit, int p_timeout_min, int p_timeout_max);
 
 	Error create_server(int p_port, int p_max_clients = 32, int p_in_bandwidth = 0, int p_out_bandwidth = 0);
-	Error create_client(const String &p_address, int p_port, int p_in_bandwidth = 0, int p_out_bandwidth = 0, int p_client_port = 0);
+	Error create_client(const String &p_address, int p_port, int p_in_bandwidth = 0, int p_out_bandwidth = 0, int p_local_port = 0);
 
 	void close_connection(uint32_t wait_usec = 100);
 
 	void disconnect_peer(int p_peer, bool now = false);
 
-	virtual void poll();
+	virtual void poll() override;
 
-	virtual bool is_server() const;
+	virtual bool is_server() const override;
 
-	virtual int get_available_packet_count() const;
-	virtual Error get_packet(const uint8_t **r_buffer, int &r_buffer_size); ///< buffer is GONE after next get_packet
-	virtual Error put_packet(const uint8_t *p_buffer, int p_buffer_size);
+	virtual int get_available_packet_count() const override;
+	virtual Error get_packet(const uint8_t **r_buffer, int &r_buffer_size) override; ///< buffer is GONE after next get_packet
+	virtual Error put_packet(const uint8_t *p_buffer, int p_buffer_size) override;
 
-	virtual int get_max_packet_size() const;
+	virtual int get_max_packet_size() const override;
 
-	virtual ConnectionStatus get_connection_status() const;
+	virtual ConnectionStatus get_connection_status() const override;
 
-	virtual void set_refuse_new_connections(bool p_enable);
-	virtual bool is_refusing_new_connections() const;
+	virtual void set_refuse_new_connections(bool p_enable) override;
+	virtual bool is_refusing_new_connections() const override;
 
-	virtual int get_unique_id() const;
+	virtual int get_unique_id() const override;
 
 	void set_compression_mode(CompressionMode p_mode);
 	CompressionMode get_compression_mode() const;

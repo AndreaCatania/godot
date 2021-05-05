@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -78,12 +78,7 @@ void Transform2D::set_skew(float p_angle) {
 }
 
 real_t Transform2D::get_rotation() const {
-	real_t det = basis_determinant();
-	Transform2D m = orthonormalized();
-	if (det < 0) {
-		m.scale_basis(Size2(1, -1)); // convention to separate rotation and reflection for 2D is to absorb a flip along y into scaling.
-	}
-	return Math::atan2(m[0].y, m[0].x);
+	return Math::atan2(elements[0].y, elements[0].x);
 }
 
 void Transform2D::set_rotation(real_t p_rot) {
@@ -256,7 +251,7 @@ Transform2D Transform2D::interpolate_with(const Transform2D &p_transform, real_t
 
 	real_t dot = v1.dot(v2);
 
-	dot = (dot < -1.0) ? -1.0 : ((dot > 1.0) ? 1.0 : dot); //clamp dot to [-1,1]
+	dot = CLAMP(dot, -1.0, 1.0);
 
 	Vector2 v;
 

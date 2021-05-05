@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -29,7 +29,9 @@
 /*************************************************************************/
 
 #include "texture_button.h"
+
 #include "core/typedefs.h"
+
 #include <stdlib.h>
 
 Size2 TextureButton::get_minimum_size() const {
@@ -166,9 +168,11 @@ void TextureButton::_notification(int p_what) {
 				} break;
 			}
 
+			Point2 ofs;
+			Size2 size;
+
 			if (texdraw.is_valid()) {
-				Point2 ofs;
-				Size2 size = texdraw->get_size();
+				size = texdraw->get_size();
 				_texture_region = Rect2(Point2(), texdraw->get_size());
 				_tile = false;
 				if (expand) {
@@ -218,17 +222,21 @@ void TextureButton::_notification(int p_what) {
 				}
 
 				_position_rect = Rect2(ofs, size);
+
+				size.width *= hflip ? -1.0f : 1.0f;
+				size.height *= vflip ? -1.0f : 1.0f;
+
 				if (_tile) {
-					draw_texture_rect(texdraw, _position_rect, _tile);
+					draw_texture_rect(texdraw, Rect2(ofs, size), _tile);
 				} else {
-					draw_texture_rect_region(texdraw, _position_rect, _texture_region);
+					draw_texture_rect_region(texdraw, Rect2(ofs, size), _texture_region);
 				}
 			} else {
 				_position_rect = Rect2();
 			}
 
 			if (has_focus() && focused.is_valid()) {
-				draw_texture_rect(focused, _position_rect, false);
+				draw_texture_rect(focused, Rect2(ofs, size), false);
 			};
 		} break;
 	}
@@ -241,8 +249,12 @@ void TextureButton::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_disabled_texture", "texture"), &TextureButton::set_disabled_texture);
 	ClassDB::bind_method(D_METHOD("set_focused_texture", "texture"), &TextureButton::set_focused_texture);
 	ClassDB::bind_method(D_METHOD("set_click_mask", "mask"), &TextureButton::set_click_mask);
-	ClassDB::bind_method(D_METHOD("set_expand", "p_expand"), &TextureButton::set_expand);
-	ClassDB::bind_method(D_METHOD("set_stretch_mode", "p_mode"), &TextureButton::set_stretch_mode);
+	ClassDB::bind_method(D_METHOD("set_expand", "expand"), &TextureButton::set_expand);
+	ClassDB::bind_method(D_METHOD("set_stretch_mode", "mode"), &TextureButton::set_stretch_mode);
+	ClassDB::bind_method(D_METHOD("set_flip_h", "enable"), &TextureButton::set_flip_h);
+	ClassDB::bind_method(D_METHOD("is_flipped_h"), &TextureButton::is_flipped_h);
+	ClassDB::bind_method(D_METHOD("set_flip_v", "enable"), &TextureButton::set_flip_v);
+	ClassDB::bind_method(D_METHOD("is_flipped_v"), &TextureButton::is_flipped_v);
 
 	ClassDB::bind_method(D_METHOD("get_normal_texture"), &TextureButton::get_normal_texture);
 	ClassDB::bind_method(D_METHOD("get_pressed_texture"), &TextureButton::get_pressed_texture);
@@ -262,6 +274,8 @@ void TextureButton::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "texture_click_mask", PROPERTY_HINT_RESOURCE_TYPE, "BitMap"), "set_click_mask", "get_click_mask");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "expand", PROPERTY_HINT_RESOURCE_TYPE, "bool"), "set_expand", "get_expand");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "stretch_mode", PROPERTY_HINT_ENUM, "Scale,Tile,Keep,Keep Centered,Keep Aspect,Keep Aspect Centered,Keep Aspect Covered"), "set_stretch_mode", "get_stretch_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "flip_h", PROPERTY_HINT_RESOURCE_TYPE, "bool"), "set_flip_h", "is_flipped_h");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "flip_v", PROPERTY_HINT_RESOURCE_TYPE, "bool"), "set_flip_v", "is_flipped_v");
 
 	BIND_ENUM_CONSTANT(STRETCH_SCALE);
 	BIND_ENUM_CONSTANT(STRETCH_TILE);
@@ -345,11 +359,22 @@ TextureButton::StretchMode TextureButton::get_stretch_mode() const {
 	return stretch_mode;
 }
 
-TextureButton::TextureButton() {
-	expand = false;
-	stretch_mode = STRETCH_SCALE;
-
-	_texture_region = Rect2();
-	_position_rect = Rect2();
-	_tile = false;
+void TextureButton::set_flip_h(bool p_flip) {
+	hflip = p_flip;
+	update();
 }
+
+bool TextureButton::is_flipped_h() const {
+	return hflip;
+}
+
+void TextureButton::set_flip_v(bool p_flip) {
+	vflip = p_flip;
+	update();
+}
+
+bool TextureButton::is_flipped_v() const {
+	return vflip;
+}
+
+TextureButton::TextureButton() {}

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,6 +30,8 @@
 
 #include "path_3d_editor_plugin.h"
 
+#include "core/math/geometry_2d.h"
+#include "core/math/geometry_3d.h"
 #include "core/os/keyboard.h"
 #include "node_3d_editor_plugin.h"
 #include "scene/resources/curve.h"
@@ -222,6 +224,7 @@ void Path3DGizmo::redraw() {
 	Ref<StandardMaterial3D> path_material = gizmo_plugin->get_material("path_material", this);
 	Ref<StandardMaterial3D> path_thin_material = gizmo_plugin->get_material("path_thin_material", this);
 	Ref<StandardMaterial3D> handles_material = gizmo_plugin->get_material("handles");
+	Ref<StandardMaterial3D> sec_handles_material = gizmo_plugin->get_material("sec_handles");
 
 	Ref<Curve3D> c = path->get_curve();
 	if (c.is_null()) {
@@ -279,7 +282,7 @@ void Path3DGizmo::redraw() {
 			add_handles(handles, handles_material);
 		}
 		if (sec_handles.size()) {
-			add_handles(sec_handles, handles_material, false, true);
+			add_handles(sec_handles, sec_handles_material, false, true);
 		}
 	}
 }
@@ -287,6 +290,8 @@ void Path3DGizmo::redraw() {
 Path3DGizmo::Path3DGizmo(Path3D *p_path) {
 	path = p_path;
 	set_spatial_node(p_path);
+	orig_in_length = 0;
+	orig_out_length = 0;
 }
 
 bool Path3DEditorPlugin::forward_spatial_gui_input(Camera3D *p_camera, const Ref<InputEvent> &p_event) {
@@ -311,7 +316,7 @@ bool Path3DEditorPlugin::forward_spatial_gui_input(Camera3D *p_camera, const Ref
 			set_handle_clicked(false);
 		}
 
-		if (mb->is_pressed() && mb->get_button_index() == BUTTON_LEFT && (curve_create->is_pressed() || (curve_edit->is_pressed() && mb->get_control()))) {
+		if (mb->is_pressed() && mb->get_button_index() == MOUSE_BUTTON_LEFT && (curve_create->is_pressed() || (curve_edit->is_pressed() && mb->get_control()))) {
 			//click into curve, break it down
 			Vector<Vector3> v3a = c->tessellate();
 			int idx = 0;
@@ -344,7 +349,7 @@ bool Path3DEditorPlugin::forward_spatial_gui_input(Camera3D *p_camera, const Ref
 							Vector2 s[2];
 							s[0] = p_camera->unproject_position(from);
 							s[1] = p_camera->unproject_position(to);
-							Vector2 inters = Geometry::get_closest_point_to_segment_2d(mbpos, s);
+							Vector2 inters = Geometry2D::get_closest_point_to_segment(mbpos, s);
 							float d = inters.distance_to(mbpos);
 
 							if (d < 10 && d < closest_d) {
@@ -354,7 +359,7 @@ bool Path3DEditorPlugin::forward_spatial_gui_input(Camera3D *p_camera, const Ref
 								Vector3 ray_dir = p_camera->project_ray_normal(mbpos);
 
 								Vector3 ra, rb;
-								Geometry::get_closest_points_between_segments(ray_from, ray_from + ray_dir * 4096, from, to, ra, rb);
+								Geometry3D::get_closest_points_between_segments(ray_from, ray_from + ray_dir * 4096, from, to, ra, rb);
 
 								closest_seg_point = it.xform(rb);
 							}
@@ -406,7 +411,7 @@ bool Path3DEditorPlugin::forward_spatial_gui_input(Camera3D *p_camera, const Ref
 				//add new at pos
 			}
 
-		} else if (mb->is_pressed() && ((mb->get_button_index() == BUTTON_LEFT && curve_del->is_pressed()) || (mb->get_button_index() == BUTTON_RIGHT && curve_edit->is_pressed()))) {
+		} else if (mb->is_pressed() && ((mb->get_button_index() == MOUSE_BUTTON_LEFT && curve_del->is_pressed()) || (mb->get_button_index() == MOUSE_BUTTON_RIGHT && curve_edit->is_pressed()))) {
 			for (int i = 0; i < c->get_point_count(); i++) {
 				real_t dist_to_p = p_camera->unproject_position(gt.xform(c->get_point_position(i))).distance_to(mbpos);
 				real_t dist_to_p_out = p_camera->unproject_position(gt.xform(c->get_point_position(i) + c->get_point_out(i))).distance_to(mbpos);
@@ -555,28 +560,32 @@ Path3DEditorPlugin::Path3DEditorPlugin(EditorNode *p_node) {
 	sep = memnew(VSeparator);
 	sep->hide();
 	Node3DEditor::get_singleton()->add_control_to_menu_panel(sep);
-	curve_edit = memnew(ToolButton);
+	curve_edit = memnew(Button);
+	curve_edit->set_flat(true);
 	curve_edit->set_icon(EditorNode::get_singleton()->get_gui_base()->get_theme_icon("CurveEdit", "EditorIcons"));
 	curve_edit->set_toggle_mode(true);
 	curve_edit->hide();
 	curve_edit->set_focus_mode(Control::FOCUS_NONE);
 	curve_edit->set_tooltip(TTR("Select Points") + "\n" + TTR("Shift+Drag: Select Control Points") + "\n" + keycode_get_string(KEY_MASK_CMD) + TTR("Click: Add Point") + "\n" + TTR("Right Click: Delete Point"));
 	Node3DEditor::get_singleton()->add_control_to_menu_panel(curve_edit);
-	curve_create = memnew(ToolButton);
+	curve_create = memnew(Button);
+	curve_create->set_flat(true);
 	curve_create->set_icon(EditorNode::get_singleton()->get_gui_base()->get_theme_icon("CurveCreate", "EditorIcons"));
 	curve_create->set_toggle_mode(true);
 	curve_create->hide();
 	curve_create->set_focus_mode(Control::FOCUS_NONE);
 	curve_create->set_tooltip(TTR("Add Point (in empty space)") + "\n" + TTR("Split Segment (in curve)"));
 	Node3DEditor::get_singleton()->add_control_to_menu_panel(curve_create);
-	curve_del = memnew(ToolButton);
+	curve_del = memnew(Button);
+	curve_del->set_flat(true);
 	curve_del->set_icon(EditorNode::get_singleton()->get_gui_base()->get_theme_icon("CurveDelete", "EditorIcons"));
 	curve_del->set_toggle_mode(true);
 	curve_del->hide();
 	curve_del->set_focus_mode(Control::FOCUS_NONE);
 	curve_del->set_tooltip(TTR("Delete Point"));
 	Node3DEditor::get_singleton()->add_control_to_menu_panel(curve_del);
-	curve_close = memnew(ToolButton);
+	curve_close = memnew(Button);
+	curve_close->set_flat(true);
 	curve_close->set_icon(EditorNode::get_singleton()->get_gui_base()->get_theme_icon("CurveClose", "EditorIcons"));
 	curve_close->hide();
 	curve_close->set_focus_mode(Control::FOCUS_NONE);
@@ -600,7 +609,7 @@ Path3DEditorPlugin::Path3DEditorPlugin(EditorNode *p_node) {
 	curve_edit->set_pressed(true);
 	/*
     collision_polygon_editor = memnew( PathEditor(p_node) );
-    editor->get_viewport()->add_child(collision_polygon_editor);
+    editor->get_main_control()->add_child(collision_polygon_editor);
     collision_polygon_editor->set_margin(MARGIN_LEFT,200);
     collision_polygon_editor->set_margin(MARGIN_RIGHT,230);
     collision_polygon_editor->set_margin(MARGIN_TOP,0);
@@ -623,7 +632,7 @@ Ref<EditorNode3DGizmo> Path3DGizmoPlugin::create_gizmo(Node3D *p_spatial) {
 	return ref;
 }
 
-String Path3DGizmoPlugin::get_name() const {
+String Path3DGizmoPlugin::get_gizmo_name() const {
 	return "Path3D";
 }
 
@@ -635,5 +644,6 @@ Path3DGizmoPlugin::Path3DGizmoPlugin() {
 	Color path_color = EDITOR_DEF("editors/3d_gizmos/gizmo_colors/path", Color(0.5, 0.5, 1.0, 0.8));
 	create_material("path_material", path_color);
 	create_material("path_thin_material", Color(0.5, 0.5, 0.5));
-	create_handle_material("handles");
+	create_handle_material("handles", false, Node3DEditor::get_singleton()->get_theme_icon("EditorPathSmoothHandle", "EditorIcons"));
+	create_handle_material("sec_handles", false, Node3DEditor::get_singleton()->get_theme_icon("EditorCurveHandle", "EditorIcons"));
 }

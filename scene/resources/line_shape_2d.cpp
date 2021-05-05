@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,15 +30,16 @@
 
 #include "line_shape_2d.h"
 
+#include "core/math/geometry_2d.h"
 #include "servers/physics_server_2d.h"
 #include "servers/rendering_server.h"
 
 bool LineShape2D::_edit_is_selected_on_click(const Point2 &p_point, double p_tolerance) const {
 	Vector2 point = get_distance() * get_normal();
-	Vector2 l[2][2] = { { point - get_normal().tangent() * 100, point + get_normal().tangent() * 100 }, { point, point + get_normal() * 30 } };
+	Vector2 l[2][2] = { { point - get_normal().orthogonal() * 100, point + get_normal().orthogonal() * 100 }, { point, point + get_normal() * 30 } };
 
 	for (int i = 0; i < 2; i++) {
-		Vector2 closest = Geometry::get_closest_point_to_segment_2d(p_point, l[i]);
+		Vector2 closest = Geometry2D::get_closest_point_to_segment(p_point, l[i]);
 		if (p_point.distance_to(closest) < p_tolerance) {
 			return true;
 		}
@@ -76,7 +77,7 @@ real_t LineShape2D::get_distance() const {
 void LineShape2D::draw(const RID &p_to_rid, const Color &p_color) {
 	Vector2 point = get_distance() * get_normal();
 
-	Vector2 l1[2] = { point - get_normal().tangent() * 100, point + get_normal().tangent() * 100 };
+	Vector2 l1[2] = { point - get_normal().orthogonal() * 100, point + get_normal().orthogonal() * 100 };
 	RS::get_singleton()->canvas_item_add_line(p_to_rid, l1[0], l1[1], p_color, 3);
 	Vector2 l2[2] = { point, point + get_normal() * 30 };
 	RS::get_singleton()->canvas_item_add_line(p_to_rid, l2[0], l2[1], p_color, 3);
@@ -85,7 +86,7 @@ void LineShape2D::draw(const RID &p_to_rid, const Color &p_color) {
 Rect2 LineShape2D::get_rect() const {
 	Vector2 point = get_distance() * get_normal();
 
-	Vector2 l1[2] = { point - get_normal().tangent() * 100, point + get_normal().tangent() * 100 };
+	Vector2 l1[2] = { point - get_normal().orthogonal() * 100, point + get_normal().orthogonal() * 100 };
 	Vector2 l2[2] = { point, point + get_normal() * 30 };
 	Rect2 rect;
 	rect.position = l1[0];
@@ -112,7 +113,5 @@ void LineShape2D::_bind_methods() {
 
 LineShape2D::LineShape2D() :
 		Shape2D(PhysicsServer2D::get_singleton()->line_shape_create()) {
-	normal = Vector2(0, 1);
-	distance = 0;
 	_update_shape();
 }

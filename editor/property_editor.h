@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -100,6 +100,8 @@ class CustomPropertyEditor : public PopupPanel {
 	List<String> field_names;
 	int hint;
 	String hint_text;
+	HBoxContainer *value_hboxes[MAX_VALUE_EDITORS / 4];
+	VBoxContainer *value_vbox;
 	LineEdit *value_editor[MAX_VALUE_EDITORS];
 	int focused_value_editor;
 	Label *value_label[MAX_VALUE_EDITORS];

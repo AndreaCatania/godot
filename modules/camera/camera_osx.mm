@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -106,15 +106,15 @@
 	if (input) {
 		[self removeInput:input];
 		// don't release this
-		input = NULL;
+		input = nullptr;
 	}
 
 	// free up our output
 	if (output) {
 		[self removeOutput:output];
-		[output setSampleBufferDelegate:nil queue:NULL];
+		[output setSampleBufferDelegate:nil queue:nullptr];
 		[output release];
-		output = NULL;
+		output = nullptr;
 	}
 
 	[self commitConfiguration];
@@ -141,9 +141,9 @@
 	// get our buffers
 	unsigned char *dataY = (unsigned char *)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
 	unsigned char *dataCbCr = (unsigned char *)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
-	if (dataY == NULL) {
+	if (dataY == nullptr) {
 		print_line("Couldn't access Y pixel buffer data");
-	} else if (dataCbCr == NULL) {
+	} else if (dataCbCr == nullptr) {
 		print_line("Couldn't access CbCr pixel buffer data");
 	} else {
 		Ref<Image> img[2];
@@ -220,8 +220,8 @@ AVCaptureDevice *CameraFeedOSX::get_device() const {
 };
 
 CameraFeedOSX::CameraFeedOSX() {
-	device = NULL;
-	capture_session = NULL;
+	device = nullptr;
+	capture_session = nullptr;
 };
 
 void CameraFeedOSX::set_device(AVCaptureDevice *p_device) {
@@ -240,14 +240,14 @@ void CameraFeedOSX::set_device(AVCaptureDevice *p_device) {
 };
 
 CameraFeedOSX::~CameraFeedOSX() {
-	if (capture_session != NULL) {
+	if (capture_session != nullptr) {
 		[capture_session release];
-		capture_session = NULL;
+		capture_session = nullptr;
 	};
 
-	if (device != NULL) {
+	if (device != nullptr) {
 		[device release];
-		device = NULL;
+		device = nullptr;
 	};
 };
 
@@ -267,7 +267,7 @@ void CameraFeedOSX::deactivate_feed() {
 	if (capture_session) {
 		[capture_session cleanup];
 		[capture_session release];
-		capture_session = NULL;
+		capture_session = nullptr;
 	};
 };
 
@@ -313,7 +313,12 @@ MyDeviceNotifications *device_notifications = nil;
 // CameraOSX - Subclass for our camera server on OSX
 
 void CameraOSX::update_feeds() {
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101500
+	AVCaptureDeviceDiscoverySession *session = [AVCaptureDeviceDiscoverySession discoverySessionWithDeviceTypes:[NSArray arrayWithObjects:AVCaptureDeviceTypeExternalUnknown, AVCaptureDeviceTypeBuiltInWideAngleCamera, nil] mediaType:AVMediaTypeVideo position:AVCaptureDevicePositionUnspecified];
+	NSArray *devices = session.devices;
+#else
 	NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+#endif
 
 	// remove devices that are gone..
 	for (int i = feeds.size() - 1; i >= 0; i--) {
@@ -325,7 +330,6 @@ void CameraOSX::update_feeds() {
 		};
 	};
 
-	// add new devices..
 	for (AVCaptureDevice *device in devices) {
 		bool found = false;
 		for (int i = 0; i < feeds.size() && !found; i++) {

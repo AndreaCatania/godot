@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -52,16 +52,13 @@ import org.godotengine.godot.plugin.GodotPluginRegistry
  * @see [VkSurfaceView.startRenderer]
  */
 internal class VkRenderer {
-
 	private val pluginRegistry: GodotPluginRegistry = GodotPluginRegistry.getPluginRegistry()
 
 	/**
 	 * Called when the surface is created and signals the beginning of rendering.
 	 */
 	fun onVkSurfaceCreated(surface: Surface) {
-		// TODO: properly implement surface re-creation:
-		// GodotLib.newcontext should be called here once it's done.
-		//GodotLib.newcontext(surface, false)
+		GodotLib.newcontext(surface, false)
 
 		for (plugin in pluginRegistry.getAllPlugins()) {
 			plugin.onVkSurfaceCreated(surface)
@@ -72,13 +69,8 @@ internal class VkRenderer {
 	 * Called after the surface is created and whenever its size changes.
 	 */
 	fun onVkSurfaceChanged(surface: Surface, width: Int, height: Int) {
-		GodotLib.resize(width, height)
-		
-		// TODO: properly implement surface re-creation:
-		// Update the native renderer instead of restarting the app.
-		// GodotLib.newcontext should not be called here once it's done.
-		GodotLib.newcontext(surface, false)
-		
+		GodotLib.resize(surface, width, height)
+
 		for (plugin in pluginRegistry.getAllPlugins()) {
 			plugin.onVkSurfaceChanged(surface, width, height)
 		}

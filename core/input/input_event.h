@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,39 +31,35 @@
 #ifndef INPUT_EVENT_H
 #define INPUT_EVENT_H
 
+#include "core/io/resource.h"
 #include "core/math/transform_2d.h"
-#include "core/os/copymem.h"
-#include "core/resource.h"
+#include "core/string/ustring.h"
 #include "core/typedefs.h"
-#include "core/ustring.h"
 
 /**
  * Input Event classes. These are used in the main loop.
  * The events are pretty obvious.
  */
 
-enum ButtonList {
-	BUTTON_LEFT = 1,
-	BUTTON_RIGHT = 2,
-	BUTTON_MIDDLE = 3,
-	BUTTON_WHEEL_UP = 4,
-	BUTTON_WHEEL_DOWN = 5,
-	BUTTON_WHEEL_LEFT = 6,
-	BUTTON_WHEEL_RIGHT = 7,
-	BUTTON_XBUTTON1 = 8,
-	BUTTON_XBUTTON2 = 9,
-	BUTTON_MASK_LEFT = (1 << (BUTTON_LEFT - 1)),
-	BUTTON_MASK_RIGHT = (1 << (BUTTON_RIGHT - 1)),
-	BUTTON_MASK_MIDDLE = (1 << (BUTTON_MIDDLE - 1)),
-	BUTTON_MASK_XBUTTON1 = (1 << (BUTTON_XBUTTON1 - 1)),
-	BUTTON_MASK_XBUTTON2 = (1 << (BUTTON_XBUTTON2 - 1))
+enum MouseButton {
+	MOUSE_BUTTON_LEFT = 1,
+	MOUSE_BUTTON_RIGHT = 2,
+	MOUSE_BUTTON_MIDDLE = 3,
+	MOUSE_BUTTON_WHEEL_UP = 4,
+	MOUSE_BUTTON_WHEEL_DOWN = 5,
+	MOUSE_BUTTON_WHEEL_LEFT = 6,
+	MOUSE_BUTTON_WHEEL_RIGHT = 7,
+	MOUSE_BUTTON_XBUTTON1 = 8,
+	MOUSE_BUTTON_XBUTTON2 = 9,
+	MOUSE_BUTTON_MASK_LEFT = (1 << (MOUSE_BUTTON_LEFT - 1)),
+	MOUSE_BUTTON_MASK_RIGHT = (1 << (MOUSE_BUTTON_RIGHT - 1)),
+	MOUSE_BUTTON_MASK_MIDDLE = (1 << (MOUSE_BUTTON_MIDDLE - 1)),
+	MOUSE_BUTTON_MASK_XBUTTON1 = (1 << (MOUSE_BUTTON_XBUTTON1 - 1)),
+	MOUSE_BUTTON_MASK_XBUTTON2 = (1 << (MOUSE_BUTTON_XBUTTON2 - 1))
 };
 
-enum JoyButtonList {
-
-	JOY_INVALID_BUTTON = -1,
-
-	// SDL Buttons
+enum JoyButton {
+	JOY_BUTTON_INVALID = -1,
 	JOY_BUTTON_A = 0,
 	JOY_BUTTON_B = 1,
 	JOY_BUTTON_X = 2,
@@ -79,67 +75,29 @@ enum JoyButtonList {
 	JOY_BUTTON_DPAD_DOWN = 12,
 	JOY_BUTTON_DPAD_LEFT = 13,
 	JOY_BUTTON_DPAD_RIGHT = 14,
-	JOY_SDL_BUTTONS = 15,
-
-	// Sony Buttons
-	JOY_SONY_X = JOY_BUTTON_A,
-	JOY_SONY_CROSS = JOY_BUTTON_A,
-	JOY_SONY_CIRCLE = JOY_BUTTON_B,
-	JOY_SONY_SQUARE = JOY_BUTTON_X,
-	JOY_SONY_TRIANGLE = JOY_BUTTON_Y,
-	JOY_SONY_SELECT = JOY_BUTTON_BACK,
-	JOY_SONY_START = JOY_BUTTON_START,
-	JOY_SONY_PS = JOY_BUTTON_GUIDE,
-	JOY_SONY_L1 = JOY_BUTTON_LEFT_SHOULDER,
-	JOY_SONY_R1 = JOY_BUTTON_RIGHT_SHOULDER,
-	JOY_SONY_L3 = JOY_BUTTON_LEFT_STICK,
-	JOY_SONY_R3 = JOY_BUTTON_RIGHT_STICK,
-
-	// Xbox Buttons
-	JOY_XBOX_A = JOY_BUTTON_A,
-	JOY_XBOX_B = JOY_BUTTON_B,
-	JOY_XBOX_X = JOY_BUTTON_X,
-	JOY_XBOX_Y = JOY_BUTTON_Y,
-	JOY_XBOX_BACK = JOY_BUTTON_BACK,
-	JOY_XBOX_START = JOY_BUTTON_START,
-	JOY_XBOX_HOME = JOY_BUTTON_GUIDE,
-	JOY_XBOX_LS = JOY_BUTTON_LEFT_STICK,
-	JOY_XBOX_RS = JOY_BUTTON_RIGHT_STICK,
-	JOY_XBOX_LB = JOY_BUTTON_LEFT_SHOULDER,
-	JOY_XBOX_RB = JOY_BUTTON_RIGHT_SHOULDER,
-
-	JOY_BUTTON_MAX = 36 // Apparently Android supports up to 36 buttons.
+	JOY_BUTTON_MISC1 = 15,
+	JOY_BUTTON_PADDLE1 = 16,
+	JOY_BUTTON_PADDLE2 = 17,
+	JOY_BUTTON_PADDLE3 = 18,
+	JOY_BUTTON_PADDLE4 = 19,
+	JOY_BUTTON_TOUCHPAD = 20,
+	JOY_BUTTON_SDL_MAX = 21,
+	JOY_BUTTON_MAX = 36, // Android supports up to 36 buttons.
 };
 
-enum JoyAxisList {
-
-	JOY_INVALID_AXIS = -1,
-
-	// SDL Axes
+enum JoyAxis {
+	JOY_AXIS_INVALID = -1,
 	JOY_AXIS_LEFT_X = 0,
 	JOY_AXIS_LEFT_Y = 1,
 	JOY_AXIS_RIGHT_X = 2,
 	JOY_AXIS_RIGHT_Y = 3,
 	JOY_AXIS_TRIGGER_LEFT = 4,
 	JOY_AXIS_TRIGGER_RIGHT = 5,
-	JOY_SDL_AXES = 6,
-
-	// Joystick axes.
-	JOY_AXIS_0_X = 0,
-	JOY_AXIS_0_Y = 1,
-	JOY_AXIS_1_X = 2,
-	JOY_AXIS_1_Y = 3,
-	JOY_AXIS_2_X = 4,
-	JOY_AXIS_2_Y = 5,
-	JOY_AXIS_3_X = 6,
-	JOY_AXIS_3_Y = 7,
-	JOY_AXIS_4_X = 8,
-	JOY_AXIS_4_Y = 9,
-
-	JOY_AXIS_MAX = 10 // OpenVR supports up to 5 Joysticks making a total of 10 axes.
+	JOY_AXIS_SDL_MAX = 6,
+	JOY_AXIS_MAX = 10, // OpenVR supports up to 5 Joysticks making a total of 10 axes.
 };
 
-enum MidiMessageList {
+enum MIDIMessage {
 	MIDI_MESSAGE_NOTE_OFF = 0x8,
 	MIDI_MESSAGE_NOTE_ON = 0x9,
 	MIDI_MESSAGE_AFTERTOUCH = 0xA,
@@ -169,20 +127,21 @@ public:
 	void set_device(int p_device);
 	int get_device() const;
 
-	bool is_action(const StringName &p_action) const;
-	bool is_action_pressed(const StringName &p_action, bool p_allow_echo = false) const;
-	bool is_action_released(const StringName &p_action) const;
-	float get_action_strength(const StringName &p_action) const;
+	bool is_action(const StringName &p_action, bool p_exact_match = false) const;
+	bool is_action_pressed(const StringName &p_action, bool p_allow_echo = false, bool p_exact_match = false) const;
+	bool is_action_released(const StringName &p_action, bool p_exact_match = false) const;
+	float get_action_strength(const StringName &p_action, bool p_exact_match = false) const;
+	float get_action_raw_strength(const StringName &p_action, bool p_exact_match = false) const;
 
 	// To be removed someday, since they do not make sense for all events
 	virtual bool is_pressed() const;
 	virtual bool is_echo() const;
 
-	virtual String as_text() const;
+	virtual String as_text() const = 0;
 
 	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const;
 
-	virtual bool action_match(const Ref<InputEvent> &p_event, bool *p_pressed, float *p_strength, float p_deadzone) const;
+	virtual bool action_match(const Ref<InputEvent> &p_event, bool *p_pressed, float *p_strength, float *p_raw_strength, float p_deadzone) const;
 	virtual bool shortcut_match(const Ref<InputEvent> &p_event) const;
 	virtual bool is_action_type() const;
 
@@ -209,6 +168,8 @@ public:
 class InputEventWithModifiers : public InputEventFromWindow {
 	GDCLASS(InputEventWithModifiers, InputEventFromWindow);
 
+	bool store_command = true;
+
 	bool shift = false;
 	bool alt = false;
 #ifdef APPLE_STYLE_KEYS
@@ -228,8 +189,12 @@ class InputEventWithModifiers : public InputEventFromWindow {
 
 protected:
 	static void _bind_methods();
+	virtual void _validate_property(PropertyInfo &property) const override;
 
 public:
+	void set_store_command(bool p_enabled);
+	bool is_storing_command() const;
+
 	void set_shift(bool p_enabled);
 	bool get_shift() const;
 
@@ -246,6 +211,9 @@ public:
 	bool get_command() const;
 
 	void set_modifiers_from_event(const InputEventWithModifiers *event);
+
+	virtual String as_text() const override;
+	virtual String to_string() override;
 
 	InputEventWithModifiers() {}
 };
@@ -266,7 +234,7 @@ protected:
 
 public:
 	void set_pressed(bool p_pressed);
-	virtual bool is_pressed() const;
+	virtual bool is_pressed() const override;
 
 	void set_keycode(uint32_t p_keycode);
 	uint32_t get_keycode() const;
@@ -278,17 +246,20 @@ public:
 	uint32_t get_unicode() const;
 
 	void set_echo(bool p_enable);
-	virtual bool is_echo() const;
+	virtual bool is_echo() const override;
 
 	uint32_t get_keycode_with_modifiers() const;
 	uint32_t get_physical_keycode_with_modifiers() const;
 
-	virtual bool action_match(const Ref<InputEvent> &p_event, bool *p_pressed, float *p_strength, float p_deadzone) const;
-	virtual bool shortcut_match(const Ref<InputEvent> &p_event) const;
+	virtual bool action_match(const Ref<InputEvent> &p_event, bool *p_pressed, float *p_strength, float *p_raw_strength, float p_deadzone) const override;
+	virtual bool shortcut_match(const Ref<InputEvent> &p_event) const override;
 
-	virtual bool is_action_type() const { return true; }
+	virtual bool is_action_type() const override { return true; }
 
-	virtual String as_text() const;
+	virtual String as_text() const override;
+	virtual String to_string() override;
+
+	static Ref<InputEventKey> create_reference(uint32_t p_keycode_with_modifier_masks);
 
 	InputEventKey() {}
 };
@@ -323,7 +294,7 @@ class InputEventMouseButton : public InputEventMouse {
 	float factor = 1;
 	int button_index = 0;
 	bool pressed = false; //otherwise released
-	bool doubleclick = false; //last even less than doubleclick time
+	bool double_click = false; //last even less than double click time
 
 protected:
 	static void _bind_methods();
@@ -336,16 +307,17 @@ public:
 	int get_button_index() const;
 
 	void set_pressed(bool p_pressed);
-	virtual bool is_pressed() const;
+	virtual bool is_pressed() const override;
 
-	void set_doubleclick(bool p_doubleclick);
-	bool is_doubleclick() const;
+	void set_double_click(bool p_double_click);
+	bool is_double_click() const;
 
-	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const;
-	virtual bool action_match(const Ref<InputEvent> &p_event, bool *p_pressed, float *p_strength, float p_deadzone) const;
+	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const override;
+	virtual bool action_match(const Ref<InputEvent> &p_event, bool *p_pressed, float *p_strength, float *p_raw_strength, float p_deadzone) const override;
 
-	virtual bool is_action_type() const { return true; }
-	virtual String as_text() const;
+	virtual bool is_action_type() const override { return true; }
+	virtual String as_text() const override;
+	virtual String to_string() override;
 
 	InputEventMouseButton() {}
 };
@@ -374,10 +346,11 @@ public:
 	void set_speed(const Vector2 &p_speed);
 	Vector2 get_speed() const;
 
-	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const;
-	virtual String as_text() const;
+	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const override;
+	virtual String as_text() const override;
+	virtual String to_string() override;
 
-	virtual bool accumulate(const Ref<InputEvent> &p_event);
+	virtual bool accumulate(const Ref<InputEvent> &p_event) override;
 
 	InputEventMouseMotion() {}
 };
@@ -397,12 +370,13 @@ public:
 	void set_axis_value(float p_value);
 	float get_axis_value() const;
 
-	virtual bool is_pressed() const;
+	virtual bool is_pressed() const override;
 
-	virtual bool action_match(const Ref<InputEvent> &p_event, bool *p_pressed, float *p_strength, float p_deadzone) const;
+	virtual bool action_match(const Ref<InputEvent> &p_event, bool *p_pressed, float *p_strength, float *p_raw_strength, float p_deadzone) const override;
 
-	virtual bool is_action_type() const { return true; }
-	virtual String as_text() const;
+	virtual bool is_action_type() const override { return true; }
+	virtual String as_text() const override;
+	virtual String to_string() override;
 
 	InputEventJoypadMotion() {}
 };
@@ -421,16 +395,19 @@ public:
 	int get_button_index() const;
 
 	void set_pressed(bool p_pressed);
-	virtual bool is_pressed() const;
+	virtual bool is_pressed() const override;
 
 	void set_pressure(float p_pressure);
 	float get_pressure() const;
 
-	virtual bool action_match(const Ref<InputEvent> &p_event, bool *p_pressed, float *p_strength, float p_deadzone) const;
-	virtual bool shortcut_match(const Ref<InputEvent> &p_event) const;
+	virtual bool action_match(const Ref<InputEvent> &p_event, bool *p_pressed, float *p_strength, float *p_raw_strength, float p_deadzone) const override;
+	virtual bool shortcut_match(const Ref<InputEvent> &p_event) const override;
 
-	virtual bool is_action_type() const { return true; }
-	virtual String as_text() const;
+	virtual bool is_action_type() const override { return true; }
+	virtual String as_text() const override;
+	virtual String to_string() override;
+
+	static Ref<InputEventJoypadButton> create_reference(int p_btn_index);
 
 	InputEventJoypadButton() {}
 };
@@ -452,10 +429,11 @@ public:
 	Vector2 get_position() const;
 
 	void set_pressed(bool p_pressed);
-	virtual bool is_pressed() const;
+	virtual bool is_pressed() const override;
 
-	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const;
-	virtual String as_text() const;
+	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const override;
+	virtual String as_text() const override;
+	virtual String to_string() override;
 
 	InputEventScreenTouch() {}
 };
@@ -483,8 +461,9 @@ public:
 	void set_speed(const Vector2 &p_speed);
 	Vector2 get_speed() const;
 
-	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const;
-	virtual String as_text() const;
+	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const override;
+	virtual String as_text() const override;
+	virtual String to_string() override;
 
 	InputEventScreenDrag() {}
 };
@@ -504,18 +483,19 @@ public:
 	StringName get_action() const;
 
 	void set_pressed(bool p_pressed);
-	virtual bool is_pressed() const;
+	virtual bool is_pressed() const override;
 
 	void set_strength(float p_strength);
 	float get_strength() const;
 
 	virtual bool is_action(const StringName &p_action) const;
 
-	virtual bool action_match(const Ref<InputEvent> &p_event, bool *p_pressed, float *p_strength, float p_deadzone) const;
+	virtual bool action_match(const Ref<InputEvent> &p_event, bool *p_pressed, float *p_strength, float *p_raw_strength, float p_deadzone) const override;
 
-	virtual bool shortcut_match(const Ref<InputEvent> &p_event) const;
-	virtual bool is_action_type() const { return true; }
-	virtual String as_text() const;
+	virtual bool shortcut_match(const Ref<InputEvent> &p_event) const override;
+	virtual bool is_action_type() const override { return true; }
+	virtual String as_text() const override;
+	virtual String to_string() override;
 
 	InputEventAction() {}
 };
@@ -544,8 +524,9 @@ public:
 	void set_factor(real_t p_factor);
 	real_t get_factor() const;
 
-	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const;
-	virtual String as_text() const;
+	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const override;
+	virtual String as_text() const override;
+	virtual String to_string() override;
 
 	InputEventMagnifyGesture() {}
 };
@@ -561,8 +542,9 @@ public:
 	void set_delta(const Vector2 &p_delta);
 	Vector2 get_delta() const;
 
-	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const;
-	virtual String as_text() const;
+	virtual Ref<InputEvent> xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs = Vector2()) const override;
+	virtual String as_text() const override;
+	virtual String to_string() override;
 
 	InputEventPanGesture() {}
 };
@@ -607,7 +589,8 @@ public:
 	void set_controller_value(const int p_controller_value);
 	int get_controller_value() const;
 
-	virtual String as_text() const;
+	virtual String as_text() const override;
+	virtual String to_string() override;
 
 	InputEventMIDI() {}
 };

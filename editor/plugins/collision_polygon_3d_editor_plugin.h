@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -36,7 +36,6 @@
 #include "scene/3d/collision_polygon_3d.h"
 #include "scene/3d/immediate_geometry_3d.h"
 #include "scene/3d/mesh_instance_3d.h"
-#include "scene/gui/tool_button.h"
 
 class CanvasItemEditor;
 
@@ -45,7 +44,6 @@ class CollisionPolygon3DEditor : public HBoxContainer {
 
 	UndoRedo *undo_redo;
 	enum Mode {
-
 		MODE_CREATE,
 		MODE_EDIT,
 
@@ -53,8 +51,8 @@ class CollisionPolygon3DEditor : public HBoxContainer {
 
 	Mode mode;
 
-	ToolButton *button_create;
-	ToolButton *button_edit;
+	Button *button_create;
+	Button *button_edit;
 
 	Ref<StandardMaterial3D> line_material;
 	Ref<StandardMaterial3D> handle_material;
@@ -102,13 +100,13 @@ class Polygon3DEditorPlugin : public EditorPlugin {
 	EditorNode *editor;
 
 public:
-	virtual bool forward_spatial_gui_input(Camera3D *p_camera, const Ref<InputEvent> &p_event) { return collision_polygon_editor->forward_spatial_gui_input(p_camera, p_event); }
+	virtual bool forward_spatial_gui_input(Camera3D *p_camera, const Ref<InputEvent> &p_event) override { return collision_polygon_editor->forward_spatial_gui_input(p_camera, p_event); }
 
-	virtual String get_name() const { return "Polygon3DEditor"; }
-	bool has_main_screen() const { return false; }
-	virtual void edit(Object *p_object);
-	virtual bool handles(Object *p_object) const;
-	virtual void make_visible(bool p_visible);
+	virtual String get_name() const override { return "Polygon3DEditor"; }
+	bool has_main_screen() const override { return false; }
+	virtual void edit(Object *p_object) override;
+	virtual bool handles(Object *p_object) const override;
+	virtual void make_visible(bool p_visible) override;
 
 	Polygon3DEditorPlugin(EditorNode *p_node);
 	~Polygon3DEditorPlugin();

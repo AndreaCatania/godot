@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,32 +30,33 @@
 
 #include "export.h"
 
+#include "core/config/project_settings.h"
 #include "core/io/marshalls.h"
 #include "core/io/resource_saver.h"
 #include "core/io/zip_io.h"
 #include "core/os/dir_access.h"
 #include "core/os/file_access.h"
 #include "core/os/os.h"
-#include "core/project_settings.h"
 #include "core/version.h"
 #include "editor/editor_export.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "platform/osx/logo.gen.h"
-#include "string.h"
+
 #include <sys/stat.h>
 
 class EditorExportPlatformOSX : public EditorExportPlatform {
 	GDCLASS(EditorExportPlatformOSX, EditorExportPlatform);
 
-	int version_code;
+	int version_code = 0;
 
 	Ref<ImageTexture> logo;
 
 	void _fix_plist(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &plist, const String &p_binary);
 	void _make_icon(const Ref<Image> &p_icon, Vector<uint8_t> &p_data);
 
-	Error _code_sign(const Ref<EditorExportPreset> &p_preset, const String &p_path);
+	Error _notarize(const Ref<EditorExportPreset> &p_preset, const String &p_path);
+	Error _code_sign(const Ref<EditorExportPreset> &p_preset, const String &p_path, const String &p_ent_path);
 	Error _create_dmg(const String &p_dmg_path, const String &p_pkg_name, const String &p_app_path_name);
 	void _zip_folder_recursive(zipFile &p_zip, const String &p_root_path, const String &p_folder, const String &p_pkg_name);
 
@@ -66,17 +67,39 @@ class EditorExportPlatformOSX : public EditorExportPlatform {
 	bool use_codesign() const { return false; }
 	bool use_dmg() const { return false; }
 #endif
+	bool is_package_name_valid(const String &p_package, String *r_error = nullptr) const {
+		String pname = p_package;
+
+		if (pname.length() == 0) {
+			if (r_error) {
+				*r_error = TTR("Identifier is missing.");
+			}
+			return false;
+		}
+
+		for (int i = 0; i < pname.length(); i++) {
+			char32_t c = pname[i];
+			if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '.')) {
+				if (r_error) {
+					*r_error = vformat(TTR("The character '%s' is not allowed in Identifier."), String::chr(c));
+				}
+				return false;
+			}
+		}
+
+		return true;
+	}
 
 protected:
-	virtual void get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features);
-	virtual void get_export_options(List<ExportOption> *r_options);
+	virtual void get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features) override;
+	virtual void get_export_options(List<ExportOption> *r_options) override;
 
 public:
-	virtual String get_name() const { return "Mac OSX"; }
-	virtual String get_os_name() const { return "OSX"; }
-	virtual Ref<Texture2D> get_logo() const { return logo; }
+	virtual String get_name() const override { return "macOS"; }
+	virtual String get_os_name() const override { return "macOS"; }
+	virtual Ref<Texture2D> get_logo() const override { return logo; }
 
-	virtual List<String> get_binary_extensions(const Ref<EditorExportPreset> &p_preset) const {
+	virtual List<String> get_binary_extensions(const Ref<EditorExportPreset> &p_preset) const override {
 		List<String> list;
 		if (use_dmg()) {
 			list.push_back("dmg");
@@ -84,17 +107,17 @@ public:
 		list.push_back("zip");
 		return list;
 	}
-	virtual Error export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags = 0);
+	virtual Error export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags = 0) override;
 
-	virtual bool can_export(const Ref<EditorExportPreset> &p_preset, String &r_error, bool &r_missing_templates) const;
+	virtual bool can_export(const Ref<EditorExportPreset> &p_preset, String &r_error, bool &r_missing_templates) const override;
 
-	virtual void get_platform_features(List<String> *r_features) {
+	virtual void get_platform_features(List<String> *r_features) override {
 		r_features->push_back("pc");
 		r_features->push_back("s3tc");
-		r_features->push_back("OSX");
+		r_features->push_back("macOS");
 	}
 
-	virtual void resolve_platform_feature_priorities(const Ref<EditorExportPreset> &p_preset, Set<String> &p_features) {
+	virtual void resolve_platform_feature_priorities(const Ref<EditorExportPreset> &p_preset, Set<String> &p_features) override {
 	}
 
 	EditorExportPlatformOSX();
@@ -122,7 +145,7 @@ void EditorExportPlatformOSX::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/name", PROPERTY_HINT_PLACEHOLDER_TEXT, "Game Name"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/info"), "Made with Godot Engine"));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/icon", PROPERTY_HINT_FILE, "*.png,*.icns"), ""));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/identifier", PROPERTY_HINT_PLACEHOLDER_TEXT, "com.example.game"), ""));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/bundle_identifier", PROPERTY_HINT_PLACEHOLDER_TEXT, "com.example.game"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/signature"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/short_version"), "1.0"));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/version"), "1.0"));
@@ -132,12 +155,41 @@ void EditorExportPlatformOSX::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "privacy/microphone_usage_description", PROPERTY_HINT_PLACEHOLDER_TEXT, "Provide a message if you need to use the microphone"), ""));
 
 #ifdef OSX_ENABLED
-	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/enable"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/enable"), true));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "codesign/identity", PROPERTY_HINT_PLACEHOLDER_TEXT, "Type: Name (ID)"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/timestamp"), true));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/hardened_runtime"), true));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "codesign/entitlements", PROPERTY_HINT_GLOBAL_FILE, "*.plist"), ""));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/replace_existing_signature"), true));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "codesign/entitlements/custom_file", PROPERTY_HINT_GLOBAL_FILE, "*.plist"), ""));
+
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/allow_jit_code_execution"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/allow_unsigned_executable_memory"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/allow_dyld_environment_variables"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/disable_library_validation"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/audio_input"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/camera"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/location"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/address_book"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/calendars"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/photos_library"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/apple_events"), false));
+
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/app_sandbox/enabled"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/app_sandbox/network_server"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/app_sandbox/network_client"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/app_sandbox/device_usb"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/app_sandbox/device_bluetooth"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "codesign/entitlements/app_sandbox/files_downloads", PROPERTY_HINT_ENUM, "No,Read-only,Read-write"), 0));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "codesign/entitlements/app_sandbox/files_pictures", PROPERTY_HINT_ENUM, "No,Read-only,Read-write"), 0));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "codesign/entitlements/app_sandbox/files_music", PROPERTY_HINT_ENUM, "No,Read-only,Read-write"), 0));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "codesign/entitlements/app_sandbox/files_movies", PROPERTY_HINT_ENUM, "No,Read-only,Read-write"), 0));
+
 	r_options->push_back(ExportOption(PropertyInfo(Variant::PACKED_STRING_ARRAY, "codesign/custom_options"), PackedStringArray()));
+
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "notarization/enable"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "notarization/apple_id_name", PROPERTY_HINT_PLACEHOLDER_TEXT, "Apple ID email"), ""));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "notarization/apple_id_password", PROPERTY_HINT_PLACEHOLDER_TEXT, "Enable two-factor authentication and provide app-specific password"), ""));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "notarization/apple_team_id", PROPERTY_HINT_PLACEHOLDER_TEXT, "Provide team ID if your Apple ID belongs to multiple teams"), ""));
 #endif
 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "texture_format/s3tc"), true));
@@ -163,7 +215,7 @@ void _rgba8_to_packbits_encode(int p_ch, int p_size, Vector<uint8_t> &p_source, 
 			if ((p_source.ptr()[(i + 1) * 4 + p_ch] == cur) && (p_source.ptr()[(i + 2) * 4 + p_ch] == cur)) {
 				if (buf_size > 0) {
 					result.write[res_size++] = (uint8_t)(buf_size - 1);
-					copymem(&result.write[res_size], &buf, buf_size);
+					memcpy(&result.write[res_size], &buf, buf_size);
 					res_size += buf_size;
 					buf_size = 0;
 				}
@@ -189,7 +241,7 @@ void _rgba8_to_packbits_encode(int p_ch, int p_size, Vector<uint8_t> &p_source, 
 				buf[buf_size++] = cur;
 				if (buf_size == 128) {
 					result.write[res_size++] = (uint8_t)(buf_size - 1);
-					copymem(&result.write[res_size], &buf, buf_size);
+					memcpy(&result.write[res_size], &buf, buf_size);
 					res_size += buf_size;
 					buf_size = 0;
 				}
@@ -197,7 +249,7 @@ void _rgba8_to_packbits_encode(int p_ch, int p_size, Vector<uint8_t> &p_source, 
 		} else {
 			buf[buf_size++] = cur;
 			result.write[res_size++] = (uint8_t)(buf_size - 1);
-			copymem(&result.write[res_size], &buf, buf_size);
+			memcpy(&result.write[res_size], &buf, buf_size);
 			res_size += buf_size;
 			buf_size = 0;
 		}
@@ -207,7 +259,7 @@ void _rgba8_to_packbits_encode(int p_ch, int p_size, Vector<uint8_t> &p_source, 
 
 	int ofs = p_dest.size();
 	p_dest.resize(p_dest.size() + res_size);
-	copymem(&p_dest.write[ofs], result.ptr(), res_size);
+	memcpy(&p_dest.write[ofs], result.ptr(), res_size);
 }
 
 void EditorExportPlatformOSX::_make_icon(const Ref<Image> &p_icon, Vector<uint8_t> &p_data) {
@@ -266,7 +318,7 @@ void EditorExportPlatformOSX::_make_icon(const Ref<Image> &p_icon, Vector<uint8_
 			memdelete(f);
 			len += 8;
 			len = BSWAP32(len);
-			copymem(&data.write[ofs], icon_infos[i].name, 4);
+			memcpy(&data.write[ofs], icon_infos[i].name, 4);
 			encode_uint32(len, &data.write[ofs + 4]);
 
 			// Clean up generated file.
@@ -286,7 +338,7 @@ void EditorExportPlatformOSX::_make_icon(const Ref<Image> &p_icon, Vector<uint8_
 
 				int len = data.size() - ofs;
 				len = BSWAP32(len);
-				copymem(&data.write[ofs], icon_infos[i].name, 4);
+				memcpy(&data.write[ofs], icon_infos[i].name, 4);
 				encode_uint32(len, &data.write[ofs + 4]);
 			}
 
@@ -301,7 +353,7 @@ void EditorExportPlatformOSX::_make_icon(const Ref<Image> &p_icon, Vector<uint8_
 				}
 				len += 8;
 				len = BSWAP32(len);
-				copymem(&data.write[ofs], icon_infos[i].mask_name, 4);
+				memcpy(&data.write[ofs], icon_infos[i].mask_name, 4);
 				encode_uint32(len, &data.write[ofs + 4]);
 			}
 		}
@@ -326,8 +378,8 @@ void EditorExportPlatformOSX::_fix_plist(const Ref<EditorExportPreset> &p_preset
 			strnew += lines[i].replace("$name", p_binary) + "\n";
 		} else if (lines[i].find("$info") != -1) {
 			strnew += lines[i].replace("$info", p_preset->get("application/info")) + "\n";
-		} else if (lines[i].find("$identifier") != -1) {
-			strnew += lines[i].replace("$identifier", p_preset->get("application/identifier")) + "\n";
+		} else if (lines[i].find("$bundle_identifier") != -1) {
+			strnew += lines[i].replace("$bundle_identifier", p_preset->get("application/bundle_identifier")) + "\n";
 		} else if (lines[i].find("$short_version") != -1) {
 			strnew += lines[i].replace("$short_version", p_preset->get("application/short_version")) + "\n";
 		} else if (lines[i].find("$version") != -1) {
@@ -363,7 +415,53 @@ void EditorExportPlatformOSX::_fix_plist(const Ref<EditorExportPreset> &p_preset
 	- and then wrap it up in a DMG
 **/
 
-Error EditorExportPlatformOSX::_code_sign(const Ref<EditorExportPreset> &p_preset, const String &p_path) {
+Error EditorExportPlatformOSX::_notarize(const Ref<EditorExportPreset> &p_preset, const String &p_path) {
+#ifdef OSX_ENABLED
+	List<String> args;
+
+	args.push_back("altool");
+	args.push_back("--notarize-app");
+
+	args.push_back("--primary-bundle-id");
+	args.push_back(p_preset->get("application/bundle_identifier"));
+
+	args.push_back("--username");
+	args.push_back(p_preset->get("notarization/apple_id_name"));
+
+	args.push_back("--password");
+	args.push_back(p_preset->get("notarization/apple_id_password"));
+
+	args.push_back("--type");
+	args.push_back("osx");
+
+	if (p_preset->get("notarization/apple_team_id")) {
+		args.push_back("--asc-provider");
+		args.push_back(p_preset->get("notarization/apple_team_id"));
+	}
+
+	args.push_back("--file");
+	args.push_back(p_path);
+
+	String str;
+	Error err = OS::get_singleton()->execute("xcrun", args, &str, nullptr, true);
+	ERR_FAIL_COND_V(err != OK, err);
+
+	print_line("altool (" + p_path + "):\n" + str);
+	if (str.find("RequestUUID") == -1) {
+		EditorNode::add_io_error("altool: " + str);
+		return FAILED;
+	} else {
+		print_line("Note: The notarization process generally takes less than an hour. When the process is completed, you'll receive an email.");
+		print_line("      You can check progress manually by opening a Terminal and running the following command:");
+		print_line("      \"xcrun altool --notarization-history 0 -u <your email> -p <app-specific pwd>\"");
+	}
+
+#endif
+
+	return OK;
+}
+
+Error EditorExportPlatformOSX::_code_sign(const Ref<EditorExportPreset> &p_preset, const String &p_path, const String &p_ent_path) {
 #ifdef OSX_ENABLED
 	List<String> args;
 
@@ -375,31 +473,39 @@ Error EditorExportPlatformOSX::_code_sign(const Ref<EditorExportPreset> &p_prese
 		args.push_back("runtime");
 	}
 
-	if ((p_preset->get("codesign/entitlements") != "") && (p_path.get_extension() != "dmg")) {
+	if (p_path.get_extension() != "dmg") {
 		args.push_back("--entitlements");
-		args.push_back(p_preset->get("codesign/entitlements"));
+		args.push_back(p_ent_path);
 	}
 
 	PackedStringArray user_args = p_preset->get("codesign/custom_options");
 	for (int i = 0; i < user_args.size(); i++) {
 		String user_arg = user_args[i].strip_edges();
-		if (!user_arg.empty()) {
+		if (!user_arg.is_empty()) {
 			args.push_back(user_arg);
 		}
 	}
 
 	args.push_back("-s");
-	args.push_back(p_preset->get("codesign/identity"));
+	if (p_preset->get("codesign/identity") == "") {
+		args.push_back("-");
+	} else {
+		args.push_back(p_preset->get("codesign/identity"));
+	}
 
 	args.push_back("-v"); /* provide some more feedback */
+
+	if (p_preset->get("codesign/replace_existing_signature")) {
+		args.push_back("-f");
+	}
 
 	args.push_back(p_path);
 
 	String str;
-	Error err = OS::get_singleton()->execute("codesign", args, true, nullptr, &str, nullptr, true);
+	Error err = OS::get_singleton()->execute("codesign", args, &str, nullptr, true);
 	ERR_FAIL_COND_V(err != OK, err);
 
-	print_line("codesign (" + p_path + "): " + str);
+	print_line("codesign (" + p_path + "):\n" + str);
 	if (str.find("no identity found") != -1) {
 		EditorNode::add_io_error("codesign: no identity found");
 		return FAILED;
@@ -430,7 +536,7 @@ Error EditorExportPlatformOSX::_create_dmg(const String &p_dmg_path, const Strin
 	args.push_back(p_app_path_name);
 
 	String str;
-	Error err = OS::get_singleton()->execute("hdiutil", args, true, nullptr, &str, nullptr, true);
+	Error err = OS::get_singleton()->execute("hdiutil", args, &str, nullptr, true);
 	ERR_FAIL_COND_V(err != OK, err);
 
 	print_line("hdiutil returned: " + str);
@@ -498,41 +604,42 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 		pkg_name = "Unnamed";
 	}
 
-	String pkg_name_safe = OS::get_singleton()->get_safe_dir_name(pkg_name);
+	pkg_name = OS::get_singleton()->get_safe_dir_name(pkg_name);
 
-	Error err = OK;
-	String tmp_app_path_name = "";
-
-	DirAccess *tmp_app_path = nullptr;
 	String export_format = use_dmg() && p_path.ends_with("dmg") ? "dmg" : "zip";
 
 	// Create our application bundle.
-	tmp_app_path_name = EditorSettings::get_singleton()->get_cache_dir().plus_file(pkg_name + ".app");
+	String tmp_app_dir_name = pkg_name + ".app";
+	String tmp_app_path_name = EditorSettings::get_singleton()->get_cache_dir().plus_file(tmp_app_dir_name);
 	print_line("Exporting to " + tmp_app_path_name);
-	tmp_app_path = DirAccess::create_for_path(tmp_app_path_name);
-	if (!tmp_app_path) {
+
+	Error err = OK;
+
+	DirAccessRef tmp_app_dir = DirAccess::create_for_path(tmp_app_path_name);
+	if (!tmp_app_dir) {
 		err = ERR_CANT_CREATE;
 	}
 
 	// Create our folder structure.
 	if (err == OK) {
 		print_line("Creating " + tmp_app_path_name + "/Contents/MacOS");
-		err = tmp_app_path->make_dir_recursive(tmp_app_path_name + "/Contents/MacOS");
+		err = tmp_app_dir->make_dir_recursive(tmp_app_path_name + "/Contents/MacOS");
 	}
 
 	if (err == OK) {
 		print_line("Creating " + tmp_app_path_name + "/Contents/Frameworks");
-		err = tmp_app_path->make_dir_recursive(tmp_app_path_name + "/Contents/Frameworks");
+		err = tmp_app_dir->make_dir_recursive(tmp_app_path_name + "/Contents/Frameworks");
 	}
 
 	if (err == OK) {
 		print_line("Creating " + tmp_app_path_name + "/Contents/Resources");
-		err = tmp_app_path->make_dir_recursive(tmp_app_path_name + "/Contents/Resources");
+		err = tmp_app_dir->make_dir_recursive(tmp_app_path_name + "/Contents/Resources");
 	}
 
 	// Now process our template.
 	bool found_binary = false;
 	int total_size = 0;
+	Vector<String> dylibs_found;
 
 	while (ret == UNZ_OK && err == OK) {
 		bool is_execute = false;
@@ -591,7 +698,7 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 					Ref<Image> icon;
 					icon.instance();
 					icon->load(iconpath);
-					if (!icon->empty()) {
+					if (!icon->is_empty()) {
 						_make_icon(icon, data);
 					}
 				}
@@ -604,14 +711,18 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 					ret = unzGoToNextFile(src_pkg_zip);
 					continue; // skip
 				}
-				file = file.replace("/data.mono.osx.64.release_debug/", "/data_" + pkg_name_safe + "/");
+				file = file.replace("/data.mono.osx.64.release_debug/", "/GodotSharp/");
 			}
 			if (file.find("/data.mono.osx.64.release/") != -1) {
 				if (p_debug) {
 					ret = unzGoToNextFile(src_pkg_zip);
 					continue; // skip
 				}
-				file = file.replace("/data.mono.osx.64.release/", "/data_" + pkg_name_safe + "/");
+				file = file.replace("/data.mono.osx.64.release/", "/GodotSharp/");
+			}
+
+			if (file.ends_with(".dylib")) {
+				dylibs_found.push_back(file);
 			}
 
 			print_line("ADDING: " + file + " size: " + itos(data.size()));
@@ -620,7 +731,7 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 			// Write it into our application bundle.
 			file = tmp_app_path_name.plus_file(file);
 			if (err == OK) {
-				err = tmp_app_path->make_dir_recursive(file.get_base_dir());
+				err = tmp_app_dir->make_dir_recursive(file.get_base_dir());
 			}
 			if (err == OK) {
 				FileAccess *f = FileAccess::open(file, FileAccess::WRITE);
@@ -661,22 +772,149 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 		// See if we can code sign our new package.
 		bool sign_enabled = p_preset->get("codesign/enable");
 
+		String ent_path = p_preset->get("codesign/entitlements/custom_file");
+		if (sign_enabled && (ent_path == "")) {
+			ent_path = EditorSettings::get_singleton()->get_cache_dir().plus_file(pkg_name + ".entitlements");
+
+			FileAccess *ent_f = FileAccess::open(ent_path, FileAccess::WRITE);
+			if (ent_f) {
+				ent_f->store_line("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+				ent_f->store_line("<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">");
+				ent_f->store_line("<plist version=\"1.0\">");
+				ent_f->store_line("<dict>");
+				if ((bool)p_preset->get("codesign/entitlements/allow_jit_code_execution")) {
+					ent_f->store_line("<key>com.apple.security.cs.allow-jit</key>");
+					ent_f->store_line("<true/>");
+				}
+				if ((bool)p_preset->get("codesign/entitlements/allow_unsigned_executable_memory")) {
+					ent_f->store_line("<key>com.apple.security.cs.allow-unsigned-executable-memory</key>");
+					ent_f->store_line("<true/>");
+				}
+				if ((bool)p_preset->get("codesign/entitlements/allow_dyld_environment_variables")) {
+					ent_f->store_line("<key>com.apple.security.cs.allow-dyld-environment-variables</key>");
+					ent_f->store_line("<true/>");
+				}
+				if ((bool)p_preset->get("codesign/entitlements/disable_library_validation")) {
+					ent_f->store_line("<key>com.apple.security.cs.disable-library-validation</key>");
+					ent_f->store_line("<true/>");
+				}
+				if ((bool)p_preset->get("codesign/entitlements/audio_input")) {
+					ent_f->store_line("<key>com.apple.security.device.audio-input</key>");
+					ent_f->store_line("<true/>");
+				}
+				if ((bool)p_preset->get("codesign/entitlements/camera")) {
+					ent_f->store_line("<key>com.apple.security.device.camera</key>");
+					ent_f->store_line("<true/>");
+				}
+				if ((bool)p_preset->get("codesign/entitlements/location")) {
+					ent_f->store_line("<key>com.apple.security.personal-information.location</key>");
+					ent_f->store_line("<true/>");
+				}
+				if ((bool)p_preset->get("codesign/entitlements/address_book")) {
+					ent_f->store_line("<key>com.apple.security.personal-information.addressbook</key>");
+					ent_f->store_line("<true/>");
+				}
+				if ((bool)p_preset->get("codesign/entitlements/calendars")) {
+					ent_f->store_line("<key>com.apple.security.personal-information.calendars</key>");
+					ent_f->store_line("<true/>");
+				}
+				if ((bool)p_preset->get("codesign/entitlements/photos_library")) {
+					ent_f->store_line("<key>com.apple.security.personal-information.photos-library</key>");
+					ent_f->store_line("<true/>");
+				}
+				if ((bool)p_preset->get("codesign/entitlements/apple_events")) {
+					ent_f->store_line("<key>com.apple.security.automation.apple-events</key>");
+					ent_f->store_line("<true/>");
+				}
+
+				if ((bool)p_preset->get("codesign/entitlements/app_sandbox/enabled")) {
+					ent_f->store_line("<key>com.apple.security.app-sandbox</key>");
+					ent_f->store_line("<true/>");
+
+					if ((bool)p_preset->get("codesign/entitlements/app_sandbox/network_server")) {
+						ent_f->store_line("<key>com.apple.security.network.server</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((bool)p_preset->get("codesign/entitlements/app_sandbox/network_client")) {
+						ent_f->store_line("<key>com.apple.security.network.client</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((bool)p_preset->get("codesign/entitlements/app_sandbox/device_usb")) {
+						ent_f->store_line("<key>com.apple.security.device.usb</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((bool)p_preset->get("codesign/entitlements/app_sandbox/device_bluetooth")) {
+						ent_f->store_line("<key>com.apple.security.device.bluetooth</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((int)p_preset->get("codesign/entitlements/app_sandbox/files_downloads") == 1) {
+						ent_f->store_line("<key>com.apple.security.files.downloads.read-only</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((int)p_preset->get("codesign/entitlements/app_sandbox/files_downloads") == 2) {
+						ent_f->store_line("<key>com.apple.security.files.downloads.read-write</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((int)p_preset->get("codesign/entitlements/app_sandbox/files_pictures") == 1) {
+						ent_f->store_line("<key>com.apple.security.files.pictures.read-only</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((int)p_preset->get("codesign/entitlements/app_sandbox/files_pictures") == 2) {
+						ent_f->store_line("<key>com.apple.security.files.pictures.read-write</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((int)p_preset->get("codesign/entitlements/app_sandbox/files_music") == 1) {
+						ent_f->store_line("<key>com.apple.security.files.music.read-only</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((int)p_preset->get("codesign/entitlements/app_sandbox/files_music") == 2) {
+						ent_f->store_line("<key>com.apple.security.files.music.read-write</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((int)p_preset->get("codesign/entitlements/app_sandbox/files_movies") == 1) {
+						ent_f->store_line("<key>com.apple.security.files.movies.read-only</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((int)p_preset->get("codesign/entitlements/app_sandbox/files_movies") == 2) {
+						ent_f->store_line("<key>com.apple.security.files.movies.read-write</key>");
+						ent_f->store_line("<true/>");
+					}
+				}
+
+				ent_f->store_line("</dict>");
+				ent_f->store_line("</plist>");
+
+				ent_f->close();
+				memdelete(ent_f);
+			} else {
+				err = ERR_CANT_CREATE;
+			}
+		}
+
 		if (err == OK) {
 			DirAccess *da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 			for (int i = 0; i < shared_objects.size(); i++) {
 				err = da->copy(shared_objects[i].path, tmp_app_path_name + "/Contents/Frameworks/" + shared_objects[i].path.get_file());
 				if (err == OK && sign_enabled) {
-					err = _code_sign(p_preset, tmp_app_path_name + "/Contents/Frameworks/" + shared_objects[i].path.get_file());
+					err = _code_sign(p_preset, tmp_app_path_name + "/Contents/Frameworks/" + shared_objects[i].path.get_file(), ent_path);
 				}
 			}
 			memdelete(da);
+		}
+
+		if (sign_enabled) {
+			for (int i = 0; i < dylibs_found.size(); i++) {
+				if (err == OK) {
+					err = _code_sign(p_preset, tmp_app_path_name + "/" + dylibs_found[i], ent_path);
+				}
+			}
 		}
 
 		if (err == OK && sign_enabled) {
 			if (ep.step("Code signing bundle", 2)) {
 				return ERR_SKIP;
 			}
-			err = _code_sign(p_preset, tmp_app_path_name + "/Contents/MacOS/" + pkg_name);
+			err = _code_sign(p_preset, tmp_app_path_name + "/Contents/MacOS/" + pkg_name, ent_path);
 		}
 
 		if (export_format == "dmg") {
@@ -692,7 +930,7 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 				if (ep.step("Code signing DMG", 3)) {
 					return ERR_SKIP;
 				}
-				err = _code_sign(p_preset, p_path);
+				err = _code_sign(p_preset, p_path, ent_path);
 			}
 		} else {
 			// Create ZIP.
@@ -714,8 +952,19 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 			}
 		}
 
+		bool noto_enabled = p_preset->get("notarization/enable");
+		if (err == OK && noto_enabled) {
+			if (ep.step("Sending archive for notarization", 4)) {
+				return ERR_SKIP;
+			}
+			err = _notarize(p_preset, p_path);
+		}
+
 		// Clean up temporary .app dir.
-		OS::get_singleton()->move_to_trash(tmp_app_path_name);
+		tmp_app_dir->change_dir(tmp_app_path_name);
+		tmp_app_dir->erase_contents_recursive();
+		tmp_app_dir->change_dir("..");
+		tmp_app_dir->remove(tmp_app_dir_name);
 	}
 
 	return err;
@@ -743,11 +992,15 @@ void EditorExportPlatformOSX::_zip_folder_recursive(zipFile &p_zip, const String
 			zipfi.tmz_date.tm_hour = time.hour;
 			zipfi.tmz_date.tm_mday = date.day;
 			zipfi.tmz_date.tm_min = time.min;
-			zipfi.tmz_date.tm_mon = date.month;
+			zipfi.tmz_date.tm_mon = date.month - 1; // Note: "tm" month range - 0..11, Godot month range - 1..12, http://www.cplusplus.com/reference/ctime/tm/
 			zipfi.tmz_date.tm_sec = time.sec;
 			zipfi.tmz_date.tm_year = date.year;
 			zipfi.dosDate = 0;
-			zipfi.external_fa = (is_executable ? 0755 : 0644) << 16L;
+			// 0100000: regular file type
+			// 0000755: permissions rwxr-xr-x
+			// 0000644: permissions rw-r--r--
+			uint32_t _mode = (is_executable ? 0100755 : 0100644);
+			zipfi.external_fa = (_mode << 16L) | !(_mode & 0200);
 			zipfi.internal_fa = 0;
 
 			zipOpenNewFileInZip4(p_zip,
@@ -803,7 +1056,36 @@ bool EditorExportPlatformOSX::can_export(const Ref<EditorExportPreset> &p_preset
 	valid = dvalid || rvalid;
 	r_missing_templates = !valid;
 
-	if (!err.empty()) {
+	String identifier = p_preset->get("application/bundle_identifier");
+	String pn_err;
+	if (!is_package_name_valid(identifier, &pn_err)) {
+		err += TTR("Invalid bundle identifier:") + " " + pn_err + "\n";
+		valid = false;
+	}
+
+	bool sign_enabled = p_preset->get("codesign/enable");
+	bool noto_enabled = p_preset->get("notarization/enable");
+	if (noto_enabled) {
+		if (!sign_enabled) {
+			err += TTR("Notarization: code signing required.") + "\n";
+			valid = false;
+		}
+		bool hr_enabled = p_preset->get("codesign/hardened_runtime");
+		if (!hr_enabled) {
+			err += TTR("Notarization: hardened runtime required.") + "\n";
+			valid = false;
+		}
+		if (p_preset->get("notarization/apple_id_name") == "") {
+			err += TTR("Notarization: Apple ID name not specified.") + "\n";
+			valid = false;
+		}
+		if (p_preset->get("notarization/apple_id_password") == "") {
+			err += TTR("Notarization: Apple ID password not specified.") + "\n";
+			valid = false;
+		}
+	}
+
+	if (!err.is_empty()) {
 		r_error = err;
 	}
 	return valid;

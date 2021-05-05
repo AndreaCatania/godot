@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -39,31 +39,32 @@ float ReflectionProbe::get_intensity() const {
 	return intensity;
 }
 
-void ReflectionProbe::set_interior_ambient(Color p_ambient) {
-	interior_ambient = p_ambient;
-	RS::get_singleton()->reflection_probe_set_interior_ambient(probe, p_ambient);
+void ReflectionProbe::set_ambient_mode(AmbientMode p_mode) {
+	ambient_mode = p_mode;
+	RS::get_singleton()->reflection_probe_set_ambient_mode(probe, RS::ReflectionProbeAmbientMode(p_mode));
+	notify_property_list_changed();
 }
 
-void ReflectionProbe::set_interior_ambient_energy(float p_energy) {
-	interior_ambient_energy = p_energy;
-	RS::get_singleton()->reflection_probe_set_interior_ambient_energy(probe, p_energy);
+ReflectionProbe::AmbientMode ReflectionProbe::get_ambient_mode() const {
+	return ambient_mode;
 }
 
-float ReflectionProbe::get_interior_ambient_energy() const {
-	return interior_ambient_energy;
+void ReflectionProbe::set_ambient_color(Color p_ambient) {
+	ambient_color = p_ambient;
+	RS::get_singleton()->reflection_probe_set_ambient_color(probe, p_ambient);
 }
 
-Color ReflectionProbe::get_interior_ambient() const {
-	return interior_ambient;
+void ReflectionProbe::set_ambient_color_energy(float p_energy) {
+	ambient_color_energy = p_energy;
+	RS::get_singleton()->reflection_probe_set_ambient_energy(probe, p_energy);
 }
 
-void ReflectionProbe::set_interior_ambient_probe_contribution(float p_contribution) {
-	interior_ambient_probe_contribution = p_contribution;
-	RS::get_singleton()->reflection_probe_set_interior_ambient_probe_contribution(probe, p_contribution);
+float ReflectionProbe::get_ambient_color_energy() const {
+	return ambient_color_energy;
 }
 
-float ReflectionProbe::get_interior_ambient_probe_contribution() const {
-	return interior_ambient_probe_contribution;
+Color ReflectionProbe::get_ambient_color() const {
+	return ambient_color;
 }
 
 void ReflectionProbe::set_max_distance(float p_distance) {
@@ -73,6 +74,15 @@ void ReflectionProbe::set_max_distance(float p_distance) {
 
 float ReflectionProbe::get_max_distance() const {
 	return max_distance;
+}
+
+void ReflectionProbe::set_lod_threshold(float p_pixels) {
+	lod_threshold = p_pixels;
+	RS::get_singleton()->reflection_probe_set_lod_threshold(probe, p_pixels);
+}
+
+float ReflectionProbe::get_lod_threshold() const {
+	return lod_threshold;
 }
 
 void ReflectionProbe::set_extents(const Vector3 &p_extents) {
@@ -85,13 +95,12 @@ void ReflectionProbe::set_extents(const Vector3 &p_extents) {
 
 		if (extents[i] - 0.01 < ABS(origin_offset[i])) {
 			origin_offset[i] = SGN(origin_offset[i]) * (extents[i] - 0.01);
-			_change_notify("origin_offset");
 		}
 	}
 
 	RS::get_singleton()->reflection_probe_set_extents(probe, extents);
 	RS::get_singleton()->reflection_probe_set_origin_offset(probe, origin_offset);
-	_change_notify("extents");
+
 	update_gizmo();
 }
 
@@ -110,7 +119,6 @@ void ReflectionProbe::set_origin_offset(const Vector3 &p_extents) {
 	RS::get_singleton()->reflection_probe_set_extents(probe, extents);
 	RS::get_singleton()->reflection_probe_set_origin_offset(probe, origin_offset);
 
-	_change_notify("origin_offset");
 	update_gizmo();
 }
 
@@ -130,7 +138,6 @@ bool ReflectionProbe::is_box_projection_enabled() const {
 void ReflectionProbe::set_as_interior(bool p_enable) {
 	interior = p_enable;
 	RS::get_singleton()->reflection_probe_set_as_interior(probe, interior);
-	_change_notify();
 }
 
 bool ReflectionProbe::is_set_as_interior() const {
@@ -176,8 +183,8 @@ Vector<Face3> ReflectionProbe::get_faces(uint32_t p_usage_flags) const {
 }
 
 void ReflectionProbe::_validate_property(PropertyInfo &property) const {
-	if (property.name == "interior/ambient_color" || property.name == "interior/ambient_energy" || property.name == "interior/ambient_contrib") {
-		if (!interior) {
+	if (property.name == "interior/ambient_color" || property.name == "interior/ambient_color_energy") {
+		if (ambient_mode != AMBIENT_COLOR) {
 			property.usage = PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL;
 		}
 	}
@@ -187,17 +194,20 @@ void ReflectionProbe::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_intensity", "intensity"), &ReflectionProbe::set_intensity);
 	ClassDB::bind_method(D_METHOD("get_intensity"), &ReflectionProbe::get_intensity);
 
-	ClassDB::bind_method(D_METHOD("set_interior_ambient", "ambient"), &ReflectionProbe::set_interior_ambient);
-	ClassDB::bind_method(D_METHOD("get_interior_ambient"), &ReflectionProbe::get_interior_ambient);
+	ClassDB::bind_method(D_METHOD("set_ambient_mode", "ambient"), &ReflectionProbe::set_ambient_mode);
+	ClassDB::bind_method(D_METHOD("get_ambient_mode"), &ReflectionProbe::get_ambient_mode);
 
-	ClassDB::bind_method(D_METHOD("set_interior_ambient_energy", "ambient_energy"), &ReflectionProbe::set_interior_ambient_energy);
-	ClassDB::bind_method(D_METHOD("get_interior_ambient_energy"), &ReflectionProbe::get_interior_ambient_energy);
+	ClassDB::bind_method(D_METHOD("set_ambient_color", "ambient"), &ReflectionProbe::set_ambient_color);
+	ClassDB::bind_method(D_METHOD("get_ambient_color"), &ReflectionProbe::get_ambient_color);
 
-	ClassDB::bind_method(D_METHOD("set_interior_ambient_probe_contribution", "ambient_probe_contribution"), &ReflectionProbe::set_interior_ambient_probe_contribution);
-	ClassDB::bind_method(D_METHOD("get_interior_ambient_probe_contribution"), &ReflectionProbe::get_interior_ambient_probe_contribution);
+	ClassDB::bind_method(D_METHOD("set_ambient_color_energy", "ambient_energy"), &ReflectionProbe::set_ambient_color_energy);
+	ClassDB::bind_method(D_METHOD("get_ambient_color_energy"), &ReflectionProbe::get_ambient_color_energy);
 
 	ClassDB::bind_method(D_METHOD("set_max_distance", "max_distance"), &ReflectionProbe::set_max_distance);
 	ClassDB::bind_method(D_METHOD("get_max_distance"), &ReflectionProbe::get_max_distance);
+
+	ClassDB::bind_method(D_METHOD("set_lod_threshold", "ratio"), &ReflectionProbe::set_lod_threshold);
+	ClassDB::bind_method(D_METHOD("get_lod_threshold"), &ReflectionProbe::get_lod_threshold);
 
 	ClassDB::bind_method(D_METHOD("set_extents", "extents"), &ReflectionProbe::set_extents);
 	ClassDB::bind_method(D_METHOD("get_extents"), &ReflectionProbe::get_extents);
@@ -226,33 +236,25 @@ void ReflectionProbe::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "extents"), "set_extents", "get_extents");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "origin_offset"), "set_origin_offset", "get_origin_offset");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "box_projection"), "set_enable_box_projection", "is_box_projection_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "interior"), "set_as_interior", "is_set_as_interior");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "enable_shadows"), "set_enable_shadows", "are_shadows_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "cull_mask", PROPERTY_HINT_LAYERS_3D_RENDER), "set_cull_mask", "get_cull_mask");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "lod_threshold", PROPERTY_HINT_RANGE, "0,1024,0.1"), "set_lod_threshold", "get_lod_threshold");
 
-	ADD_GROUP("Interior", "interior_");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "interior_enable"), "set_as_interior", "is_set_as_interior");
-	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "interior_ambient_color", PROPERTY_HINT_COLOR_NO_ALPHA), "set_interior_ambient", "get_interior_ambient");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "interior_ambient_energy", PROPERTY_HINT_RANGE, "0,16,0.01"), "set_interior_ambient_energy", "get_interior_ambient_energy");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "interior_ambient_contrib", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_interior_ambient_probe_contribution", "get_interior_ambient_probe_contribution");
+	ADD_GROUP("Ambient", "ambient_");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "ambient_mode", PROPERTY_HINT_ENUM, "Disabled,Environment,ConstantColor"), "set_ambient_mode", "get_ambient_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "ambient_color", PROPERTY_HINT_COLOR_NO_ALPHA), "set_ambient_color", "get_ambient_color");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "ambient_color_energy", PROPERTY_HINT_RANGE, "0,16,0.01"), "set_ambient_color_energy", "get_ambient_color_energy");
 
 	BIND_ENUM_CONSTANT(UPDATE_ONCE);
 	BIND_ENUM_CONSTANT(UPDATE_ALWAYS);
+
+	BIND_ENUM_CONSTANT(AMBIENT_DISABLED);
+	BIND_ENUM_CONSTANT(AMBIENT_ENVIRONMENT);
+	BIND_ENUM_CONSTANT(AMBIENT_COLOR);
 }
 
 ReflectionProbe::ReflectionProbe() {
-	intensity = 1.0;
-	interior_ambient = Color(0, 0, 0);
-	interior_ambient_probe_contribution = 0;
-	interior_ambient_energy = 1.0;
-	max_distance = 0;
-	extents = Vector3(1, 1, 1);
-	origin_offset = Vector3(0, 0, 0);
-	box_projection = false;
-	interior = false;
-	enable_shadows = false;
-	cull_mask = (1 << 20) - 1;
-	update_mode = UPDATE_ONCE;
-
 	probe = RenderingServer::get_singleton()->reflection_probe_create();
 	RS::get_singleton()->instance_set_base(get_instance(), probe);
 	set_disable_scale(true);

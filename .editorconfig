@@ -17,6 +17,11 @@ indent_size = 4
 indent_style = space
 indent_size = 4
 
-[.travis.yml]
+# YAML requires indentation with spaces instead of tabs.
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+[*.{csproj,props,targets,nuspec}]
 indent_style = space
 indent_size = 2

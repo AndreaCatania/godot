@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -46,20 +46,20 @@ class GIProbeData : public Resource {
 	AABB bounds;
 	Vector3 octree_size;
 
-	float dynamic_range;
-	float energy;
-	float bias;
-	float normal_bias;
-	float propagation;
-	float anisotropy_strength;
-	float ao;
-	float ao_size;
-	bool interior;
-	bool use_two_bounces;
+	float dynamic_range = 4.0;
+	float energy = 1.0;
+	float bias = 1.5;
+	float normal_bias = 0.0;
+	float propagation = 0.7;
+	float anisotropy_strength = 0.5;
+	float ao = 0.0;
+	float ao_size = 0.5;
+	bool interior = false;
+	bool use_two_bounces = false;
 
 protected:
 	static void _bind_methods();
-	void _validate_property(PropertyInfo &property) const;
+	void _validate_property(PropertyInfo &property) const override;
 
 public:
 	void allocate(const Transform &p_to_cell_xform, const AABB &p_aabb, const Vector3 &p_octree_size, const Vector<uint8_t> &p_octree_cells, const Vector<uint8_t> &p_data_cells, const Vector<uint8_t> &p_distance_field, const Vector<int> &p_level_counts);
@@ -101,7 +101,7 @@ public:
 	void set_use_two_bounces(bool p_enable);
 	bool is_using_two_bounces() const;
 
-	virtual RID get_rid() const;
+	virtual RID get_rid() const override;
 
 	GIProbeData();
 	~GIProbeData();
@@ -129,8 +129,8 @@ private:
 
 	RID gi_probe;
 
-	Subdiv subdiv;
-	Vector3 extents;
+	Subdiv subdiv = SUBDIV_128;
+	Vector3 extents = Vector3(10, 10, 10);
 
 	struct PlotMesh {
 		Ref<Material> override_material;
@@ -162,10 +162,10 @@ public:
 
 	void bake(Node *p_from_node = nullptr, bool p_create_visual_debug = false);
 
-	virtual AABB get_aabb() const;
-	virtual Vector<Face3> get_faces(uint32_t p_usage_flags) const;
+	virtual AABB get_aabb() const override;
+	virtual Vector<Face3> get_faces(uint32_t p_usage_flags) const override;
 
-	virtual String get_configuration_warning() const;
+	TypedArray<String> get_configuration_warnings() const override;
 
 	GIProbe();
 	~GIProbe();

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -58,7 +58,7 @@ void DependencyEditor::_load_pressed(Object *p_item, int p_cell, int p_button) {
 	for (List<String>::Element *E = ext.front(); E; E = E->next()) {
 		search->add_filter("*" + E->get());
 	}
-	search->popup_centered_ratio(0.65); // So it doesn't completely cover the dialog below it.
+	search->popup_file_dialog();
 }
 
 void DependencyEditor::_fix_and_find(EditorFileSystemDirectory *efsd, Map<String, Map<String, String>> &candidates) {
@@ -86,11 +86,11 @@ void DependencyEditor::_fix_and_find(EditorFileSystemDirectory *efsd, Map<String
 			String lost = E->key().replace_first("res://", "");
 
 			Vector<String> existingv = existing.split("/");
-			existingv.invert();
+			existingv.reverse();
 			Vector<String> currentv = current.split("/");
-			currentv.invert();
+			currentv.reverse();
 			Vector<String> lostv = lost.split("/");
-			lostv.invert();
+			lostv.reverse();
 
 			int existing_score = 0;
 			int current_score = 0;
@@ -205,7 +205,7 @@ void DependencyEditor::edit(const String &p_path) {
 	set_title(TTR("Dependencies For:") + " " + p_path.get_file());
 
 	_update_list();
-	popup_centered_ratio(0.7); // So it doesn't completely cover the dialog below it.
+	popup_centered_ratio(0.4);
 
 	if (EditorNode::get_singleton()->is_scene_open(p_path)) {
 		EditorNode::get_singleton()->show_warning(vformat(TTR("Scene '%s' is currently being edited.\nChanges will only take effect when reloaded."), p_path.get_file()));
@@ -323,7 +323,7 @@ void DependencyEditorOwners::show(const String &p_path) {
 	editing = p_path;
 	owners->clear();
 	_fill_owners(EditorFileSystem::get_singleton()->get_filesystem());
-	popup_centered_ratio();
+	popup_centered_ratio(0.3);
 
 	set_title(TTR("Owners Of:") + " " + p_path.get_file());
 }
@@ -448,15 +448,15 @@ void DependencyRemoveDialog::show(const Vector<String> &p_folders, const Vector<
 	Vector<RemovedDependency> removed_deps;
 	_find_all_removed_dependencies(EditorFileSystem::get_singleton()->get_filesystem(), removed_deps);
 	removed_deps.sort();
-	if (removed_deps.empty()) {
+	if (removed_deps.is_empty()) {
 		owners->hide();
-		text->set_text(TTR("Remove selected files from the project? (Can't be restored)"));
+		text->set_text(TTR("Remove selected files from the project? (no undo)\nYou can find the removed files in the system trash to restore them."));
 		set_size(Size2());
 		popup_centered();
 	} else {
 		_build_removed_dependency_tree(removed_deps);
 		owners->show();
-		text->set_text(TTR("The files being removed are required by other resources in order for them to work.\nRemove them anyway? (no undo)"));
+		text->set_text(TTR("The files being removed are required by other resources in order for them to work.\nRemove them anyway? (no undo)\nYou can find the removed files in the system trash to restore them."));
 		popup_centered(Size2(500, 350));
 	}
 	EditorFileSystem::get_singleton()->scan_changes();
@@ -471,29 +471,29 @@ void DependencyRemoveDialog::ok_pressed() {
 
 		// If the file we are deleting for e.g. the main scene, default environment,
 		// or audio bus layout, we must clear its definition in Project Settings.
-		if (files_to_delete[i] == ProjectSettings::get_singleton()->get("application/config/icon")) {
+		if (files_to_delete[i] == String(ProjectSettings::get_singleton()->get("application/config/icon"))) {
 			ProjectSettings::get_singleton()->set("application/config/icon", "");
 		}
-		if (files_to_delete[i] == ProjectSettings::get_singleton()->get("application/run/main_scene")) {
+		if (files_to_delete[i] == String(ProjectSettings::get_singleton()->get("application/run/main_scene"))) {
 			ProjectSettings::get_singleton()->set("application/run/main_scene", "");
 		}
-		if (files_to_delete[i] == ProjectSettings::get_singleton()->get("application/boot_splash/image")) {
+		if (files_to_delete[i] == String(ProjectSettings::get_singleton()->get("application/boot_splash/image"))) {
 			ProjectSettings::get_singleton()->set("application/boot_splash/image", "");
 		}
-		if (files_to_delete[i] == ProjectSettings::get_singleton()->get("rendering/environment/default_environment")) {
-			ProjectSettings::get_singleton()->set("rendering/environment/default_environment", "");
+		if (files_to_delete[i] == String(ProjectSettings::get_singleton()->get("rendering/environment/defaults/default_environment"))) {
+			ProjectSettings::get_singleton()->set("rendering/environment/defaults/default_environment", "");
 		}
-		if (files_to_delete[i] == ProjectSettings::get_singleton()->get("display/mouse_cursor/custom_image")) {
+		if (files_to_delete[i] == String(ProjectSettings::get_singleton()->get("display/mouse_cursor/custom_image"))) {
 			ProjectSettings::get_singleton()->set("display/mouse_cursor/custom_image", "");
 		}
-		if (files_to_delete[i] == ProjectSettings::get_singleton()->get("gui/theme/custom")) {
+		if (files_to_delete[i] == String(ProjectSettings::get_singleton()->get("gui/theme/custom"))) {
 			ProjectSettings::get_singleton()->set("gui/theme/custom", "");
 		}
-		if (files_to_delete[i] == ProjectSettings::get_singleton()->get("gui/theme/custom_font")) {
+		if (files_to_delete[i] == String(ProjectSettings::get_singleton()->get("gui/theme/custom_font"))) {
 			ProjectSettings::get_singleton()->set("gui/theme/custom_font", "");
 		}
-		if (files_to_delete[i] == ProjectSettings::get_singleton()->get("audio/default_bus_layout")) {
-			ProjectSettings::get_singleton()->set("audio/default_bus_layout", "");
+		if (files_to_delete[i] == String(ProjectSettings::get_singleton()->get("audio/buses/default_bus_layout"))) {
+			ProjectSettings::get_singleton()->set("audio/buses/default_bus_layout", "");
 		}
 
 		String path = OS::get_singleton()->get_resource_dir() + files_to_delete[i].replace_first("res://", "/");
@@ -553,7 +553,7 @@ void DependencyRemoveDialog::_bind_methods() {
 }
 
 DependencyRemoveDialog::DependencyRemoveDialog() {
-	get_ok()->set_text(TTR("Remove"));
+	get_ok_button()->set_text(TTR("Remove"));
 
 	VBoxContainer *vb = memnew(VBoxContainer);
 	add_child(vb);
@@ -619,12 +619,14 @@ DependencyErrorDialog::DependencyErrorDialog() {
 	files->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 
 	set_min_size(Size2(500, 220) * EDSCALE);
-	get_ok()->set_text(TTR("Open Anyway"));
-	get_cancel()->set_text(TTR("Close"));
+	get_ok_button()->set_text(TTR("Open Anyway"));
+	get_cancel_button()->set_text(TTR("Close"));
 
 	text = memnew(Label);
 	vb->add_child(text);
 	text->set_text(TTR("Which action should be taken?"));
+
+	mode = Mode::MODE_RESOURCE;
 
 	fdep = add_button(TTR("Fix Dependencies"), true, "fixdeps");
 
@@ -637,7 +639,7 @@ void OrphanResourcesDialog::ok_pressed() {
 	paths.clear();
 
 	_find_to_delete(files->get_root(), paths);
-	if (paths.empty()) {
+	if (paths.is_empty()) {
 		return;
 	}
 
@@ -714,7 +716,7 @@ void OrphanResourcesDialog::refresh() {
 
 void OrphanResourcesDialog::show() {
 	refresh();
-	popup_centered_ratio();
+	popup_centered_ratio(0.4);
 }
 
 void OrphanResourcesDialog::_find_to_delete(TreeItem *p_item, List<String> &paths) {
@@ -754,7 +756,7 @@ void OrphanResourcesDialog::_bind_methods() {
 OrphanResourcesDialog::OrphanResourcesDialog() {
 	set_title(TTR("Orphan Resource Explorer"));
 	delete_confirm = memnew(ConfirmationDialog);
-	get_ok()->set_text(TTR("Delete"));
+	get_ok_button()->set_text(TTR("Delete"));
 	add_child(delete_confirm);
 	dep_edit = memnew(DependencyEditor);
 	add_child(dep_edit);

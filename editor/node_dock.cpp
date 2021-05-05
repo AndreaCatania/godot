@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -92,7 +92,8 @@ NodeDock::NodeDock() {
 	add_child(mode_hb);
 	mode_hb->hide();
 
-	connections_button = memnew(ToolButton);
+	connections_button = memnew(Button);
+	connections_button->set_flat(true);
 	connections_button->set_text(TTR("Signals"));
 	connections_button->set_toggle_mode(true);
 	connections_button->set_pressed(true);
@@ -101,7 +102,8 @@ NodeDock::NodeDock() {
 	mode_hb->add_child(connections_button);
 	connections_button->connect("pressed", callable_mp(this, &NodeDock::show_connections));
 
-	groups_button = memnew(ToolButton);
+	groups_button = memnew(Button);
+	groups_button->set_flat(true);
 	groups_button->set_text(TTR("Groups"));
 	groups_button->set_toggle_mode(true);
 	groups_button->set_pressed(false);

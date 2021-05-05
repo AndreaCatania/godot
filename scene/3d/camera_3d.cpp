@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,10 +31,11 @@
 #include "camera_3d.h"
 
 #include "collision_object_3d.h"
-#include "core/engine.h"
+#include "core/config/engine.h"
 #include "core/math/camera_matrix.h"
 #include "scene/resources/material.h"
 #include "scene/resources/surface_tool.h"
+
 void Camera3D::_update_audio_listener_state() {
 }
 
@@ -101,7 +102,7 @@ void Camera3D::_update_camera() {
 void Camera3D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_WORLD: {
-			// Needs to track the Viewport  because it's needed on NOTIFICATION_EXIT_WORLD
+			// Needs to track the Viewport because it's needed on NOTIFICATION_EXIT_WORLD
 			// and Spatial will handle it first, including clearing its reference to the Viewport,
 			// therefore making it impossible to subclasses to access it
 			viewport = get_viewport();
@@ -208,7 +209,7 @@ void Camera3D::set_projection(Camera3D::Projection p_mode) {
 	if (p_mode == PROJECTION_PERSPECTIVE || p_mode == PROJECTION_ORTHOGONAL || p_mode == PROJECTION_FRUSTUM) {
 		mode = p_mode;
 		_update_camera_mode();
-		_change_notify();
+		notify_property_list_changed();
 	}
 }
 
@@ -318,8 +319,8 @@ Vector3 Camera3D::project_ray_origin(const Point2 &p_pos) const {
 
 bool Camera3D::is_position_behind(const Vector3 &p_pos) const {
 	Transform t = get_global_transform();
-	Vector3 eyedir = -get_global_transform().basis.get_axis(2).normalized();
-	return eyedir.dot(p_pos) < (eyedir.dot(t.origin) + near);
+	Vector3 eyedir = -t.basis.get_axis(2).normalized();
+	return eyedir.dot(p_pos - t.origin) < near;
 }
 
 Vector<Vector3> Camera3D::get_near_plane_points() const {
@@ -431,7 +432,7 @@ void Camera3D::set_keep_aspect_mode(KeepAspect p_aspect) {
 	keep_aspect = p_aspect;
 	RenderingServer::get_singleton()->camera_set_use_vertical_aspect(camera, p_aspect == KEEP_WIDTH);
 	_update_camera_mode();
-	_change_notify();
+	notify_property_list_changed();
 }
 
 Camera3D::KeepAspect Camera3D::get_keep_aspect_mode() const {
@@ -475,13 +476,13 @@ void Camera3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_fov"), &Camera3D::get_fov);
 	ClassDB::bind_method(D_METHOD("get_frustum_offset"), &Camera3D::get_frustum_offset);
 	ClassDB::bind_method(D_METHOD("get_size"), &Camera3D::get_size);
-	ClassDB::bind_method(D_METHOD("get_zfar"), &Camera3D::get_zfar);
-	ClassDB::bind_method(D_METHOD("get_znear"), &Camera3D::get_znear);
+	ClassDB::bind_method(D_METHOD("get_far"), &Camera3D::get_far);
+	ClassDB::bind_method(D_METHOD("get_near"), &Camera3D::get_near);
 	ClassDB::bind_method(D_METHOD("set_fov"), &Camera3D::set_fov);
 	ClassDB::bind_method(D_METHOD("set_frustum_offset"), &Camera3D::set_frustum_offset);
 	ClassDB::bind_method(D_METHOD("set_size"), &Camera3D::set_size);
-	ClassDB::bind_method(D_METHOD("set_zfar"), &Camera3D::set_zfar);
-	ClassDB::bind_method(D_METHOD("set_znear"), &Camera3D::set_znear);
+	ClassDB::bind_method(D_METHOD("set_far"), &Camera3D::set_far);
+	ClassDB::bind_method(D_METHOD("set_near"), &Camera3D::set_near);
 	ClassDB::bind_method(D_METHOD("get_projection"), &Camera3D::get_projection);
 	ClassDB::bind_method(D_METHOD("set_projection"), &Camera3D::set_projection);
 	ClassDB::bind_method(D_METHOD("set_h_offset", "ofs"), &Camera3D::set_h_offset);
@@ -518,8 +519,8 @@ void Camera3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "fov", PROPERTY_HINT_RANGE, "1,179,0.1"), "set_fov", "get_fov");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "size", PROPERTY_HINT_RANGE, "0.1,16384,0.01"), "set_size", "get_size");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "frustum_offset"), "set_frustum_offset", "get_frustum_offset");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "near", PROPERTY_HINT_EXP_RANGE, "0.01,8192,0.01,or_greater"), "set_znear", "get_znear");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "far", PROPERTY_HINT_EXP_RANGE, "0.1,8192,0.1,or_greater"), "set_zfar", "get_zfar");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "near", PROPERTY_HINT_EXP_RANGE, "0.001,10,0.001,or_greater"), "set_near", "get_near");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "far", PROPERTY_HINT_EXP_RANGE, "0.01,4000,0.01,or_greater"), "set_far", "get_far");
 
 	BIND_ENUM_CONSTANT(PROJECTION_PERSPECTIVE);
 	BIND_ENUM_CONSTANT(PROJECTION_ORTHOGONAL);
@@ -541,7 +542,7 @@ float Camera3D::get_size() const {
 	return size;
 }
 
-float Camera3D::get_znear() const {
+float Camera3D::get_near() const {
 	return near;
 }
 
@@ -549,7 +550,7 @@ Vector2 Camera3D::get_frustum_offset() const {
 	return frustum_offset;
 }
 
-float Camera3D::get_zfar() const {
+float Camera3D::get_far() const {
 	return far;
 }
 
@@ -561,18 +562,16 @@ void Camera3D::set_fov(float p_fov) {
 	ERR_FAIL_COND(p_fov < 1 || p_fov > 179);
 	fov = p_fov;
 	_update_camera_mode();
-	_change_notify("fov");
 }
 
 void Camera3D::set_size(float p_size) {
 	ERR_FAIL_COND(p_size < 0.1 || p_size > 16384);
 	size = p_size;
 	_update_camera_mode();
-	_change_notify("size");
 }
 
-void Camera3D::set_znear(float p_znear) {
-	near = p_znear;
+void Camera3D::set_near(float p_near) {
+	near = p_near;
 	_update_camera_mode();
 }
 
@@ -581,8 +580,8 @@ void Camera3D::set_frustum_offset(Vector2 p_offset) {
 	_update_camera_mode();
 }
 
-void Camera3D::set_zfar(float p_zfar) {
-	far = p_zfar;
+void Camera3D::set_far(float p_far) {
+	far = p_far;
 	_update_camera_mode();
 }
 
@@ -652,24 +651,10 @@ Vector3 Camera3D::get_doppler_tracked_velocity() const {
 
 Camera3D::Camera3D() {
 	camera = RenderingServer::get_singleton()->camera_create();
-	size = 1;
-	fov = 0;
-	frustum_offset = Vector2();
-	near = 0;
-	far = 0;
-	current = false;
-	viewport = nullptr;
-	force_change = false;
-	mode = PROJECTION_PERSPECTIVE;
-	set_perspective(75.0, 0.05, 100.0);
-	keep_aspect = KEEP_HEIGHT;
-	layers = 0xfffff;
-	v_offset = 0;
-	h_offset = 0;
+	set_perspective(75.0, 0.05, 4000.0);
 	RenderingServer::get_singleton()->camera_set_cull_mask(camera, layers);
 	//active=false;
 	velocity_tracker.instance();
-	doppler_tracking = DOPPLER_TRACKING_DISABLED;
 	set_notify_transform(true);
 	set_disable_scale(true);
 }
@@ -688,17 +673,17 @@ float ClippedCamera3D::get_margin() const {
 	return margin;
 }
 
-void ClippedCamera3D::set_process_mode(ProcessMode p_mode) {
-	if (process_mode == p_mode) {
+void ClippedCamera3D::set_process_callback(ClipProcessCallback p_mode) {
+	if (process_callback == p_mode) {
 		return;
 	}
-	process_mode = p_mode;
-	set_process_internal(process_mode == CLIP_PROCESS_IDLE);
-	set_physics_process_internal(process_mode == CLIP_PROCESS_PHYSICS);
+	process_callback = p_mode;
+	set_process_internal(process_callback == CLIP_PROCESS_IDLE);
+	set_physics_process_internal(process_callback == CLIP_PROCESS_PHYSICS);
 }
 
-ClippedCamera3D::ProcessMode ClippedCamera3D::get_process_mode() const {
-	return process_mode;
+ClippedCamera3D::ClipProcessCallback ClippedCamera3D::get_process_callback() const {
+	return process_callback;
 }
 
 Transform ClippedCamera3D::get_camera_transform() const {
@@ -730,7 +715,7 @@ void ClippedCamera3D::_notification(int p_what) {
 
 		Vector3 ray_from = parent_plane.project(cam_pos);
 
-		clip_offset = 0; //reset by defau;t
+		clip_offset = 0; //reset by default
 
 		{ //check if points changed
 			Vector<Vector3> local_points = get_near_plane_points();
@@ -754,9 +739,9 @@ void ClippedCamera3D::_notification(int p_what) {
 		xf.origin = ray_from;
 		xf.orthonormalize();
 
-		float csafe, cunsafe;
-		if (dspace->cast_motion(pyramid_shape, xf, cam_pos - ray_from, margin, csafe, cunsafe, exclude, collision_mask, clip_to_bodies, clip_to_areas)) {
-			clip_offset = cam_pos.distance_to(ray_from + (cam_pos - ray_from) * csafe);
+		float closest_safe = 1.0f, closest_unsafe = 1.0f;
+		if (dspace->cast_motion(pyramid_shape, xf, cam_pos - ray_from, margin, closest_safe, closest_unsafe, exclude, collision_mask, clip_to_bodies, clip_to_areas)) {
+			clip_offset = cam_pos.distance_to(ray_from + (cam_pos - ray_from) * closest_safe);
 		}
 
 		_update_camera();
@@ -776,6 +761,7 @@ uint32_t ClippedCamera3D::get_collision_mask() const {
 }
 
 void ClippedCamera3D::set_collision_mask_bit(int p_bit, bool p_value) {
+	ERR_FAIL_INDEX_MSG(p_bit, 32, "Collision layer bit must be between 0 and 31 inclusive.");
 	uint32_t mask = get_collision_mask();
 	if (p_value) {
 		mask |= 1 << p_bit;
@@ -786,6 +772,7 @@ void ClippedCamera3D::set_collision_mask_bit(int p_bit, bool p_value) {
 }
 
 bool ClippedCamera3D::get_collision_mask_bit(int p_bit) const {
+	ERR_FAIL_INDEX_V_MSG(p_bit, 32, false, "Collision mask bit must be between 0 and 31 inclusive.");
 	return get_collision_mask() & (1 << p_bit);
 }
 
@@ -843,8 +830,8 @@ void ClippedCamera3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_margin", "margin"), &ClippedCamera3D::set_margin);
 	ClassDB::bind_method(D_METHOD("get_margin"), &ClippedCamera3D::get_margin);
 
-	ClassDB::bind_method(D_METHOD("set_process_mode", "process_mode"), &ClippedCamera3D::set_process_mode);
-	ClassDB::bind_method(D_METHOD("get_process_mode"), &ClippedCamera3D::get_process_mode);
+	ClassDB::bind_method(D_METHOD("set_process_callback", "process_callback"), &ClippedCamera3D::set_process_callback);
+	ClassDB::bind_method(D_METHOD("get_process_callback"), &ClippedCamera3D::get_process_callback);
 
 	ClassDB::bind_method(D_METHOD("set_collision_mask", "mask"), &ClippedCamera3D::set_collision_mask);
 	ClassDB::bind_method(D_METHOD("get_collision_mask"), &ClippedCamera3D::get_collision_mask);
@@ -869,7 +856,7 @@ void ClippedCamera3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clear_exceptions"), &ClippedCamera3D::clear_exceptions);
 
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "margin", PROPERTY_HINT_RANGE, "0,32,0.01"), "set_margin", "get_margin");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "process_mode", PROPERTY_HINT_ENUM, "Physics,Idle"), "set_process_mode", "get_process_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "process_callback", PROPERTY_HINT_ENUM, "Physics,Idle"), "set_process_callback", "get_process_callback");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "collision_mask", PROPERTY_HINT_LAYERS_3D_PHYSICS), "set_collision_mask", "get_collision_mask");
 
 	ADD_GROUP("Clip To", "clip_to");
@@ -881,16 +868,10 @@ void ClippedCamera3D::_bind_methods() {
 }
 
 ClippedCamera3D::ClippedCamera3D() {
-	margin = 0;
-	clip_offset = 0;
-	process_mode = CLIP_PROCESS_PHYSICS;
 	set_physics_process_internal(true);
-	collision_mask = 1;
 	set_notify_local_transform(Engine::get_singleton()->is_editor_hint());
 	points.resize(5);
 	pyramid_shape = PhysicsServer3D::get_singleton()->shape_create(PhysicsServer3D::SHAPE_CONVEX_POLYGON);
-	clip_to_areas = false;
-	clip_to_bodies = true;
 }
 
 ClippedCamera3D::~ClippedCamera3D() {

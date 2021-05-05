@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -36,8 +36,8 @@
 class LineShape2D : public Shape2D {
 	GDCLASS(LineShape2D, Shape2D);
 
-	Vector2 normal;
-	real_t distance;
+	Vector2 normal = Vector2(0, 1);
+	real_t distance = 0.0;
 
 	void _update_shape();
 
@@ -45,7 +45,7 @@ protected:
 	static void _bind_methods();
 
 public:
-	virtual bool _edit_is_selected_on_click(const Point2 &p_point, double p_tolerance) const;
+	virtual bool _edit_is_selected_on_click(const Point2 &p_point, double p_tolerance) const override;
 
 	void set_normal(const Vector2 &p_normal);
 	void set_distance(real_t p_distance);
@@ -53,9 +53,9 @@ public:
 	Vector2 get_normal() const;
 	real_t get_distance() const;
 
-	virtual void draw(const RID &p_to_rid, const Color &p_color);
-	virtual Rect2 get_rect() const;
-	virtual real_t get_enclosing_radius() const;
+	virtual void draw(const RID &p_to_rid, const Color &p_color) override;
+	virtual Rect2 get_rect() const override;
+	virtual real_t get_enclosing_radius() const override;
 
 	LineShape2D();
 };

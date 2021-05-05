@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -99,9 +99,9 @@ public:
 String OS_OSX::get_unique_id() const {
 	static String serial_number;
 
-	if (serial_number.empty()) {
+	if (serial_number.is_empty()) {
 		io_service_t platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"));
-		CFStringRef serialNumberAsCFString = NULL;
+		CFStringRef serialNumberAsCFString = nullptr;
 		if (platformExpert) {
 			serialNumberAsCFString = (CFStringRef)IORegistryEntryCreateCFProperty(platformExpert, CFSTR(kIOPlatformSerialNumberKey), kCFAllocatorDefault, 0);
 			IOObjectRelease(platformExpert);
@@ -145,7 +145,9 @@ void OS_OSX::finalize() {
 
 	delete_main_loop();
 
-	memdelete(joypad_osx);
+	if (joypad_osx) {
+		memdelete(joypad_osx);
+	}
 }
 
 void OS_OSX::set_main_loop(MainLoop *p_main_loop) {
@@ -156,7 +158,7 @@ void OS_OSX::delete_main_loop() {
 	if (!main_loop)
 		return;
 	memdelete(main_loop);
-	main_loop = NULL;
+	main_loop = nullptr;
 }
 
 String OS_OSX::get_name() const {
@@ -272,13 +274,19 @@ String OS_OSX::get_system_dir(SystemDir p_dir) const {
 }
 
 Error OS_OSX::shell_open(String p_uri) {
-	[[NSWorkspace sharedWorkspace] openURL:[[NSURL alloc] initWithString:[[NSString stringWithUTF8String:p_uri.utf8().get_data()] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLFragmentAllowedCharacterSet]]]];
+	NSString *string = [NSString stringWithUTF8String:p_uri.utf8().get_data()];
+	NSURL *uri = [[NSURL alloc] initWithString:string];
+	// Escape special characters in filenames
+	if (!uri || !uri.scheme || [uri.scheme isEqual:@"file"]) {
+		uri = [[NSURL alloc] initWithString:[string stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLFragmentAllowedCharacterSet]]];
+	}
+	[[NSWorkspace sharedWorkspace] openURL:uri];
 	return OK;
 }
 
 String OS_OSX::get_locale() const {
 	NSString *locale_code = [[NSLocale preferredLanguages] objectAtIndex:0];
-	return [locale_code UTF8String];
+	return String([locale_code UTF8String]).replace("-", "_");
 }
 
 String OS_OSX::get_executable_path() const {
@@ -304,7 +312,7 @@ void OS_OSX::run() {
 	if (!main_loop)
 		return;
 
-	main_loop->init();
+	main_loop->initialize();
 
 	bool quit = false;
 	while (!force_quit && !quit) {
@@ -314,14 +322,14 @@ void OS_OSX::run() {
 			}
 			joypad_osx->process_joypads();
 
-			if (Main::iteration() == true) {
+			if (Main::iteration()) {
 				quit = true;
 			}
 		} @catch (NSException *exception) {
 			ERR_PRINT("NSException: " + String([exception reason].UTF8String));
 		}
 	};
-	main_loop->finish();
+	main_loop->finalize();
 }
 
 Error OS_OSX::move_to_trash(const String &p_path) {
@@ -338,7 +346,7 @@ Error OS_OSX::move_to_trash(const String &p_path) {
 }
 
 OS_OSX::OS_OSX() {
-	main_loop = NULL;
+	main_loop = nullptr;
 	force_quit = false;
 
 	Vector<Logger *> loggers;

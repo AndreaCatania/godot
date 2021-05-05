@@ -1,16 +1,19 @@
 # Latvian translation of the Godot Engine editor
-# Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.
-# Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).
+# Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.
+# Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).
 # This file is distributed under the same license as the Godot source code.
 # Gustavs Porietis (pg829-) <porietisgustavs@gmail.com>, 2018.
-# Martch Zagorski <martchzagorski@gmail.com>, 2018.
+# Martch Zagorski <martchzagorski@gmail.com>, 2018, 2020.
 # Jānis Ondzuls <janisond@inbox.lv>, 2020.
+# Anonymous <noreply@weblate.org>, 2020.
+# StiLins <aigars.skilins@gmail.com>, 2020.
+# Rihards Kubilis <oldcar@inbox.lv>, 2020.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2020-03-11 12:20+0000\n"
-"Last-Translator: Jānis Ondzuls <janisond@inbox.lv>\n"
+"PO-Revision-Date: 2020-11-15 12:43+0000\n"
+"Last-Translator: Rihards Kubilis <oldcar@inbox.lv>\n"
 "Language-Team: Latvian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/lv/>\n"
 "Language: lv\n"
@@ -19,16 +22,17 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n % 10 == 0 || n % 100 >= 11 && n % 100 <= "
 "19) ? 0 : ((n % 10 == 1 && n % 100 != 11) ? 1 : 2);\n"
-"X-Generator: Weblate 4.0-dev\n"
+"X-Generator: Weblate 4.4-dev\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
 msgid "Invalid type argument to convert(), use TYPE_* constants."
 msgstr ""
+"Nepareizs argumenta tips convert() izsaukšanai, lietojiet TYPE_* konstantes."
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 msgid "Expected a string of length 1 (a character)."
-msgstr ""
+msgstr "Jālieto teksta rinda ar garumu 1 (simbols)."
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/mono/glue/gd_glue.cpp
@@ -42,7 +46,7 @@ msgstr "Nederīga ievade %i (nav padota) izteikumā"
 
 #: core/math/expression.cpp
 msgid "self can't be used because instance is null (not passed)"
-msgstr ""
+msgstr "'self' nevar izmantot, jo instance ir 'null' (nav padota)"
 
 #: core/math/expression.cpp
 msgid "Invalid operands to operator %s, %s and %s."
@@ -58,11 +62,11 @@ msgstr "Nederīgs nosaukts indekss '%s' bāzes tipam %s"
 
 #: core/math/expression.cpp
 msgid "Invalid arguments to construct '%s'"
-msgstr "Nderīgs arguments, lai izveidotu '%s'"
+msgstr "Nederīgs arguments, lai izveidotu '%s'"
 
 #: core/math/expression.cpp
 msgid "On call to '%s':"
-msgstr ""
+msgstr "'%s' izsaukumā:"
 
 #: core/ustring.cpp
 msgid "B"
@@ -98,7 +102,7 @@ msgstr "Bezmaksas"
 
 #: editor/animation_bezier_editor.cpp
 msgid "Balanced"
-msgstr "Balancēts"
+msgstr "Balansēts"
 
 #: editor/animation_bezier_editor.cpp
 msgid "Mirror"
@@ -114,97 +118,96 @@ msgstr "Vērtība:"
 
 #: editor/animation_bezier_editor.cpp
 msgid "Insert Key Here"
-msgstr "Ievadiet vērtību šeit"
+msgstr "Ievadiet Atslēgu Šeit"
 
 #: editor/animation_bezier_editor.cpp
 msgid "Duplicate Selected Key(s)"
-msgstr "Dublikāta Vērtības"
+msgstr "Izveidot Dublikātu Izvēlētajai(ām) Atslēgai(ām)"
 
 #: editor/animation_bezier_editor.cpp
 msgid "Delete Selected Key(s)"
-msgstr "Izdzēst izvēlēto(ās) vērtību(as)?"
+msgstr "Izdzēst Izvēlēto(ās) Atslēgu(as)"
 
 #: editor/animation_bezier_editor.cpp
 msgid "Add Bezier Point"
-msgstr ""
+msgstr "Pievienot Bezjē Punktu"
 
 #: editor/animation_bezier_editor.cpp
 msgid "Move Bezier Points"
-msgstr ""
+msgstr "Pārvietot Bezjē Punktus"
 
 #: editor/animation_bezier_editor.cpp editor/animation_track_editor.cpp
 msgid "Anim Duplicate Keys"
-msgstr ""
+msgstr "Anim Izveidot Atslēgu Dublikātu"
 
 #: editor/animation_bezier_editor.cpp editor/animation_track_editor.cpp
 msgid "Anim Delete Keys"
-msgstr ""
+msgstr "Anim Izdzēst Atslēgas"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Change Keyframe Time"
-msgstr ""
+msgstr "Anim Izmainīt Atslēgkadra Laiku"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Change Transition"
-msgstr ""
+msgstr "Anim Izmainīt Pāreju"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Change Transform"
-msgstr ""
+msgstr "Anim Izmainīt Transformāciju"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Change Keyframe Value"
-msgstr ""
+msgstr "Anim Izmainīt Atslēgkadra Vērtību"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Change Call"
-msgstr ""
+msgstr "Anim Izmainīt Izsaukumu"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Multi Change Keyframe Time"
-msgstr ""
+msgstr "Anim Vairākkārt Izmainīt Atslēgkadra Laiku"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Multi Change Transition"
-msgstr ""
+msgstr "Anim Vairākkārt Izmainīt Pāreju"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Multi Change Transform"
-msgstr ""
+msgstr "Anim Vairākkārt Izmainīt Transformāciju"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Multi Change Keyframe Value"
-msgstr ""
+msgstr "Anim Vairākkārt Izmainīt Atslēgkadra Vērtību"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Multi Change Call"
-msgstr ""
+msgstr "Anim Vairākkārt Izmainīt Izsaukumu"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Change Animation Length"
-msgstr "Animāciju Cilpa"
+msgstr "Izmainīt Animācijas Garumu"
 
 #: editor/animation_track_editor.cpp
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "Change Animation Loop"
-msgstr ""
+msgstr "Izmainīt Animācijas Atkārtošanos"
 
 #: editor/animation_track_editor.cpp
 msgid "Property Track"
-msgstr ""
+msgstr "Mainīgo Celiņš"
 
 #: editor/animation_track_editor.cpp
 msgid "3D Transform Track"
-msgstr ""
+msgstr "3D Transformācijas Celiņš"
 
 #: editor/animation_track_editor.cpp
 msgid "Call Method Track"
-msgstr ""
+msgstr "Izsaukt Metožu Celiņu"
 
 #: editor/animation_track_editor.cpp
 msgid "Bezier Curve Track"
-msgstr ""
+msgstr "Bezjē Līkņu Celiņš"
 
 #: editor/animation_track_editor.cpp
 msgid "Audio Playback Track"
@@ -215,14 +218,12 @@ msgid "Animation Playback Track"
 msgstr "Animācijas atskaņošanas celiņs"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Animation length (frames)"
-msgstr "Animācijas Garums (sekundes)"
+msgstr "Animācijas garums (kadri)"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Animation length (seconds)"
-msgstr "Animācijas Garums (sekundes)"
+msgstr "Animācijas garums (sekundes)"
 
 #: editor/animation_track_editor.cpp
 msgid "Add Track"
@@ -247,15 +248,15 @@ msgstr "Animācijas klipi:"
 
 #: editor/animation_track_editor.cpp
 msgid "Change Track Path"
-msgstr ""
+msgstr "Izmainīt Ceļu uz Celiņa"
 
 #: editor/animation_track_editor.cpp
 msgid "Toggle this track on/off."
-msgstr ""
+msgstr "Pārslēgt šo celiņu ieslēgts/izslēgts."
 
 #: editor/animation_track_editor.cpp
 msgid "Update Mode (How this property is set)"
-msgstr ""
+msgstr "Atjaunošanas Režīms (Kā šis mainīgais tiek iestatīts)"
 
 #: editor/animation_track_editor.cpp
 msgid "Interpolation Mode"
@@ -263,7 +264,7 @@ msgstr "Interpolācijas režīms"
 
 #: editor/animation_track_editor.cpp
 msgid "Loop Wrap Mode (Interpolate end with beginning on loop)"
-msgstr ""
+msgstr "Atkārtošanās Aptīšanas Režīms (Interpolē beigas ar cilpas sākumu)"
 
 #: editor/animation_track_editor.cpp
 msgid "Remove this track."
@@ -275,7 +276,7 @@ msgstr "Laiks (s): "
 
 #: editor/animation_track_editor.cpp
 msgid "Toggle Track Enabled"
-msgstr ""
+msgstr "Pārslēgt Celiņu uz Iespējotu"
 
 #: editor/animation_track_editor.cpp
 msgid "Continuous"
@@ -308,16 +309,16 @@ msgstr "Kubisks"
 
 #: editor/animation_track_editor.cpp
 msgid "Clamp Loop Interp"
-msgstr ""
+msgstr "Apgriezt Cilpas Interpolāciju"
 
 #: editor/animation_track_editor.cpp
 msgid "Wrap Loop Interp"
-msgstr ""
+msgstr "Aptīt Cilpas Interpolāciju"
 
 #: editor/animation_track_editor.cpp
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Insert Key"
-msgstr "Ievietot atslēgievietni"
+msgstr "Ievietot Atslēgu"
 
 #: editor/animation_track_editor.cpp
 msgid "Duplicate Key(s)"
@@ -328,23 +329,20 @@ msgid "Delete Key(s)"
 msgstr "Izdzēst atslēgvietnes"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Change Animation Update Mode"
-msgstr "Animācijas tālummaiņa."
+msgstr "Izmainīt Animācijas Atjaunošanas Režīmu"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Change Animation Interpolation Mode"
-msgstr "Interpolācijas režīms"
+msgstr "Izmainīt Animācijas Interpolācijas Režīmu"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Change Animation Loop Mode"
-msgstr "Animācijas tālummaiņa."
+msgstr "Izmainīt Animācijas Atkārtošanās Režīmu"
 
 #: editor/animation_track_editor.cpp
 msgid "Remove Anim Track"
-msgstr "Noņemt animācijas celiņu"
+msgstr "Noņemt Anim. Celiņu"
 
 #: editor/animation_track_editor.cpp
 msgid "Create NEW track for %s and insert key?"
@@ -372,33 +370,31 @@ msgstr "Anim ievietot"
 
 #: editor/animation_track_editor.cpp
 msgid "AnimationPlayer can't animate itself, only other players."
-msgstr "AnimationPlayer nevar animēt pats sevi, tikai citi spēlētāji."
+msgstr "AnimationPlayer nevar animēt pats sevi, tikai citus spēlētājus."
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Create & Insert"
-msgstr "Anim izveidot un ievietot"
+msgstr "Anim Izveidot un Ievietot"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Insert Track & Key"
-msgstr "Anim ievietot celiņu un atslēgvietni"
+msgstr "Anim Ievietot Celiņu un Atslēgu"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Insert Key"
-msgstr "Anim ievietot atslēgievietni"
+msgstr "Anim Ievietot Atslēgu"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Change Animation Step"
-msgstr "Animācijas tālummaiņa."
+msgstr "Izmainīt Animācijas Soli"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Rearrange Tracks"
-msgstr "Ielīmēt celiņus"
+msgstr "Pārkārtot Celiņus"
 
 #: editor/animation_track_editor.cpp
 msgid "Transform tracks only apply to Spatial-based nodes."
-msgstr ""
+msgstr "Transformācijas celiņi tiek tikai pievienoti Telpiskajām mezgliem."
 
 #: editor/animation_track_editor.cpp
 msgid ""
@@ -407,7 +403,7 @@ msgid ""
 "-AudioStreamPlayer2D\n"
 "-AudioStreamPlayer3D"
 msgstr ""
-"Audio celiņu var tikai rādīt uz šāda tipa mezgliem:\n"
+"Audio celiņu var tikai norādīt uz šāda tipa mezgliem:\n"
 "-AudioStreamPlayer\n"
 "-AudioStreamPlayer2D\n"
 "-AudioStreamPlayer3D"
@@ -426,47 +422,43 @@ msgstr "Nevar izveidot jaunu celiņu bez saknes"
 
 #: editor/animation_track_editor.cpp
 msgid "Invalid track for Bezier (no suitable sub-properties)"
-msgstr ""
+msgstr "Neatbilstošs celiņš priekš Bezjē (nav piemērotu apakš-mainīgo)"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Add Bezier Track"
-msgstr "Pievienot celiņu"
+msgstr "Pievienot Bezjē Celiņu"
 
 #: editor/animation_track_editor.cpp
 msgid "Track path is invalid, so can't add a key."
-msgstr ""
+msgstr "Ceļš uz Celiņu nav derīgs, tāpēc nevar pievienot atslēgu."
 
 #: editor/animation_track_editor.cpp
 msgid "Track is not of type Spatial, can't insert key"
-msgstr ""
+msgstr "Celiņš nepieder Telpiskajam tipam, nevar ievietot atslēgu"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Add Transform Track Key"
-msgstr "Anim ievietot celiņu un atslēgvietni"
+msgstr "Pievienot Atslēgu Transformācijas Celiņam"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Add Track Key"
-msgstr "Pievienot celiņu"
+msgstr "Pievienot Celiņa Atslēgu"
 
 #: editor/animation_track_editor.cpp
 msgid "Track path is invalid, so can't add a method key."
-msgstr ""
+msgstr "Ceļš uz Celiņu nav derīgs, tāpēc nevar pievienot metodes atslēgu."
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Add Method Track Key"
-msgstr "Anim ievietot celiņu un atslēgvietni"
+msgstr "Pievienot Celiņa Metodes Atslēgu"
 
 #: editor/animation_track_editor.cpp
 msgid "Method not found in object: "
-msgstr "Metode netika atrasta objektā: "
+msgstr "Metode objektā netika atrasta: "
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Move Keys"
-msgstr "Anim pārvietot atslēgievietnes"
+msgstr "Anim Pārvietot Atslēgas"
 
 #: editor/animation_track_editor.cpp
 msgid "Clipboard is empty"
@@ -478,12 +470,12 @@ msgstr "Ielīmēt celiņus"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim Scale Keys"
-msgstr "Anim pārvietot atslēgievietnes"
+msgstr "Anim Mainīt Atslēgas Izmēru"
 
 #: editor/animation_track_editor.cpp
 msgid ""
 "This option does not work for Bezier editing, as it's only a single track."
-msgstr ""
+msgstr "Šī iespēja nestrādā ar Bazjē rediģēšanu, jo tai ir tikai viens celiņš."
 
 #: editor/animation_track_editor.cpp
 msgid ""
@@ -497,14 +489,24 @@ msgid ""
 "Alternatively, use an import preset that imports animations to separate "
 "files."
 msgstr ""
+"Šī animācija pieder importētajai ainai, tāpēc importētā celiņa izmaiņas "
+"netiks saglabātas.\n"
+"\n"
+"Lai iespējotu pielāgotu celiņu pievienošanu, atrodiet ainu importēšanas "
+"iespējas un iestādiet\n"
+"\"Animation > Storage\" uz \"Files\", iespējojiet \"Animation > Keep Custom "
+"Tracks\", tad nospiediet 're-import'.\n"
+"Alternatīvi, izmantojiet 'import preset', kas importē animācijas uz "
+"atsevišķiem failiem."
 
 #: editor/animation_track_editor.cpp
 msgid "Warning: Editing imported animation"
-msgstr ""
+msgstr "Brīdinājums: Rediģējat importēto animāciju"
 
 #: editor/animation_track_editor.cpp
 msgid "Select an AnimationPlayer node to create and edit animations."
 msgstr ""
+"Izvēlieties 'AnimationPlayer' mezglu, lai izveidotu un rediģētu animācijas."
 
 #: editor/animation_track_editor.cpp
 msgid "Only show tracks from nodes selected in tree."
@@ -516,9 +518,8 @@ msgstr ""
 "Sagrupēt celiņus atkarībā no mezgliem vai rādīt tos vienkāršā sarakstā."
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Snap:"
-msgstr "Solis (s): "
+msgstr "Pievilkt:"
 
 #: editor/animation_track_editor.cpp
 msgid "Animation step value."
@@ -526,11 +527,12 @@ msgstr "Animācijas soļa vērtība."
 
 #: editor/animation_track_editor.cpp
 msgid "Seconds"
-msgstr ""
+msgstr "Sekundes"
 
 #: editor/animation_track_editor.cpp
+#: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "FPS"
-msgstr ""
+msgstr "FPS"
 
 #: editor/animation_track_editor.cpp editor/editor_properties.cpp
 #: editor/plugins/polygon_2d_editor_plugin.cpp
@@ -560,7 +562,7 @@ msgstr "Skala No Kursora"
 
 #: editor/animation_track_editor.cpp modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Duplicate Selection"
-msgstr "Dublikāta Izvēle"
+msgstr "Izveidot Dublikātu Izvēlētajam"
 
 #: editor/animation_track_editor.cpp
 msgid "Duplicate Transposed"
@@ -571,14 +573,12 @@ msgid "Delete Selection"
 msgstr "Dzēst izvēlētos"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Go to Next Step"
-msgstr "Doties uz nākamo soli"
+msgstr "Doties uz Nākamo Soli"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Go to Previous Step"
-msgstr "Doties uz iepriekšējo soli"
+msgstr "Doties uz Iepriekšējo Soli"
 
 #: editor/animation_track_editor.cpp
 msgid "Optimize Animation"
@@ -586,7 +586,7 @@ msgstr "Optimizēt animāciju"
 
 #: editor/animation_track_editor.cpp
 msgid "Clean-Up Animation"
-msgstr ""
+msgstr "Iztīrīšanas Animācija"
 
 #: editor/animation_track_editor.cpp
 msgid "Pick the node that will be animated:"
@@ -594,7 +594,7 @@ msgstr "Izvēlies mezglu, kurā tiks animēta:"
 
 #: editor/animation_track_editor.cpp
 msgid "Use Bezier Curves"
-msgstr ""
+msgstr "Izmanto Bezjē Līknes"
 
 #: editor/animation_track_editor.cpp
 msgid "Anim. Optimizer"
@@ -602,15 +602,15 @@ msgstr "Anim. Optimizētājs"
 
 #: editor/animation_track_editor.cpp
 msgid "Max. Linear Error:"
-msgstr ""
+msgstr "Maks. Lineārā Kļūda:"
 
 #: editor/animation_track_editor.cpp
 msgid "Max. Angular Error:"
-msgstr ""
+msgstr "Maks. Rotācijas Kļūda:"
 
 #: editor/animation_track_editor.cpp
 msgid "Max Optimizable Angle:"
-msgstr ""
+msgstr "Max. Optimizējamais Leņķis:"
 
 #: editor/animation_track_editor.cpp
 msgid "Optimize"
@@ -618,23 +618,23 @@ msgstr "Optimizēt"
 
 #: editor/animation_track_editor.cpp
 msgid "Remove invalid keys"
-msgstr ""
+msgstr "Noņemt nederīgās atslēgas"
 
 #: editor/animation_track_editor.cpp
 msgid "Remove unresolved and empty tracks"
-msgstr ""
+msgstr "Noņemt neatrisinātos un nedefinētos celiņus"
 
 #: editor/animation_track_editor.cpp
 msgid "Clean-up all animations"
-msgstr ""
+msgstr "Iztīrīt visas animācijas"
 
 #: editor/animation_track_editor.cpp
 msgid "Clean-Up Animation(s) (NO UNDO!)"
-msgstr ""
+msgstr "Iztīrīt Animāciju(as) (NEATGRIEZENISKI!)"
 
 #: editor/animation_track_editor.cpp
 msgid "Clean-Up"
-msgstr ""
+msgstr "Iztīrit"
 
 #: editor/animation_track_editor.cpp
 msgid "Scale Ratio:"
@@ -642,42 +642,40 @@ msgstr "Mēroga Attiecība:"
 
 #: editor/animation_track_editor.cpp
 msgid "Select Tracks to Copy"
-msgstr ""
+msgstr "Izvēlēties Celiņus ko Kopēt"
 
 #: editor/animation_track_editor.cpp editor/editor_log.cpp
 #: editor/editor_properties.cpp
 #: editor/plugins/animation_player_editor_plugin.cpp
 #: editor/plugins/script_text_editor.cpp
 #: editor/plugins/sprite_frames_editor_plugin.cpp editor/property_editor.cpp
-#: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
+#: editor/scene_tree_dock.cpp scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 msgid "Copy"
-msgstr ""
+msgstr "Kopēt"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Select All/None"
-msgstr "Dzēst izvēlētos"
+msgstr "Izvēlēties Visus/Nevienu"
 
 #: editor/animation_track_editor_plugins.cpp
-#, fuzzy
 msgid "Add Audio Track Clip"
-msgstr "Audio klipi:"
+msgstr "Pievienot Audio Celiņa Klipu"
 
 #: editor/animation_track_editor_plugins.cpp
 msgid "Change Audio Track Clip Start Offset"
-msgstr ""
+msgstr "Mainīt Audio Celiņa Apgriešanas Sākuma Kompensāciju"
 
 #: editor/animation_track_editor_plugins.cpp
 msgid "Change Audio Track Clip End Offset"
-msgstr ""
+msgstr "Mainīt Audio Celiņa Apgriešanas Beigu Kompensāciju"
 
 #: editor/array_property_edit.cpp
 msgid "Resize Array"
-msgstr ""
+msgstr "Mainīt Masīva Lielumu"
 
 #: editor/array_property_edit.cpp
 msgid "Change Array Value Type"
-msgstr ""
+msgstr "Mainīt Masīva Vērtības Tipu"
 
 #: editor/array_property_edit.cpp
 msgid "Change Array Value"
@@ -705,13 +703,13 @@ msgstr "%d sakritības."
 
 #: editor/code_editor.cpp editor/find_in_files.cpp
 msgid "Match Case"
-msgstr ""
+msgstr "Atrast Gadījumu"
 
 #: editor/code_editor.cpp editor/find_in_files.cpp
 msgid "Whole Words"
-msgstr ""
+msgstr "Visu Vārdu"
 
-#: editor/code_editor.cpp editor/rename_dialog.cpp
+#: editor/code_editor.cpp
 msgid "Replace"
 msgstr "Aizvietot"
 
@@ -730,13 +728,13 @@ msgstr "Standarts"
 
 #: editor/code_editor.cpp editor/plugins/script_editor_plugin.cpp
 msgid "Toggle Scripts Panel"
-msgstr ""
+msgstr "Pārslēgt Skriptu Paneli"
 
 #: editor/code_editor.cpp editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/texture_region_editor_plugin.cpp
 #: editor/plugins/tile_set_editor_plugin.cpp scene/gui/graph_edit.cpp
 msgid "Zoom In"
-msgstr "Pietuvināt"
+msgstr "Palielināt"
 
 #: editor/code_editor.cpp editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/texture_region_editor_plugin.cpp
@@ -746,44 +744,48 @@ msgstr "Attālināt"
 
 #: editor/code_editor.cpp
 msgid "Reset Zoom"
-msgstr "Atiestatīt tālummaiņu"
+msgstr "Atiestatīt Tālummaiņu"
 
 #: editor/code_editor.cpp
 msgid "Warnings"
-msgstr ""
+msgstr "Brīdinājumi"
 
 #: editor/code_editor.cpp
 msgid "Line and column numbers."
-msgstr ""
+msgstr "Rindu un kolonnu numuri."
 
 #: editor/connections_dialog.cpp
 msgid "Method in target node must be specified."
-msgstr ""
+msgstr "Metodi mērķa mezglā nepieciešams specificēt."
+
+#: editor/connections_dialog.cpp
+#, fuzzy
+msgid "Method name must be a valid identifier."
+msgstr "Metodi mērķa mezglā nepieciešams specificēt."
 
 #: editor/connections_dialog.cpp
 msgid ""
 "Target method not found. Specify a valid method or attach a script to the "
 "target node."
 msgstr ""
+"Mērķa metode netika atrasta. Specificējiet derīgu metodi vai pievienojiet "
+"skriptu mērķa mezglam."
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "Connect to Node:"
-msgstr "Savienot"
+msgstr "Savienot ar Mezglu:"
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "Connect to Script:"
-msgstr "Savieno Signālu:"
+msgstr "Savieno ar Skriptu:"
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "From Signal:"
-msgstr "Savieno Signālu:"
+msgstr "No Signāla:"
 
 #: editor/connections_dialog.cpp
 msgid "Scene does not contain any script."
-msgstr ""
+msgstr "Aina nesatur skriptu."
 
 #: editor/connections_dialog.cpp editor/editor_autoload_settings.cpp
 #: editor/groups_editor.cpp editor/plugins/item_list_editor_plugin.cpp
@@ -804,48 +806,45 @@ msgstr "Noņemt"
 
 #: editor/connections_dialog.cpp
 msgid "Add Extra Call Argument:"
-msgstr ""
+msgstr "Pievienot Ekstra Izsaukuma Argumentu:"
 
 #: editor/connections_dialog.cpp
 msgid "Extra Call Arguments:"
-msgstr ""
+msgstr "Ekstra Izsaukuma Argumenti:"
 
 #: editor/connections_dialog.cpp
 msgid "Receiver Method:"
-msgstr ""
+msgstr "Saņemšanas Metode:"
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "Advanced"
-msgstr "Balancēts"
+msgstr "Papildus"
 
 #: editor/connections_dialog.cpp
 msgid "Deferred"
-msgstr ""
+msgstr "Atlikts"
 
 #: editor/connections_dialog.cpp
 msgid ""
 "Defers the signal, storing it in a queue and only firing it at idle time."
-msgstr ""
+msgstr "Atliek signālu, glabājot to rindā, un to izstaro tikai dīkstāvē."
 
 #: editor/connections_dialog.cpp
 msgid "Oneshot"
-msgstr ""
+msgstr "Vienreiz"
 
 #: editor/connections_dialog.cpp
 msgid "Disconnects the signal after its first emission."
-msgstr ""
+msgstr "Atvieno signālu pēc tā pirmās izstarošanas."
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "Cannot connect signal"
-msgstr "Savieno Signālu:"
+msgstr "Nevar savienot signālu"
 
 #: editor/connections_dialog.cpp editor/dependency_editor.cpp
 #: editor/export_template_manager.cpp editor/groups_editor.cpp
 #: editor/plugins/animation_player_editor_plugin.cpp
 #: editor/plugins/asset_library_editor_plugin.cpp
-#: editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/resource_preloader_editor_plugin.cpp
 #: editor/plugins/script_editor_plugin.cpp
 #: editor/plugins/sprite_frames_editor_plugin.cpp
@@ -861,9 +860,8 @@ msgid "Connect"
 msgstr "Savienot"
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "Signal:"
-msgstr "Signāli"
+msgstr "Signāls:"
 
 #: editor/connections_dialog.cpp
 msgid "Connect '%s' to '%s'"
@@ -874,52 +872,56 @@ msgid "Disconnect '%s' from '%s'"
 msgstr "Atvienot '%s' no '%s'"
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "Disconnect all from signal: '%s'"
-msgstr "Atvienot '%s' no '%s'"
+msgstr "Atvienot visus no signāla: '%s'"
 
 #: editor/connections_dialog.cpp
 msgid "Connect..."
-msgstr ""
+msgstr "Savieno..."
 
 #: editor/connections_dialog.cpp
 #: editor/plugins/animation_tree_player_editor_plugin.cpp
 msgid "Disconnect"
-msgstr ""
+msgstr "Atvieno"
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "Connect a Signal to a Method"
-msgstr "Savieno Signālu:"
+msgstr "Savienot Signālu ar Metodi"
 
 #: editor/connections_dialog.cpp
-#, fuzzy
 msgid "Edit Connection:"
-msgstr "Savieno Signālu:"
+msgstr "Izmainīt Savienojumu:"
 
 #: editor/connections_dialog.cpp
 msgid "Are you sure you want to remove all connections from the \"%s\" signal?"
 msgstr ""
+"Vai esat drošs(ša), ka vēlaties noņemt visus savienojumus no \"%s\" signāla?"
 
 #: editor/connections_dialog.cpp editor/editor_help.cpp editor/node_dock.cpp
 msgid "Signals"
 msgstr "Signāli"
 
 #: editor/connections_dialog.cpp
+#, fuzzy
+msgid "Filter signals"
+msgstr "No Signāla:"
+
+#: editor/connections_dialog.cpp
 msgid "Are you sure you want to remove all connections from this signal?"
 msgstr ""
+"Vai esat drošs(ša), ka vēlaties noņemt visus savienojumus no šī signāla?"
 
 #: editor/connections_dialog.cpp
 msgid "Disconnect All"
-msgstr ""
+msgstr "Atvienot Visu"
 
 #: editor/connections_dialog.cpp
 msgid "Edit..."
-msgstr ""
+msgstr "Rediģēt..."
 
 #: editor/connections_dialog.cpp
 msgid "Go To Method"
-msgstr ""
+msgstr "Doties Uz Metodi"
 
 #: editor/create_dialog.cpp
 msgid "Change %s Type"
@@ -943,7 +945,7 @@ msgid "Recent:"
 msgstr "Nesenie:"
 
 #: editor/create_dialog.cpp editor/plugins/script_editor_plugin.cpp
-#: editor/property_selector.cpp editor/quick_open.cpp
+#: editor/property_selector.cpp editor/quick_open.cpp editor/rename_dialog.cpp
 #: modules/visual_script/visual_script_property_selector.cpp
 msgid "Search:"
 msgstr "Meklēt:"
@@ -952,7 +954,7 @@ msgstr "Meklēt:"
 #: editor/property_selector.cpp editor/quick_open.cpp
 #: modules/visual_script/visual_script_property_selector.cpp
 msgid "Matches:"
-msgstr ""
+msgstr "Sakritības:"
 
 #: editor/create_dialog.cpp editor/editor_plugin_settings.cpp
 #: editor/plugin_config_dialog.cpp
@@ -964,28 +966,32 @@ msgstr "Apraksts:"
 
 #: editor/dependency_editor.cpp
 msgid "Search Replacement For:"
-msgstr ""
+msgstr "Meklēt Aizstājēju Priekš:"
 
 #: editor/dependency_editor.cpp
 msgid "Dependencies For:"
-msgstr ""
+msgstr "Atkarības Priekš:"
 
 #: editor/dependency_editor.cpp
 msgid ""
 "Scene '%s' is currently being edited.\n"
 "Changes will only take effect when reloaded."
 msgstr ""
+"Aina '%s' pašlaik tiek rediģēta.\n"
+"Izmaiņas stāsies spēkā, kad tā tiks pārlādēta."
 
 #: editor/dependency_editor.cpp
 msgid ""
 "Resource '%s' is in use.\n"
 "Changes will only take effect when reloaded."
 msgstr ""
+"Resurss '%s' tiek izmantots.\n"
+"Izmaiņas stāsies spēkā, kad tas tiks pārlādēts."
 
 #: editor/dependency_editor.cpp
 #: modules/gdnative/gdnative_library_editor_plugin.cpp
 msgid "Dependencies"
-msgstr ""
+msgstr "Atkarības"
 
 #: editor/dependency_editor.cpp
 msgid "Resource"
@@ -994,23 +1000,23 @@ msgstr "Resurs"
 #: editor/dependency_editor.cpp editor/editor_autoload_settings.cpp
 #: editor/project_manager.cpp editor/project_settings_editor.cpp
 msgid "Path"
-msgstr ""
+msgstr "Ceļš"
 
 #: editor/dependency_editor.cpp
 msgid "Dependencies:"
-msgstr ""
+msgstr "Atkarības:"
 
 #: editor/dependency_editor.cpp
 msgid "Fix Broken"
-msgstr ""
+msgstr "Labot Salauzto"
 
 #: editor/dependency_editor.cpp
 msgid "Dependency Editor"
-msgstr ""
+msgstr "Atkarību Redaktors"
 
 #: editor/dependency_editor.cpp
 msgid "Search Replacement Resource:"
-msgstr ""
+msgstr "Meklēt Aizstājēja Resursu:"
 
 #: editor/dependency_editor.cpp editor/editor_file_dialog.cpp
 #: editor/editor_help_search.cpp editor/editor_node.cpp
@@ -1027,14 +1033,19 @@ msgid "Owners Of:"
 msgstr "Īpašnieki:"
 
 #: editor/dependency_editor.cpp
-msgid "Remove selected files from the project? (Can't be restored)"
-msgstr ""
+#, fuzzy
+msgid ""
+"Remove selected files from the project? (no undo)\n"
+"You can find the removed files in the system trash to restore them."
+msgstr "Vai noņemt izvēlētos failus no projekta? (Netiks atjaunoti)"
 
 #: editor/dependency_editor.cpp
+#, fuzzy
 msgid ""
 "The files being removed are required by other resources in order for them to "
 "work.\n"
-"Remove them anyway? (no undo)"
+"Remove them anyway? (no undo)\n"
+"You can find the removed files in the system trash to restore them."
 msgstr ""
 "Faili, kurus Jūs vēlaties noņemt ir nepieciešami citiem resursiem lai tie "
 "varētu strādāt.\n"
@@ -1049,9 +1060,8 @@ msgid "Error loading:"
 msgstr "Kļūme lādējot:"
 
 #: editor/dependency_editor.cpp
-#, fuzzy
 msgid "Load failed due to missing dependencies:"
-msgstr "Ainu nevarēja ielādēt dēļ neatrastiem dependencīem:"
+msgstr "Ielādēšana apturēta, jo trūkst ceļu uz pamata failiem:"
 
 #: editor/dependency_editor.cpp editor/editor_node.cpp
 msgid "Open Anyway"
@@ -1062,9 +1072,8 @@ msgid "Which action should be taken?"
 msgstr "Kuru darbību izdarīt?"
 
 #: editor/dependency_editor.cpp
-#, fuzzy
 msgid "Fix Dependencies"
-msgstr "Salabot dependecīju"
+msgstr "Salabot Atkarības"
 
 #: editor/dependency_editor.cpp
 msgid "Errors loading!"
@@ -1072,20 +1081,19 @@ msgstr "Kļūmes lādējot!"
 
 #: editor/dependency_editor.cpp
 msgid "Permanently delete %d item(s)? (No undo!)"
-msgstr ""
+msgstr "Vai neatgriezeniski izdzēst %d priekšmetu(us)? (NEATGRIEZENISKI!)"
 
 #: editor/dependency_editor.cpp
-#, fuzzy
 msgid "Show Dependencies"
-msgstr "Salabot dependecīju"
+msgstr "Rādīt Ceļus uz Pamata Failiem"
 
 #: editor/dependency_editor.cpp
 msgid "Orphan Resource Explorer"
-msgstr ""
+msgstr "Bāreņu Resursu Pārlūks"
 
 #: editor/dependency_editor.cpp editor/editor_audio_buses.cpp
 #: editor/editor_file_dialog.cpp editor/editor_node.cpp
-#: editor/filesystem_dock.cpp editor/plugins/item_list_editor_plugin.cpp
+#: editor/plugins/item_list_editor_plugin.cpp
 #: editor/plugins/sprite_frames_editor_plugin.cpp editor/project_export.cpp
 #: editor/project_settings_editor.cpp editor/scene_tree_dock.cpp
 msgid "Delete"
@@ -1097,15 +1105,15 @@ msgstr "Pieder"
 
 #: editor/dependency_editor.cpp
 msgid "Resources Without Explicit Ownership:"
-msgstr ""
+msgstr "Resursi Bez Skaidra Īpašnieka:"
 
 #: editor/dictionary_property_edit.cpp
 msgid "Change Dictionary Key"
-msgstr ""
+msgstr "Mainīt Vārdnīcas Atslēgu"
 
 #: editor/dictionary_property_edit.cpp
 msgid "Change Dictionary Value"
-msgstr ""
+msgstr "Mainīt Vārdnīcas Vērtību"
 
 #: editor/editor_about.cpp
 msgid "Thanks from the Godot community!"
@@ -1123,6 +1131,9 @@ msgstr "Projekta Dibinātāji"
 msgid "Lead Developer"
 msgstr "Galvenais Izstrādātājs"
 
+#. TRANSLATORS: This refers to a job title.
+#. The trailing space is used to distinguish with the project list application,
+#. you do not have to keep it in your translation.
 #: editor/editor_about.cpp
 msgid "Project Manager "
 msgstr "Projekta Menedžeris "
@@ -1142,6 +1153,16 @@ msgstr "Platīna Sponsori"
 #: editor/editor_about.cpp
 msgid "Gold Sponsors"
 msgstr "Zelta Sponsori"
+
+#: editor/editor_about.cpp
+#, fuzzy
+msgid "Silver Sponsors"
+msgstr "Sudraba Donors"
+
+#: editor/editor_about.cpp
+#, fuzzy
+msgid "Bronze Sponsors"
+msgstr "Bronzas Donors"
 
 #: editor/editor_about.cpp
 msgid "Mini Sponsors"
@@ -1168,22 +1189,20 @@ msgid "License"
 msgstr "Licence"
 
 #: editor/editor_about.cpp
-#, fuzzy
 msgid "Third-party Licenses"
-msgstr "Trešās partijas Licence"
+msgstr "Trešās partijas Licences"
 
 #: editor/editor_about.cpp
-#, fuzzy
 msgid ""
 "Godot Engine relies on a number of third-party free and open source "
 "libraries, all compatible with the terms of its MIT license. The following "
 "is an exhaustive list of all such third-party components with their "
 "respective copyright statements and license terms."
 msgstr ""
-"Godot Dzinējs paļaujas uz citiem trešās partijas brīvajām un atvērtā avota "
-"bibliotēkām, kuri visi sader ar to MIT licences nosacījumiem. Sekojošais ir "
-"saraksts ar šīm trešās partijas komponentēm ar to autortiesību apgalvojumiem "
-"un licences nosacījumiem."
+"Godot Konstruktors paļaujas uz citiem trešās partijas brīvajām un atvērtā "
+"avota bibliotēkām, kuras ir saderīgas ar to MIT licences nosacījumiem. "
+"Sekojošais ir saraksts ar šīm trešās partijas komponentēm ar to autortiesību "
+"apgalvojumiem un licences nosacījumiem."
 
 #: editor/editor_about.cpp
 msgid "All Components"
@@ -1198,38 +1217,37 @@ msgid "Licenses"
 msgstr "Licences"
 
 #: editor/editor_asset_installer.cpp editor/project_manager.cpp
-#, fuzzy
 msgid "Error opening package file, not in ZIP format."
-msgstr "Kļūme atverot arhīvu failu, nav ZIP formātā."
+msgstr "Kļūda atverot failu arhīvu, nav ZIP formātā."
 
 #: editor/editor_asset_installer.cpp
 msgid "%s (Already Exists)"
-msgstr ""
+msgstr "%s (Jau Eksistē)"
 
 #: editor/editor_asset_installer.cpp
 msgid "Uncompressing Assets"
-msgstr ""
+msgstr "Nekompresēti Līdzekļi"
 
 #: editor/editor_asset_installer.cpp editor/project_manager.cpp
 msgid "The following files failed extraction from package:"
-msgstr ""
+msgstr "Sekojošie faili netika izvilkti no paketes:"
 
 #: editor/editor_asset_installer.cpp
 msgid "And %s more files."
-msgstr ""
+msgstr "Un %s vēl faili."
 
 #: editor/editor_asset_installer.cpp editor/project_manager.cpp
 msgid "Package installed successfully!"
-msgstr ""
+msgstr "Pakete instalēta sekmīgi!"
 
 #: editor/editor_asset_installer.cpp
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Success!"
-msgstr "Izdevās!"
+msgstr "Mērķis sasniegts!"
 
 #: editor/editor_asset_installer.cpp
 msgid "Package Contents:"
-msgstr ""
+msgstr "Paketes Saturs:"
 
 #: editor/editor_asset_installer.cpp editor/editor_node.cpp
 msgid "Install"
@@ -1237,7 +1255,7 @@ msgstr "Ieinstalēt"
 
 #: editor/editor_asset_installer.cpp
 msgid "Package Installer"
-msgstr ""
+msgstr "Paketes Instalētājs"
 
 #: editor/editor_audio_buses.cpp
 msgid "Speakers"
@@ -1257,47 +1275,47 @@ msgstr "Nomainīt Audio Kopnes Skaļumu"
 
 #: editor/editor_audio_buses.cpp
 msgid "Toggle Audio Bus Solo"
-msgstr ""
+msgstr "Pārslēgt Audio Busa Solo"
 
 #: editor/editor_audio_buses.cpp
 msgid "Toggle Audio Bus Mute"
-msgstr ""
+msgstr "Pārslēgt Audio Busa Apklusināšanu"
 
 #: editor/editor_audio_buses.cpp
 msgid "Toggle Audio Bus Bypass Effects"
-msgstr ""
+msgstr "Pārslēgt Audio Busa Šuntēšanas Efektu"
 
 #: editor/editor_audio_buses.cpp
 msgid "Select Audio Bus Send"
-msgstr ""
+msgstr "Izvēlēties Audio Busa Sūtīšanu"
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Audio Bus Effect"
-msgstr ""
+msgstr "Pievienot Audio Busa Efektu"
 
 #: editor/editor_audio_buses.cpp
 msgid "Move Bus Effect"
-msgstr ""
+msgstr "Pārvietot Busa Efektu"
 
 #: editor/editor_audio_buses.cpp
 msgid "Delete Bus Effect"
-msgstr ""
+msgstr "Izdzēst Busa Efektu"
 
 #: editor/editor_audio_buses.cpp
 msgid "Drag & drop to rearrange."
-msgstr ""
+msgstr "Velc un atlaid, lai pārkārtotu."
 
 #: editor/editor_audio_buses.cpp
 msgid "Solo"
-msgstr ""
+msgstr "Solo"
 
 #: editor/editor_audio_buses.cpp
 msgid "Mute"
-msgstr ""
+msgstr "Apklusināt"
 
 #: editor/editor_audio_buses.cpp
 msgid "Bypass"
-msgstr ""
+msgstr "Šunts"
 
 #: editor/editor_audio_buses.cpp
 msgid "Bus options"
@@ -1306,7 +1324,7 @@ msgstr "Kopnes iestatījumi"
 #: editor/editor_audio_buses.cpp editor/filesystem_dock.cpp
 #: editor/plugins/animation_player_editor_plugin.cpp editor/scene_tree_dock.cpp
 msgid "Duplicate"
-msgstr ""
+msgstr "Izveidot Dublikātu"
 
 #: editor/editor_audio_buses.cpp
 msgid "Reset Volume"
@@ -1369,9 +1387,8 @@ msgid "Invalid file, not an audio bus layout."
 msgstr ""
 
 #: editor/editor_audio_buses.cpp
-#, fuzzy
 msgid "Error saving file: %s"
-msgstr "Kļūmes lādējot!"
+msgstr "Kļūda saglabājot failu: %s"
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Bus"
@@ -1420,25 +1437,18 @@ msgid "Valid characters:"
 msgstr "Derīgie simboli:"
 
 #: editor/editor_autoload_settings.cpp
-#, fuzzy
 msgid "Must not collide with an existing engine class name."
 msgstr ""
-"Nederīgs nosaukums. Nedrīkst sadurties ar eksistējošu dzinēja klases "
-"nosaukumu."
+"Nosaukums nedrīkst būt vienāds ar eksistējošu konstruktora klases nosaukumu."
 
 #: editor/editor_autoload_settings.cpp
-#, fuzzy
 msgid "Must not collide with an existing built-in type name."
-msgstr ""
-"Nederīgs nosaukums. Nedrīkst sadurties ar eksistējošu iebūvēto tipa "
-"nosaukumu."
+msgstr "Nosaukums nedrīkst būt vienāds ar eksistējošu iebūvēta tipa nosaukumu."
 
 #: editor/editor_autoload_settings.cpp
-#, fuzzy
 msgid "Must not collide with an existing global constant name."
 msgstr ""
-"Nederīgs nosaukums. Nedrīkst sadurties ar eksistējošu dzinēja klases "
-"nosaukumu."
+"Nosaukums nedrīkst būt vienāds ar eksistējošu globālo konstantes nosaukumu."
 
 #: editor/editor_autoload_settings.cpp
 msgid "Keyword cannot be used as an autoload name."
@@ -1472,17 +1482,8 @@ msgstr "Iespējot"
 msgid "Rearrange Autoloads"
 msgstr ""
 
-#: editor/editor_autoload_settings.cpp editor/script_create_dialog.cpp
-#, fuzzy
-msgid "Invalid path."
-msgstr "Nederīgs nosaukums."
-
-#: editor/editor_autoload_settings.cpp editor/script_create_dialog.cpp
-msgid "File does not exist."
-msgstr ""
-
 #: editor/editor_autoload_settings.cpp
-msgid "Not in resource path."
+msgid "Can't add autoload:"
 msgstr ""
 
 #: editor/editor_autoload_settings.cpp
@@ -1596,6 +1597,26 @@ msgid ""
 "Enabled'."
 msgstr ""
 
+#: editor/editor_export.cpp
+msgid ""
+"Target platform requires 'PVRTC' texture compression for GLES2. Enable "
+"'Import Pvrtc' in Project Settings."
+msgstr ""
+
+#: editor/editor_export.cpp
+msgid ""
+"Target platform requires 'ETC2' or 'PVRTC' texture compression for GLES3. "
+"Enable 'Import Etc 2' or 'Import Pvrtc' in Project Settings."
+msgstr ""
+
+#: editor/editor_export.cpp
+msgid ""
+"Target platform requires 'PVRTC' texture compression for the driver fallback "
+"to GLES2.\n"
+"Enable 'Import Pvrtc' in Project Settings, or disable 'Driver Fallback "
+"Enabled'."
+msgstr ""
+
 #: editor/editor_export.cpp platform/android/export/export.cpp
 #: platform/iphone/export/export.cpp platform/javascript/export/export.cpp
 #: platform/osx/export/export.cpp platform/uwp/export/export.cpp
@@ -1617,9 +1638,8 @@ msgid "On 32-bit exports the embedded PCK cannot be bigger than 4 GiB."
 msgstr ""
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "3D Editor"
-msgstr "Rediģēt"
+msgstr "3D Redaktors"
 
 #: editor/editor_feature_profile.cpp
 msgid "Script Editor"
@@ -1634,15 +1654,15 @@ msgid "Scene Tree Editing"
 msgstr ""
 
 #: editor/editor_feature_profile.cpp
-msgid "Import Dock"
-msgstr ""
-
-#: editor/editor_feature_profile.cpp
 msgid "Node Dock"
 msgstr ""
 
 #: editor/editor_feature_profile.cpp
-msgid "FileSystem and Import Docks"
+msgid "FileSystem Dock"
+msgstr ""
+
+#: editor/editor_feature_profile.cpp
+msgid "Import Dock"
 msgstr ""
 
 #: editor/editor_feature_profile.cpp
@@ -1666,23 +1686,20 @@ msgid "(Properties Disabled)"
 msgstr ""
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "(Editor Disabled)"
-msgstr "Atspējots"
+msgstr "(Redaktors Izslēgts)"
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "Class Options:"
-msgstr "Apraksts:"
+msgstr "Klases Iespējas:"
 
 #: editor/editor_feature_profile.cpp
 msgid "Enable Contextual Editor"
 msgstr ""
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "Enabled Properties:"
-msgstr "Animācijas īpašības."
+msgstr "Ieslēgtie Mainīgie:"
 
 #: editor/editor_feature_profile.cpp
 msgid "Enabled Features:"
@@ -1703,9 +1720,8 @@ msgid ""
 msgstr ""
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "Error saving profile to path: '%s'."
-msgstr "Kļūmes lādējot!"
+msgstr "Kļūda saglabājot profilu uz ceļu: '%s'."
 
 #: editor/editor_feature_profile.cpp
 msgid "Unset"
@@ -1716,9 +1732,8 @@ msgid "Current Profile:"
 msgstr ""
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "Make Current"
-msgstr "Izveidot Funkciju"
+msgstr "Aktualizēt"
 
 #: editor/editor_feature_profile.cpp
 #: editor/plugins/animation_player_editor_plugin.cpp
@@ -1736,14 +1751,12 @@ msgid "Export"
 msgstr ""
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "Available Profiles:"
-msgstr "Animācijas īpašības."
+msgstr "Pieejamie Profili:"
 
 #: editor/editor_feature_profile.cpp
-#, fuzzy
 msgid "Class Options"
-msgstr "Apraksts:"
+msgstr "Klases Iespējas"
 
 #: editor/editor_feature_profile.cpp
 msgid "New profile name:"
@@ -1778,18 +1791,16 @@ msgid "File Exists, Overwrite?"
 msgstr ""
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
-#, fuzzy
 msgid "Select This Folder"
-msgstr "Izvēlēties šo Mapi"
+msgstr "Izvēlēties Šo Mapi"
 
 #: editor/editor_file_dialog.cpp editor/filesystem_dock.cpp
 msgid "Copy Path"
 msgstr ""
 
 #: editor/editor_file_dialog.cpp editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Open in File Manager"
-msgstr "Atvērt"
+msgstr "Atvērt Failu Pārlūkā"
 
 #: editor/editor_file_dialog.cpp editor/editor_node.cpp
 #: editor/filesystem_dock.cpp editor/project_manager.cpp
@@ -1830,8 +1841,8 @@ msgid "Open a File or Directory"
 msgstr ""
 
 #: editor/editor_file_dialog.cpp editor/editor_node.cpp
-#: editor/editor_properties.cpp editor/inspector_dock.cpp
-#: editor/plugins/animation_player_editor_plugin.cpp
+#: editor/editor_properties.cpp editor/import_defaults_editor.cpp
+#: editor/inspector_dock.cpp editor/plugins/animation_player_editor_plugin.cpp
 #: editor/plugins/script_editor_plugin.cpp scene/gui/file_dialog.cpp
 msgid "Save"
 msgstr ""
@@ -1877,23 +1888,20 @@ msgid "Move Favorite Down"
 msgstr ""
 
 #: editor/editor_file_dialog.cpp
-#, fuzzy
 msgid "Go to previous folder."
-msgstr "Doties uz iepriekšējo soli"
+msgstr "Doties uz iepriekšējo mapi."
 
 #: editor/editor_file_dialog.cpp
-#, fuzzy
 msgid "Go to next folder."
-msgstr "Doties uz nākamo soli"
+msgstr "Doties uz nākamo mapi."
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "Go to parent folder."
 msgstr ""
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
-#, fuzzy
 msgid "Refresh files."
-msgstr "Meklēt:"
+msgstr "Atjaunot failus."
 
 #: editor/editor_file_dialog.cpp
 msgid "(Un)favorite current folder."
@@ -1917,16 +1925,12 @@ msgstr ""
 
 #: editor/editor_file_dialog.cpp editor/plugins/sprite_editor_plugin.cpp
 #: editor/plugins/style_box_editor_plugin.cpp
-#: editor/plugins/theme_editor_plugin.cpp
+#: editor/plugins/theme_editor_plugin.cpp editor/rename_dialog.cpp
 msgid "Preview:"
 msgstr ""
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "File:"
-msgstr ""
-
-#: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
-msgid "Must use a valid extension."
 msgstr ""
 
 #: editor/editor_file_system.cpp
@@ -1961,9 +1965,8 @@ msgid "Inherited by:"
 msgstr ""
 
 #: editor/editor_help.cpp
-#, fuzzy
 msgid "Description"
-msgstr "Apraksts:"
+msgstr "Apraksts"
 
 #: editor/editor_help.cpp
 msgid "Online Tutorials"
@@ -1978,9 +1981,8 @@ msgid "override:"
 msgstr ""
 
 #: editor/editor_help.cpp
-#, fuzzy
 msgid "default:"
-msgstr "Ielādēt Noklusējumu"
+msgstr "pēc noklusējuma:"
 
 #: editor/editor_help.cpp
 msgid "Methods"
@@ -1996,12 +1998,11 @@ msgstr ""
 
 #: editor/editor_help.cpp
 msgid "Constants"
-msgstr ""
+msgstr "Konstantes"
 
 #: editor/editor_help.cpp
-#, fuzzy
 msgid "Property Descriptions"
-msgstr "Apraksts:"
+msgstr "Mainīgo Apraksts"
 
 #: editor/editor_help.cpp
 msgid "(value)"
@@ -2014,9 +2015,8 @@ msgid ""
 msgstr ""
 
 #: editor/editor_help.cpp
-#, fuzzy
 msgid "Method Descriptions"
-msgstr "Apraksts:"
+msgstr "Metožu Apraksts"
 
 #: editor/editor_help.cpp
 msgid ""
@@ -2050,9 +2050,8 @@ msgid "Methods Only"
 msgstr ""
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Signals Only"
-msgstr "Signāli"
+msgstr "Tikai Signāli"
 
 #: editor/editor_help_search.cpp
 msgid "Constants Only"
@@ -2079,9 +2078,8 @@ msgid "Method"
 msgstr ""
 
 #: editor/editor_help_search.cpp editor/plugins/script_text_editor.cpp
-#, fuzzy
 msgid "Signal"
-msgstr "Signāli"
+msgstr "Signāls"
 
 #: editor/editor_help_search.cpp editor/plugins/theme_editor_plugin.cpp
 msgid "Constant"
@@ -2112,9 +2110,8 @@ msgid "Output:"
 msgstr ""
 
 #: editor/editor_log.cpp editor/plugins/tile_map_editor_plugin.cpp
-#, fuzzy
 msgid "Copy Selection"
-msgstr "Noņemt Izvēlēto"
+msgstr "Kopēt Izvēlēto"
 
 #: editor/editor_log.cpp editor/editor_network_profiler.cpp
 #: editor/editor_profiler.cpp editor/editor_properties.cpp
@@ -2280,11 +2277,16 @@ msgid "Error saving TileSet!"
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Error trying to save layout!"
+msgid ""
+"An error occurred while trying to save the editor layout.\n"
+"Make sure the editor's user data path is writable."
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Default editor layout overridden."
+msgid ""
+"Default editor layout overridden.\n"
+"To restore the Default layout to its base settings, use the Delete Layout "
+"option and delete the Default layout."
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2292,7 +2294,7 @@ msgid "Layout name not found!"
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Restored default layout to base settings."
+msgid "Restored the Default layout to its base settings."
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2334,7 +2336,7 @@ msgid "There is no defined scene to run."
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Current scene was never saved, please save it prior to running."
+msgid "Save scene before running..."
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2350,9 +2352,8 @@ msgid "Open Base Scene"
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Quick Open..."
-msgstr "Atvērt"
+msgstr "Ātri Atvērt..."
 
 #: editor/editor_node.cpp
 msgid "Quick Open Scene..."
@@ -2380,18 +2381,6 @@ msgstr ""
 
 #: editor/editor_node.cpp
 msgid "Save Scene As..."
-msgstr ""
-
-#: editor/editor_node.cpp
-msgid "No"
-msgstr ""
-
-#: editor/editor_node.cpp
-msgid "Yes"
-msgstr ""
-
-#: editor/editor_node.cpp
-msgid "This scene has never been saved. Save before running?"
 msgstr ""
 
 #: editor/editor_node.cpp editor/scene_tree_dock.cpp
@@ -2423,11 +2412,14 @@ msgid "Can't reload a scene that was never saved."
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Revert"
-msgstr ""
+#, fuzzy
+msgid "Reload Saved Scene"
+msgstr "Atvērt Aizvērto Ainu"
 
 #: editor/editor_node.cpp
-msgid "This action cannot be undone. Revert anyway?"
+msgid ""
+"The current scene has unsaved changes.\n"
+"Reload the saved scene anyway? This action cannot be undone."
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2436,6 +2428,10 @@ msgstr ""
 
 #: editor/editor_node.cpp
 msgid "Quit"
+msgstr ""
+
+#: editor/editor_node.cpp
+msgid "Yes"
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2473,16 +2469,15 @@ msgid "Close Scene"
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Reopen Closed Scene"
-msgstr "Atjaunina Ainu"
+msgstr "Atvērt Aizvērto Ainu"
 
 #: editor/editor_node.cpp
 msgid "Unable to enable addon plugin at: '%s' parsing of config failed."
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Unable to find script field for addon plugin at: 'res://addons/%s'."
+msgid "Unable to find script field for addon plugin at: '%s'."
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2568,14 +2563,12 @@ msgid "Play This Scene"
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Close Tab"
-msgstr "Aizvērt"
+msgstr "Aizvērt Cilni"
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Undo Close Tab"
-msgstr "Aizvērt"
+msgstr "Atcelt Cilnes Aizvēršanu"
 
 #: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
 msgid "Close Other Tabs"
@@ -2586,9 +2579,8 @@ msgid "Close Tabs to the Right"
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Close All Tabs"
-msgstr "Aizvērt"
+msgstr "Aizvērt Visas Cilnes"
 
 #: editor/editor_node.cpp
 msgid "Switch Scene Tab"
@@ -2631,9 +2623,8 @@ msgid "Go to previously opened scene."
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Copy Text"
-msgstr "Noņemt Izvēlēto"
+msgstr "Kopēt Tekstu"
 
 #: editor/editor_node.cpp
 msgid "Next tab"
@@ -2672,9 +2663,8 @@ msgid "Save Scene"
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Save All Scenes"
-msgstr "Saglabāt Kā"
+msgstr "Saglabāt Visas Ainas"
 
 #: editor/editor_node.cpp
 msgid "Convert To..."
@@ -2696,10 +2686,6 @@ msgstr ""
 #: editor/editor_node.cpp editor/plugins/script_text_editor.cpp
 #: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 msgid "Redo"
-msgstr ""
-
-#: editor/editor_node.cpp
-msgid "Revert Scene"
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2736,9 +2722,8 @@ msgid "Install Android Build Template..."
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Open Project Data Folder"
-msgstr "Projekta Dibinātāji"
+msgstr "Atvērt Projekta Datu Mapi"
 
 #: editor/editor_node.cpp editor/plugins/tile_set_editor_plugin.cpp
 msgid "Tools"
@@ -2763,22 +2748,26 @@ msgstr ""
 
 #: editor/editor_node.cpp
 msgid ""
-"When exporting or deploying, the resulting executable will attempt to "
-"connect to the IP of this computer in order to be debugged."
+"When this option is enabled, using one-click deploy will make the executable "
+"attempt to connect to this computer's IP so the running project can be "
+"debugged.\n"
+"This option is intended to be used for remote debugging (typically with a "
+"mobile device).\n"
+"You don't need to enable it to use the GDScript debugger locally."
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Small Deploy with Network FS"
+msgid "Small Deploy with Network Filesystem"
 msgstr ""
 
 #: editor/editor_node.cpp
 msgid ""
-"When this option is enabled, export or deploy will produce a minimal "
-"executable.\n"
+"When this option is enabled, using one-click deploy for Android will only "
+"export an executable without the project data.\n"
 "The filesystem will be provided from the project by the editor over the "
 "network.\n"
-"On Android, deploy will use the USB cable for faster performance. This "
-"option speeds up testing for games with a large footprint."
+"On Android, deploying will use the USB cable for faster performance. This "
+"option speeds up testing for projects with large assets."
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2787,8 +2776,8 @@ msgstr ""
 
 #: editor/editor_node.cpp
 msgid ""
-"Collision shapes and raycast nodes (for 2D and 3D) will be visible on the "
-"running game if this option is turned on."
+"When this option is enabled, collision shapes and raycast nodes (for 2D and "
+"3D) will be visible in the running project."
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -2797,32 +2786,32 @@ msgstr ""
 
 #: editor/editor_node.cpp
 msgid ""
-"Navigation meshes and polygons will be visible on the running game if this "
-"option is turned on."
+"When this option is enabled, navigation meshes and polygons will be visible "
+"in the running project."
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Sync Scene Changes"
-msgstr ""
-
-#: editor/editor_node.cpp
-msgid ""
-"When this option is turned on, any changes made to the scene in the editor "
-"will be replicated in the running game.\n"
-"When used remotely on a device, this is more efficient with network "
-"filesystem."
-msgstr ""
-
-#: editor/editor_node.cpp
-msgid "Sync Script Changes"
+msgid "Synchronize Scene Changes"
 msgstr ""
 
 #: editor/editor_node.cpp
 msgid ""
-"When this option is turned on, any script that is saved will be reloaded on "
-"the running game.\n"
-"When used remotely on a device, this is more efficient with network "
-"filesystem."
+"When this option is enabled, any changes made to the scene in the editor "
+"will be replicated in the running project.\n"
+"When used remotely on a device, this is more efficient when the network "
+"filesystem option is enabled."
+msgstr ""
+
+#: editor/editor_node.cpp
+msgid "Synchronize Script Changes"
+msgstr ""
+
+#: editor/editor_node.cpp
+msgid ""
+"When this option is enabled, any script that is saved will be reloaded in "
+"the running project.\n"
+"When used remotely on a device, this is more efficient when the network "
+"filesystem option is enabled."
 msgstr ""
 
 #: editor/editor_node.cpp editor/script_create_dialog.cpp
@@ -2877,15 +2866,6 @@ msgstr ""
 msgid "Help"
 msgstr ""
 
-#: editor/editor_node.cpp editor/plugins/asset_library_editor_plugin.cpp
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/script_text_editor.cpp
-#: editor/plugins/shader_editor_plugin.cpp editor/plugins/text_editor.cpp
-#: editor/plugins/visual_shader_editor_plugin.cpp editor/project_manager.cpp
-#: editor/project_settings_editor.cpp editor/rename_dialog.cpp
-msgid "Search"
-msgstr ""
-
 #: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
 #: editor/plugins/shader_editor_plugin.cpp
 msgid "Online Docs"
@@ -2905,11 +2885,11 @@ msgstr ""
 
 #: editor/editor_node.cpp editor/plugins/asset_library_editor_plugin.cpp
 msgid "Community"
-msgstr ""
+msgstr "Sabiedrība"
 
 #: editor/editor_node.cpp
 msgid "About"
-msgstr ""
+msgstr "Par"
 
 #: editor/editor_node.cpp
 msgid "Play the project."
@@ -2961,9 +2941,8 @@ msgid "Spins when the editor window redraws."
 msgstr ""
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid "Update Continuously"
-msgstr "Nepārtraukti"
+msgstr "Nepārtraukti Atjaunot"
 
 #: editor/editor_node.cpp
 msgid "Update When Changed"
@@ -3041,6 +3020,23 @@ msgid "Open & Run a Script"
 msgstr ""
 
 #: editor/editor_node.cpp
+#, fuzzy
+msgid ""
+"The following files are newer on disk.\n"
+"What action should be taken?"
+msgstr "Sekojošie faili netika izvilkti no paketes:"
+
+#: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/shader_editor_plugin.cpp
+msgid "Reload"
+msgstr ""
+
+#: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/shader_editor_plugin.cpp
+msgid "Resave"
+msgstr ""
+
+#: editor/editor_node.cpp
 msgid "New Inherited"
 msgstr ""
 
@@ -3093,9 +3089,8 @@ msgid "Thumbnail..."
 msgstr ""
 
 #: editor/editor_plugin_settings.cpp
-#, fuzzy
 msgid "Main Script:"
-msgstr "Savieno Signālu:"
+msgstr "Galvenais Skripts:"
 
 #: editor/editor_plugin_settings.cpp
 msgid "Edit Plugin"
@@ -3167,9 +3162,8 @@ msgid "Calls"
 msgstr ""
 
 #: editor/editor_properties.cpp
-#, fuzzy
 msgid "Edit Text:"
-msgstr "Savieno Signālu:"
+msgstr "Rediģēt Tekstu:"
 
 #: editor/editor_properties.cpp editor/script_create_dialog.cpp
 msgid "On"
@@ -3192,9 +3186,8 @@ msgid "Assign..."
 msgstr ""
 
 #: editor/editor_properties.cpp
-#, fuzzy
 msgid "Invalid RID"
-msgstr "Nederīgs nosaukums."
+msgstr "Nederīgs RID"
 
 #: editor/editor_properties.cpp
 msgid ""
@@ -3246,7 +3239,7 @@ msgstr ""
 #: editor/plugins/script_text_editor.cpp
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 #: editor/plugins/tile_map_editor_plugin.cpp editor/property_editor.cpp
-#: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
+#: editor/scene_tree_dock.cpp scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 msgid "Paste"
 msgstr ""
 
@@ -3286,7 +3279,8 @@ msgstr ""
 #: editor/editor_run_native.cpp
 msgid ""
 "No runnable export preset found for this platform.\n"
-"Please add a runnable preset in the export menu."
+"Please add a runnable preset in the Export menu or define an existing preset "
+"as runnable."
 msgstr ""
 
 #: editor/editor_run_script.cpp
@@ -3311,6 +3305,10 @@ msgstr ""
 
 #: editor/editor_run_script.cpp
 msgid "Did you forget the '_run' method?"
+msgstr ""
+
+#: editor/editor_spin_slider.cpp
+msgid "Hold Ctrl to round to integers. Hold Shift for more precise changes."
 msgstr ""
 
 #: editor/editor_sub_scene.cpp
@@ -3437,9 +3435,8 @@ msgid "Download Complete."
 msgstr ""
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Cannot remove temporary file:"
-msgstr "Nevar noņemt:"
+msgstr "Nevar noņemt pagaidu failu:"
 
 #: editor/export_template_manager.cpp
 msgid ""
@@ -3448,9 +3445,8 @@ msgid ""
 msgstr ""
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Error requesting URL:"
-msgstr "Kļūme lādējot:"
+msgstr "Kļūda pieprasot URL:"
 
 #: editor/export_template_manager.cpp
 msgid "Connecting to Mirror..."
@@ -3519,9 +3515,8 @@ msgid "Remove Template"
 msgstr ""
 
 #: editor/export_template_manager.cpp
-#, fuzzy
 msgid "Select Template File"
-msgstr "Izvēlēties šo Mapi"
+msgstr "Izvēlēties Šablona Failu"
 
 #: editor/export_template_manager.cpp
 msgid "Godot Export Templates"
@@ -3540,12 +3535,16 @@ msgid "Select mirror from list: (Shift+Click: Open in Browser)"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Favorites"
-msgstr "Favorīti:"
+msgstr "Favorīti"
 
 #: editor/filesystem_dock.cpp
 msgid "Status: Import of file failed. Please fix file and reimport manually."
+msgstr ""
+
+#: editor/filesystem_dock.cpp
+msgid ""
+"Importing has been disabled for this file, so it can't be opened for editing."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
@@ -3585,6 +3584,16 @@ msgid "Name contains invalid characters."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
+msgid ""
+"The following files or folders conflict with items in the target location "
+"'%s':\n"
+"\n"
+"%s\n"
+"\n"
+"Do you wish to overwrite them?"
+msgstr ""
+
+#: editor/filesystem_dock.cpp
 msgid "Renaming file:"
 msgstr ""
 
@@ -3605,28 +3614,24 @@ msgid "New Inherited Scene"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Set As Main Scene"
-msgstr "Saglabāt Kā"
+msgstr "Iestatīt Kā Galveno Ainu"
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Open Scenes"
-msgstr "Atjaunina Ainu"
+msgstr "Atvērt Ainas"
 
 #: editor/filesystem_dock.cpp
 msgid "Instance"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Add to Favorites"
-msgstr "Favorīti:"
+msgstr "Pievienot Favorītiem"
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Remove from Favorites"
-msgstr "Favorīti:"
+msgstr "Noņemt no Favorītiem"
 
 #: editor/filesystem_dock.cpp
 msgid "Edit Dependencies..."
@@ -3636,31 +3641,21 @@ msgstr ""
 msgid "View Owners..."
 msgstr ""
 
-#: editor/filesystem_dock.cpp editor/plugins/animation_player_editor_plugin.cpp
-msgid "Rename..."
-msgstr ""
-
-#: editor/filesystem_dock.cpp
-msgid "Duplicate..."
-msgstr ""
-
 #: editor/filesystem_dock.cpp
 msgid "Move To..."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "New Scene..."
-msgstr "Resurs"
+msgstr "Jauna Aina..."
 
 #: editor/filesystem_dock.cpp editor/plugins/script_editor_plugin.cpp
 msgid "New Script..."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "New Resource..."
-msgstr "Resurs"
+msgstr "Jauns Resurss..."
 
 #: editor/filesystem_dock.cpp editor/plugins/visual_shader_editor_plugin.cpp
 #: editor/script_editor_debugger.cpp
@@ -3673,21 +3668,24 @@ msgid "Collapse All"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#: editor/plugins/animation_tree_player_editor_plugin.cpp
-#: editor/project_manager.cpp editor/rename_dialog.cpp
-#: editor/scene_tree_dock.cpp
-msgid "Rename"
+msgid "Duplicate..."
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
-msgid "Previous Folder/File"
-msgstr "Izvēlēties šo Mapi"
+msgid "Move to Trash"
+msgstr ""
+
+#: editor/filesystem_dock.cpp editor/plugins/animation_player_editor_plugin.cpp
+msgid "Rename..."
+msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
+msgid "Previous Folder/File"
+msgstr "Iepriekšējā Mape/Fails"
+
+#: editor/filesystem_dock.cpp
 msgid "Next Folder/File"
-msgstr "Izvēlēties šo Mapi"
+msgstr "Nākamā Mape/Fails"
 
 #: editor/filesystem_dock.cpp
 msgid "Re-Scan Filesystem"
@@ -3698,9 +3696,8 @@ msgid "Toggle Split Mode"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Search files"
-msgstr "Meklēt:"
+msgstr "Meklēt failus"
 
 #: editor/filesystem_dock.cpp
 msgid ""
@@ -3713,7 +3710,10 @@ msgid "Move"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-msgid "There is already file or folder with the same name in this location."
+#: editor/plugins/animation_tree_player_editor_plugin.cpp
+#: editor/project_manager.cpp editor/rename_dialog.cpp
+#: editor/scene_tree_dock.cpp
+msgid "Rename"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
@@ -3721,18 +3721,16 @@ msgid "Overwrite"
 msgstr ""
 
 #: editor/filesystem_dock.cpp
-#, fuzzy
 msgid "Create Scene"
-msgstr "Izveidot"
+msgstr "Izveidot Ainu"
 
 #: editor/filesystem_dock.cpp editor/plugins/script_editor_plugin.cpp
 msgid "Create Script"
 msgstr ""
 
 #: editor/find_in_files.cpp editor/plugins/script_editor_plugin.cpp
-#, fuzzy
 msgid "Find in Files"
-msgstr "Nederīgs nosaukums."
+msgstr "Atrast Failos"
 
 #: editor/find_in_files.cpp
 msgid "Find:"
@@ -3770,22 +3768,31 @@ msgid "Find: "
 msgstr ""
 
 #: editor/find_in_files.cpp
-#, fuzzy
 msgid "Replace: "
-msgstr "Aizvietot"
+msgstr "Aizvietot: "
 
 #: editor/find_in_files.cpp
 msgid "Replace all (no undo)"
 msgstr ""
 
 #: editor/find_in_files.cpp
-#, fuzzy
 msgid "Searching..."
-msgstr "Meklēt:"
+msgstr "Meklē..."
 
 #: editor/find_in_files.cpp
-msgid "Search complete"
-msgstr ""
+#, fuzzy
+msgid "%d match in %d file."
+msgstr "%d sakritības."
+
+#: editor/find_in_files.cpp
+#, fuzzy
+msgid "%d matches in %d file."
+msgstr "%d sakritības."
+
+#: editor/find_in_files.cpp
+#, fuzzy
+msgid "%d matches in %d files."
+msgstr "%d sakritības."
 
 #: editor/groups_editor.cpp
 msgid "Add to Group"
@@ -3800,19 +3807,16 @@ msgid "Group name already exists."
 msgstr ""
 
 #: editor/groups_editor.cpp
-#, fuzzy
 msgid "Invalid group name."
-msgstr "Nederīgs nosaukums."
+msgstr "Nederīgs grupas nosaukums."
 
 #: editor/groups_editor.cpp
-#, fuzzy
 msgid "Rename Group"
-msgstr "Pārsaukt Audio Kopni"
+msgstr "Pārsaukt Grupu"
 
 #: editor/groups_editor.cpp
-#, fuzzy
 msgid "Delete Group"
-msgstr "Izdzēst"
+msgstr "Izdzēst Grupu"
 
 #: editor/groups_editor.cpp editor/node_dock.cpp
 msgid "Groups"
@@ -3836,9 +3840,8 @@ msgid "Empty groups will be automatically removed."
 msgstr ""
 
 #: editor/groups_editor.cpp
-#, fuzzy
 msgid "Group Editor"
-msgstr "Rediģēt"
+msgstr "Grupas Redaktors"
 
 #: editor/groups_editor.cpp
 msgid "Manage Groups"
@@ -3918,13 +3921,34 @@ msgid "Error running post-import script:"
 msgstr ""
 
 #: editor/import/resource_importer_scene.cpp
+msgid "Did you return a Node-derived object in the `post_import()` method?"
+msgstr ""
+
+#: editor/import/resource_importer_scene.cpp
 msgid "Saving..."
 msgstr ""
 
-#: editor/import_dock.cpp
+#: editor/import_defaults_editor.cpp
 #, fuzzy
+msgid "Select Importer"
+msgstr "Izvēlēties Šablona Failu"
+
+#: editor/import_defaults_editor.cpp
+msgid "Importer:"
+msgstr ""
+
+#: editor/import_defaults_editor.cpp
+#, fuzzy
+msgid "Reset to Defaults"
+msgstr "Ielādēt Noklusējumu"
+
+#: editor/import_dock.cpp
+msgid "Keep File (No Import)"
+msgstr ""
+
+#: editor/import_dock.cpp
 msgid "%d Files"
-msgstr "Nederīgs nosaukums."
+msgstr "%d Failā"
 
 #: editor/import_dock.cpp
 msgid "Set as Default for '%s'"
@@ -3939,9 +3963,8 @@ msgid "Import As:"
 msgstr ""
 
 #: editor/import_dock.cpp
-#, fuzzy
 msgid "Preset"
-msgstr "Atiestatīt tālummaiņu"
+msgstr "Sagatave"
 
 #: editor/import_dock.cpp
 msgid "Reimport"
@@ -4075,16 +4098,14 @@ msgstr ""
 
 #: editor/plugins/abstract_polygon_2d_editor.cpp
 #: editor/plugins/polygon_2d_editor_plugin.cpp
-#, fuzzy
 msgid "Create Polygon"
-msgstr "Izveidot"
+msgstr "Izveidot Daudzstūri"
 
 #: editor/plugins/abstract_polygon_2d_editor.cpp
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
-#, fuzzy
 msgid "Create points."
-msgstr "Izveidot"
+msgstr "Izveidot punktus."
 
 #: editor/plugins/abstract_polygon_2d_editor.cpp
 msgid ""
@@ -4099,9 +4120,8 @@ msgid "Erase points."
 msgstr ""
 
 #: editor/plugins/abstract_polygon_2d_editor.cpp
-#, fuzzy
 msgid "Edit Polygon"
-msgstr "Izveidot"
+msgstr "Rediģēt Daudzstūri"
 
 #: editor/plugins/abstract_polygon_2d_editor.cpp
 msgid "Insert Point"
@@ -4127,9 +4147,8 @@ msgstr ""
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Load..."
-msgstr "Ielādēt"
+msgstr "Ielādē..."
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
@@ -4152,15 +4171,13 @@ msgstr ""
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
-#, fuzzy
 msgid "Add Node Point"
-msgstr "Favorīti:"
+msgstr "Pievienot Mezgla Punktu"
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
-#, fuzzy
 msgid "Add Animation Point"
-msgstr "Animāciju Cilpa"
+msgstr "Pievienot Animācijas Punktu"
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 msgid "Remove BlendSpace1D Point"
@@ -4209,18 +4226,16 @@ msgstr ""
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Open Animation Node"
-msgstr "Animācijas tālummaiņa."
+msgstr "Atvērt Animācijas Mezglu"
 
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 msgid "Triangle already exists."
 msgstr ""
 
 #: editor/plugins/animation_blend_space_2d_editor.cpp
-#, fuzzy
 msgid "Add Triangle"
-msgstr "Pievienot celiņu"
+msgstr "Pievienot Trijstūri"
 
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 msgid "Change BlendSpace2D Limits"
@@ -4285,7 +4300,6 @@ msgid "Add Node to BlendTree"
 msgstr ""
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
-#: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Node Moved"
 msgstr ""
 
@@ -4295,9 +4309,8 @@ msgstr ""
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Nodes Connected"
-msgstr "Savienot"
+msgstr "Mezgli Savienoti"
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/visual_shader_editor_plugin.cpp
@@ -4305,15 +4318,13 @@ msgid "Nodes Disconnected"
 msgstr ""
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
-#, fuzzy
 msgid "Set Animation"
-msgstr "Optimizēt animāciju"
+msgstr "Iestatīt Animāciju"
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Delete Node"
-msgstr "Izdzēst"
+msgstr "Izdzēst Mezglu"
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/scene_tree_dock.cpp
@@ -4325,9 +4336,8 @@ msgid "Toggle Filter On/Off"
 msgstr ""
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
-#, fuzzy
 msgid "Change Filter"
-msgstr "Nomainīt"
+msgstr "Nomainīt Filtru"
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 msgid "No animation player set, so unable to retrieve track names."
@@ -4345,19 +4355,16 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
-#, fuzzy
 msgid "Anim Clips"
-msgstr "Animācijas klipi:"
+msgstr "Anim. Klipi"
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
-#, fuzzy
 msgid "Audio Clips"
-msgstr "Audio klipi:"
+msgstr "Audio Klipi"
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
-#, fuzzy
 msgid "Functions"
-msgstr "Funkcijas:"
+msgstr "Funkcijas"
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/animation_state_machine_editor.cpp
@@ -4375,9 +4382,8 @@ msgid "Edit Filtered Tracks:"
 msgstr ""
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
-#, fuzzy
 msgid "Enable Filtering"
-msgstr "Nomainīt"
+msgstr "Ieslēgt Filtrēšanu"
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Toggle Autoplay"
@@ -4406,9 +4412,8 @@ msgid "Remove Animation"
 msgstr ""
 
 #: editor/plugins/animation_player_editor_plugin.cpp
-#, fuzzy
 msgid "Invalid animation name!"
-msgstr "Nederīgs nosaukums."
+msgstr "Nederīgs animācijas nosaukums!"
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Animation name already exists!"
@@ -4436,9 +4441,8 @@ msgid "Duplicate Animation"
 msgstr ""
 
 #: editor/plugins/animation_player_editor_plugin.cpp
-#, fuzzy
 msgid "No animation to copy!"
-msgstr "Animācijas tālummaiņa."
+msgstr "Nav animācijas ko kopēt!"
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "No animation resource on clipboard!"
@@ -4592,14 +4596,12 @@ msgid "Move Node"
 msgstr ""
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Transition exists!"
-msgstr "Pievienot celiņu"
+msgstr "Pāreja eksistē!"
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Add Transition"
-msgstr "Pievienot celiņu"
+msgstr "Pievienot Pāreju"
 
 #: editor/plugins/animation_state_machine_editor.cpp
 #: modules/visual_script/visual_script_editor.cpp
@@ -4635,9 +4637,8 @@ msgid "No playback resource set at path: %s."
 msgstr ""
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Node Removed"
-msgstr "Noņemt"
+msgstr "Mezgls Noņemts"
 
 #: editor/plugins/animation_state_machine_editor.cpp
 msgid "Transition Removed"
@@ -4655,19 +4656,16 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Create new nodes."
-msgstr "Izveidot Jaunu %s"
+msgstr "Izveidot jaunus mezglus."
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Connect nodes."
-msgstr "Savienot"
+msgstr "Savienot mezglus."
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Remove selected node or transition."
-msgstr "Noņemt Izvēlēto"
+msgstr "Noņemt izvēlēto mezglu vai pāreju."
 
 #: editor/plugins/animation_state_machine_editor.cpp
 msgid "Toggle autoplay this animation on start, restart or seek to zero."
@@ -4682,9 +4680,8 @@ msgid "Transition: "
 msgstr ""
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Play Mode:"
-msgstr "Mēroga Attiecība:"
+msgstr "Atskaņošanas Režīms:"
 
 #: editor/plugins/animation_tree_editor_plugin.cpp
 #: editor/plugins/animation_tree_player_editor_plugin.cpp
@@ -4860,9 +4857,8 @@ msgid "Request failed."
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Cannot save response to:"
-msgstr "Nevar noņemt:"
+msgstr "Nevar saglabāt atbildi uz:"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Write error."
@@ -4897,7 +4893,7 @@ msgid "Got:"
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-msgid "Failed sha256 hash check"
+msgid "Failed SHA-256 hash check"
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
@@ -4925,9 +4921,8 @@ msgid "Idle"
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Install..."
-msgstr "Ieinstalēt"
+msgstr "Instalēt..."
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Retry"
@@ -4958,14 +4953,12 @@ msgid "Name (Z-A)"
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "License (A-Z)"
-msgstr "Licence"
+msgstr "Licence (A-Z)"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "License (Z-A)"
-msgstr "Licence"
+msgstr "Licence (Z-A)"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "First"
@@ -5004,7 +4997,6 @@ msgid "Sort:"
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#: editor/project_settings_editor.cpp
 msgid "Category:"
 msgstr ""
 
@@ -5025,9 +5017,8 @@ msgid "Testing"
 msgstr ""
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-#, fuzzy
 msgid "Loading..."
-msgstr "Ielādēt"
+msgstr "Ielādēt..."
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Assets ZIP File"
@@ -5036,8 +5027,7 @@ msgstr ""
 #: editor/plugins/baked_lightmap_editor_plugin.cpp
 msgid ""
 "Can't determine a save path for lightmap images.\n"
-"Save your scene (for images to be saved in the same dir), or pick a save "
-"path from the BakedLightmap properties."
+"Save your scene and try again."
 msgstr ""
 
 #: editor/plugins/baked_lightmap_editor_plugin.cpp
@@ -5051,11 +5041,31 @@ msgid "Failed creating lightmap images, make sure path is writable."
 msgstr ""
 
 #: editor/plugins/baked_lightmap_editor_plugin.cpp
+msgid "Failed determining lightmap size. Maximum lightmap size too small?"
+msgstr ""
+
+#: editor/plugins/baked_lightmap_editor_plugin.cpp
+msgid ""
+"Some mesh is invalid. Make sure the UV2 channel values are contained within "
+"the [0.0,1.0] square region."
+msgstr ""
+
+#: editor/plugins/baked_lightmap_editor_plugin.cpp
+msgid ""
+"Godot editor was built without ray tracing support, lightmaps can't be baked."
+msgstr ""
+
+#: editor/plugins/baked_lightmap_editor_plugin.cpp
 msgid "Bake Lightmaps"
 msgstr ""
 
+#: editor/plugins/baked_lightmap_editor_plugin.cpp
+#, fuzzy
+msgid "Select lightmap bake file:"
+msgstr "Izvēlēties Šablona Failu"
+
 #: editor/plugins/camera_editor_plugin.cpp
-#: editor/plugins/spatial_editor_plugin.cpp editor/rename_dialog.cpp
+#: editor/plugins/spatial_editor_plugin.cpp
 msgid "Preview"
 msgstr ""
 
@@ -5088,64 +5098,75 @@ msgid "Rotation Step:"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Scale Step:"
-msgstr "Mēroga Attiecība:"
+msgstr "Mainīt Soļa Mērogu:"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Move Vertical Guide"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Create Vertical Guide"
-msgstr "Izveidot"
+msgstr "Izveidot Vertikālu Vadotni"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Remove Vertical Guide"
-msgstr "Noņemt Izvēlēto"
+msgstr "Noņemt Vertikālo Vadotni"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Move Horizontal Guide"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Create Horizontal Guide"
-msgstr "Izveidot Jaunu %s"
+msgstr "Izveidot Horizontālu Vadotni"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Remove Horizontal Guide"
-msgstr "Noņemt Izvēlēto"
+msgstr "Noņemt Horizontālo Vadotni"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Create Horizontal and Vertical Guides"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-msgid "Move pivot"
+msgid "Set CanvasItem \"%s\" Pivot Offset to (%d, %d)"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-msgid "Rotate CanvasItem"
+msgid "Rotate %d CanvasItems"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-msgid "Move anchor"
+msgid "Rotate CanvasItem \"%s\" to %d degrees"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-msgid "Resize CanvasItem"
+msgid "Move CanvasItem \"%s\" Anchor"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-msgid "Scale CanvasItem"
+msgid "Scale Node2D \"%s\" to (%s, %s)"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-msgid "Move CanvasItem"
+msgid "Resize Control \"%s\" to (%d, %d)"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "Scale %d CanvasItems"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "Scale CanvasItem \"%s\" to (%s, %s)"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "Move %d CanvasItems"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "Move CanvasItem \"%s\" to (%d, %d)"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
@@ -5201,18 +5222,16 @@ msgid "Center"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Left Wide"
-msgstr "Lineārs"
+msgstr "Pa Kreisi, Plašs"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Top Wide"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Right Wide"
-msgstr "Lineārs"
+msgstr "Pa labi, Plašs"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Bottom Wide"
@@ -5231,9 +5250,8 @@ msgid "Full Rect"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Keep Ratio"
-msgstr "Mēroga Attiecība:"
+msgstr "Ievērot Attiecību"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Anchors only"
@@ -5273,24 +5291,21 @@ msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Group Selected"
-msgstr "Noņemt Izvēlēto"
+msgstr "Grupa Izvēlēta"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Ungroup Selected"
-msgstr "Noņemt Izvēlēto"
+msgstr "Pārtraukt Izvēlētā Grupēšanu"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Paste Pose"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Clear Guides"
-msgstr "Izveidot"
+msgstr "Notīrīt Vadotnes"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Create Custom Bone(s) from Node(s)"
@@ -5317,9 +5332,8 @@ msgstr ""
 #: editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/texture_region_editor_plugin.cpp
 #: editor/plugins/tile_set_editor_plugin.cpp scene/gui/graph_edit.cpp
-#, fuzzy
 msgid "Zoom Reset"
-msgstr "Attālināt"
+msgstr "Atiestatīt Tuvinājumu"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/spatial_editor_plugin.cpp
@@ -5354,9 +5368,8 @@ msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Scale Mode"
-msgstr "Mēroga Attiecība:"
+msgstr "Mēroga Režīms"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 #: editor/plugins/spatial_editor_plugin.cpp
@@ -5374,9 +5387,8 @@ msgid "Pan Mode"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Ruler Mode"
-msgstr "Mēroga Attiecība:"
+msgstr "Lineāla Režīms"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Toggle smart snapping."
@@ -5553,14 +5565,12 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Auto Insert Key"
-msgstr "Anim ievietot atslēgievietni"
+msgstr "Automātiski Ievietot Atslēgu"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Animation Key and Pose Options"
-msgstr "Animācijas Garums (sekundes)"
+msgstr "Animācijas Atslēga un Pozas Iestatījumi"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Insert Key (Existing Tracks)"
@@ -5609,9 +5619,8 @@ msgid "Error instancing scene from %s"
 msgstr ""
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
-#, fuzzy
 msgid "Change Default Type"
-msgstr "Nomainīt %s Tipu"
+msgstr "Nomainīt Noklusējuma Tipu"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid ""
@@ -5620,9 +5629,8 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/collision_polygon_editor_plugin.cpp
-#, fuzzy
 msgid "Create Polygon3D"
-msgstr "Izveidot"
+msgstr "Izveidot Daudzstūris3D"
 
 #: editor/plugins/collision_polygon_editor_plugin.cpp
 msgid "Edit Poly"
@@ -5741,29 +5749,24 @@ msgid "Load Curve Preset"
 msgstr ""
 
 #: editor/plugins/curve_editor_plugin.cpp
-#, fuzzy
 msgid "Add Point"
-msgstr "Favorīti:"
+msgstr "Pievienot Punktu"
 
 #: editor/plugins/curve_editor_plugin.cpp
-#, fuzzy
 msgid "Remove Point"
-msgstr "Noņemt Izvēlēto"
+msgstr "Noņemt Punktu"
 
 #: editor/plugins/curve_editor_plugin.cpp
-#, fuzzy
 msgid "Left Linear"
-msgstr "Lineārs"
+msgstr "Pa Kreisi, Lineārs"
 
 #: editor/plugins/curve_editor_plugin.cpp
-#, fuzzy
 msgid "Right Linear"
-msgstr "Lineārs"
+msgstr "Pa Labi, Lineārs"
 
 #: editor/plugins/curve_editor_plugin.cpp
-#, fuzzy
 msgid "Load Preset"
-msgstr "Ielādēt Noklusējumu"
+msgstr "Ielādēt Sagatavi"
 
 #: editor/plugins/curve_editor_plugin.cpp
 msgid "Remove Curve Point"
@@ -5834,9 +5837,8 @@ msgid "Couldn't create a single convex collision shape."
 msgstr ""
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
-#, fuzzy
 msgid "Create Single Convex Shape"
-msgstr "Izveidot Jaunu %s"
+msgstr "Izveidot Vienu Izliektu Formu"
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid "Can't create multiple convex collision shapes for the scene root."
@@ -5847,9 +5849,8 @@ msgid "Couldn't create any collision shapes."
 msgstr ""
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
-#, fuzzy
 msgid "Create Multiple Convex Shapes"
-msgstr "Izveidot Jaunu %s"
+msgstr "Izveidot Vairākas Izliektas Formas"
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid "Create Navigation Mesh"
@@ -5917,9 +5918,8 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
-#, fuzzy
 msgid "Create Single Convex Collision Sibling"
-msgstr "Izveidot"
+msgstr "Izveidot Vienu Izliektu Sadursmes Uzmavu"
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid ""
@@ -5928,9 +5928,8 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
-#, fuzzy
 msgid "Create Multiple Convex Collision Siblings"
-msgstr "Izveidot"
+msgstr "Izveidot Vairākas Izliektas Sadursmes Uzmavas"
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid ""
@@ -6120,6 +6119,11 @@ msgid "Can only set point into a ParticlesMaterial process material"
 msgstr ""
 
 #: editor/plugins/particles_2d_editor_plugin.cpp
+#, fuzzy
+msgid "Convert to CPUParticles2D"
+msgstr "Izveidot"
+
+#: editor/plugins/particles_2d_editor_plugin.cpp
 #: editor/plugins/particles_editor_plugin.cpp
 msgid "Generation Time (sec):"
 msgstr ""
@@ -6178,10 +6182,6 @@ msgstr ""
 
 #: editor/plugins/particles_editor_plugin.cpp
 msgid "Generate Visibility AABB"
-msgstr ""
-
-#: editor/plugins/particles_editor_plugin.cpp
-msgid "Generate AABB"
 msgstr ""
 
 #: editor/plugins/path_2d_editor_plugin.cpp
@@ -6410,11 +6410,19 @@ msgid "Move Points"
 msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
-msgid "Ctrl: Rotate"
+msgid "Command: Rotate"
 msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 msgid "Shift: Move All"
+msgstr ""
+
+#: editor/plugins/polygon_2d_editor_plugin.cpp
+msgid "Shift+Command: Scale"
+msgstr ""
+
+#: editor/plugins/polygon_2d_editor_plugin.cpp
+msgid "Ctrl: Rotate"
 msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
@@ -6456,12 +6464,13 @@ msgid "Radius:"
 msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
-msgid "Polygon->UV"
+msgid "Copy Polygon to UV"
 msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
-msgid "UV->Polygon"
-msgstr ""
+#, fuzzy
+msgid "Copy UV to Polygon"
+msgstr "Izveidot"
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 msgid "Clear UV"
@@ -6591,14 +6600,12 @@ msgid "Error saving file!"
 msgstr "Kļūmes lādējot!"
 
 #: editor/plugins/script_editor_plugin.cpp
-#, fuzzy
 msgid "Error while saving theme."
-msgstr "Kļūmes lādējot!"
+msgstr "Kļūda saglabājot motīvu."
 
 #: editor/plugins/script_editor_plugin.cpp
-#, fuzzy
 msgid "Error Saving"
-msgstr "Kļūme lādējot:"
+msgstr "Kļūda Saglabājot"
 
 #: editor/plugins/script_editor_plugin.cpp
 #, fuzzy
@@ -6606,9 +6613,8 @@ msgid "Error importing theme."
 msgstr "Kļūda lādējot fontu."
 
 #: editor/plugins/script_editor_plugin.cpp
-#, fuzzy
 msgid "Error Importing"
-msgstr "Kļūme lādējot:"
+msgstr "Kļūda Importējot"
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "New Text File..."
@@ -6620,9 +6626,8 @@ msgid "Open File"
 msgstr "Atvērt"
 
 #: editor/plugins/script_editor_plugin.cpp
-#, fuzzy
 msgid "Save File As..."
-msgstr "Saglabāt Kā"
+msgstr "Saglabāt Failu Kā..."
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Can't obtain the script for running."
@@ -6712,9 +6717,8 @@ msgid "File"
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
-#, fuzzy
 msgid "Open..."
-msgstr "Atvērt"
+msgstr "Atvērt..."
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Reopen Closed Script"
@@ -6769,6 +6773,14 @@ msgstr ""
 msgid "Run"
 msgstr ""
 
+#: editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/script_text_editor.cpp
+#: editor/plugins/shader_editor_plugin.cpp editor/plugins/text_editor.cpp
+#: editor/plugins/visual_shader_editor_plugin.cpp editor/project_manager.cpp
+#: editor/project_settings_editor.cpp editor/settings_config_dialog.cpp
+msgid "Search"
+msgstr ""
+
 #: editor/plugins/script_editor_plugin.cpp editor/script_editor_debugger.cpp
 msgid "Step Into"
 msgstr ""
@@ -6820,24 +6832,13 @@ msgid ""
 "What action should be taken?:"
 msgstr ""
 
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/shader_editor_plugin.cpp
-msgid "Reload"
-msgstr ""
-
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/shader_editor_plugin.cpp
-msgid "Resave"
-msgstr ""
-
 #: editor/plugins/script_editor_plugin.cpp editor/script_editor_debugger.cpp
 msgid "Debugger"
 msgstr ""
 
 #: editor/plugins/script_editor_plugin.cpp
-#, fuzzy
 msgid "Search Results"
-msgstr "Meklēt:"
+msgstr "Meklēšanas Rezultāti"
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "Clear Recent Scripts"
@@ -6857,19 +6858,18 @@ msgid "Target"
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
-#, fuzzy
 msgid ""
 "Missing connected method '%s' for signal '%s' from node '%s' to node '%s'."
-msgstr "Atvienot '%s' no '%s'"
-
-#: editor/plugins/script_text_editor.cpp
-#, fuzzy
-msgid "Line"
-msgstr "Rinda:"
-
-#: editor/plugins/script_text_editor.cpp
-msgid "(ignore)"
 msgstr ""
+"Trūkst savienošanas metode '%s' signālam '%s' no mezgla '%s' uz mezglu '%s'."
+
+#: editor/plugins/script_text_editor.cpp
+msgid "[Ignore]"
+msgstr ""
+
+#: editor/plugins/script_text_editor.cpp
+msgid "Line"
+msgstr "Rinda"
 
 #: editor/plugins/script_text_editor.cpp
 #, fuzzy
@@ -6915,11 +6915,6 @@ msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
 #: editor/plugins/shader_editor_plugin.cpp editor/plugins/text_editor.cpp
-msgid "Go To"
-msgstr ""
-
-#: editor/plugins/script_text_editor.cpp
-#: editor/plugins/shader_editor_plugin.cpp editor/plugins/text_editor.cpp
 msgid "Bookmarks"
 msgstr ""
 
@@ -6928,8 +6923,13 @@ msgstr ""
 msgid "Breakpoints"
 msgstr "Izveidot"
 
-#: editor/plugins/script_text_editor.cpp scene/gui/line_edit.cpp
-#: scene/gui/text_edit.cpp
+#: editor/plugins/script_text_editor.cpp
+#: editor/plugins/shader_editor_plugin.cpp editor/plugins/text_editor.cpp
+msgid "Go To"
+msgstr ""
+
+#: editor/plugins/script_text_editor.cpp editor/scene_tree_dock.cpp
+#: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 msgid "Cut"
 msgstr ""
 
@@ -7022,14 +7022,12 @@ msgid "Remove All Bookmarks"
 msgstr ""
 
 #: editor/plugins/script_text_editor.cpp
-#, fuzzy
 msgid "Go to Function..."
-msgstr "Izveidot Funkciju"
+msgstr "Doties uz Funkciju..."
 
 #: editor/plugins/script_text_editor.cpp
-#, fuzzy
 msgid "Go to Line..."
-msgstr "Doties uz Rindu"
+msgstr "Doties uz Rindu..."
 
 #: editor/plugins/script_text_editor.cpp
 #: modules/visual_script/visual_script_editor.cpp
@@ -7154,6 +7152,10 @@ msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Yaw"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Size"
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
@@ -7339,12 +7341,26 @@ msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid ""
+"To zoom further, change the camera's clipping planes (View -> Settings...)"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid ""
 "Note: The FPS value displayed is the editor's framerate.\n"
 "It cannot be used as a reliable indication of in-game performance."
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "XForm Dialog"
+msgstr ""
+
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid ""
+"Click to toggle between visibility states.\n"
+"\n"
+"Open eye: Gizmo is visible.\n"
+"Closed eye: Gizmo is hidden.\n"
+"Half-open eye: Gizmo is also visible through opaque surfaces (\"x-ray\")."
 msgstr ""
 
 #: editor/plugins/spatial_editor_plugin.cpp
@@ -7692,7 +7708,7 @@ msgid "New Animation"
 msgstr "Optimizēt animāciju"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-msgid "Speed (FPS):"
+msgid "Speed:"
 msgstr ""
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
@@ -7700,9 +7716,8 @@ msgid "Loop"
 msgstr ""
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-#, fuzzy
 msgid "Animation Frames:"
-msgstr "Animācijas īpašības."
+msgstr "Animācijas Kadri:"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 #, fuzzy
@@ -7960,9 +7975,8 @@ msgid "Erase Selection"
 msgstr ""
 
 #: editor/plugins/tile_map_editor_plugin.cpp
-#, fuzzy
 msgid "Fix Invalid Tiles"
-msgstr "Nederīgs nosaukums."
+msgstr "Salabot Nederīgās Flīzes"
 
 #: editor/plugins/tile_map_editor_plugin.cpp
 #: modules/gridmap/grid_map_editor_plugin.cpp
@@ -8021,6 +8035,12 @@ msgstr ""
 #: editor/plugins/tile_map_editor_plugin.cpp
 msgid ""
 "Shift+LMB: Line Draw\n"
+"Shift+Command+LMB: Rectangle Paint"
+msgstr ""
+
+#: editor/plugins/tile_map_editor_plugin.cpp
+msgid ""
+"Shift+LMB: Line Draw\n"
 "Shift+Ctrl+LMB: Rectangle Paint"
 msgstr ""
 
@@ -8053,9 +8073,8 @@ msgid "Add Texture(s) to TileSet."
 msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Remove selected Texture from TileSet."
-msgstr "Noņemt Izvēlēto"
+msgstr "Noņemt izvēlētās Tekstūras no Flīžu Komplekta."
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Create from Scene"
@@ -8154,9 +8173,8 @@ msgid "Priority Mode"
 msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Icon Mode"
-msgstr "Mēroga Attiecība:"
+msgstr "Ikonu Režīms"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Z Index Mode"
@@ -8167,23 +8185,35 @@ msgid "Copy bitmask."
 msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Paste bitmask."
-msgstr "Ielīmēt celiņus"
+msgstr "Ielīmēt bitu masku."
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Erase bitmask."
 msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Create a new rectangle."
-msgstr "Izveidot Jaunu %s"
+msgstr "Izveidot jaunu taisnstūri."
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 #, fuzzy
+msgid "New Rectangle"
+msgstr "Izveidot jaunu taisnstūri."
+
+#: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Create a new polygon."
+msgstr "Izveidot jaunu daudzstūri."
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "New Polygon"
 msgstr "Izveidot"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Delete Selected Shape"
+msgstr "Izdzēst Izvēlēto(ās) Atslēgu(as)"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Keep polygon inside region Rect."
@@ -8203,9 +8233,9 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Remove selected texture? This will remove all tiles which use it."
-msgstr "Noņemt Izvēlēto"
+msgstr ""
+"Noņemt Izvēlēto tekstūru? Šī darbība noņems visas flīzes, kas to izmanto."
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "You haven't selected a texture to remove."
@@ -8235,9 +8265,8 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Delete selected Rect."
-msgstr "Izdzēst izvēlētos failus?"
+msgstr "Izdzēst izvēlēto Taisnstūri."
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid ""
@@ -8246,9 +8275,8 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Delete polygon."
-msgstr "Izveidot"
+msgstr "Izdzēst daudzstūri."
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid ""
@@ -8389,10 +8417,6 @@ msgid "Error"
 msgstr ""
 
 #: editor/plugins/version_control_editor_plugin.cpp
-msgid "No commit message was provided"
-msgstr ""
-
-#: editor/plugins/version_control_editor_plugin.cpp
 msgid "No files added to stage"
 msgstr ""
 
@@ -8455,10 +8479,6 @@ msgid "Stage All"
 msgstr ""
 
 #: editor/plugins/version_control_editor_plugin.cpp
-msgid "Add a commit message"
-msgstr ""
-
-#: editor/plugins/version_control_editor_plugin.cpp
 #, fuzzy
 msgid "Commit Changes"
 msgstr "Nomainīt"
@@ -8485,9 +8505,8 @@ msgid "(GLES3 only)"
 msgstr ""
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Add Output"
-msgstr "Favorīti:"
+msgstr "Pievienot Izeju"
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Scalar"
@@ -8506,9 +8525,8 @@ msgid "Sampler"
 msgstr ""
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Add input port"
-msgstr "Favorīti:"
+msgstr "Pievienot ieejas pieslēgvietu"
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Add output port"
@@ -8563,6 +8581,11 @@ msgstr ""
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 #, fuzzy
+msgid "Node(s) Moved"
+msgstr "Mezgls Noņemts"
+
+#: editor/plugins/visual_shader_editor_plugin.cpp
+#, fuzzy
 msgid "Duplicate Nodes"
 msgstr "Dublicēt atslēgvietnes"
 
@@ -8581,6 +8604,10 @@ msgid "Visual Shader Input Type Changed"
 msgstr ""
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "UniformRef Name Changed"
+msgstr ""
+
+#: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Vertex"
 msgstr ""
 
@@ -8593,9 +8620,8 @@ msgid "Light"
 msgstr ""
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Show resulted shader code."
-msgstr "Izveidot Jaunu %s"
+msgstr "Attēlot rezultējošo ēnotāja kodu."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 #, fuzzy
@@ -8603,18 +8629,16 @@ msgid "Create Shader Node"
 msgstr "Izveidot Jaunu %s"
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Color function."
-msgstr "Izveidot Funkciju"
+msgstr "Krāsas funkcija."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Color operator."
 msgstr ""
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Grayscale function."
-msgstr "Izveidot Funkciju"
+msgstr "Pelēktoņu funkcija."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Converts HSV vector to RGB equivalent."
@@ -8625,9 +8649,8 @@ msgid "Converts RGB vector to HSV equivalent."
 msgstr ""
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Sepia function."
-msgstr "Izveidot Funkciju"
+msgstr "Sēpija funkcija."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Burn operator."
@@ -8780,9 +8803,8 @@ msgid "'%s' input parameter for vertex and fragment shader mode."
 msgstr ""
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Scalar function."
-msgstr "Mēroga Izvēle"
+msgstr "Skalāra funkcija."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Scalar operator."
@@ -9039,9 +9061,8 @@ msgid "2D texture uniform lookup with triplanar."
 msgstr ""
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Transform function."
-msgstr "Izveidot"
+msgstr "Transformēšanas funkcija."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid ""
@@ -9083,19 +9104,16 @@ msgid "Multiplies vector by transform."
 msgstr ""
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Transform constant."
-msgstr "Izveidot"
+msgstr "Transformēt konstanti."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Transform uniform."
-msgstr "Izveidot"
+msgstr "Transformēt vienmērīgo."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
 msgid "Vector function."
-msgstr "Izveidot Funkciju"
+msgstr "Vektora funkcija."
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "Vector operator."
@@ -9245,6 +9263,10 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
+msgid "A reference to an existing uniform."
+msgstr ""
+
+#: editor/plugins/visual_shader_editor_plugin.cpp
 msgid "(Fragment/Light mode only) Scalar derivative function."
 msgstr ""
 
@@ -9302,19 +9324,6 @@ msgstr ""
 
 #: editor/project_export.cpp
 msgid "Runnable"
-msgstr ""
-
-#: editor/project_export.cpp
-#, fuzzy
-msgid "Add initial export..."
-msgstr "Favorīti:"
-
-#: editor/project_export.cpp
-msgid "Add previous patches..."
-msgstr ""
-
-#: editor/project_export.cpp
-msgid "Delete patch '%s' from list?"
 msgstr ""
 
 #: editor/project_export.cpp
@@ -9402,18 +9411,6 @@ msgstr ""
 msgid ""
 "Filters to exclude files/folders from project\n"
 "(comma-separated, e.g: *.json, *.txt, docs/*)"
-msgstr ""
-
-#: editor/project_export.cpp
-msgid "Patches"
-msgstr ""
-
-#: editor/project_export.cpp
-msgid "Make Patch"
-msgstr ""
-
-#: editor/project_export.cpp
-msgid "Pack File"
 msgstr ""
 
 #: editor/project_export.cpp
@@ -9609,6 +9606,10 @@ msgid "OpenGL ES 3.0"
 msgstr ""
 
 #: editor/project_manager.cpp
+msgid "Not supported by your GPU drivers."
+msgstr ""
+
+#: editor/project_manager.cpp
 msgid ""
 "Higher visual quality\n"
 "All features available\n"
@@ -9730,6 +9731,7 @@ msgid ""
 "This could take a while."
 msgstr ""
 
+#. TRANSLATORS: This refers to the application where users manage their Godot projects.
 #: editor/project_manager.cpp
 msgid "Project Manager"
 msgstr ""
@@ -9738,6 +9740,11 @@ msgstr ""
 #, fuzzy
 msgid "Projects"
 msgstr "Projekta Dibinātāji"
+
+#: editor/project_manager.cpp
+#, fuzzy
+msgid "Loading, please wait..."
+msgstr "Ielādēt..."
 
 #: editor/project_manager.cpp
 msgid "Last Modified"
@@ -10011,7 +10018,7 @@ msgstr ""
 
 #: editor/project_settings_editor.cpp editor/settings_config_dialog.cpp
 msgid "General"
-msgstr ""
+msgstr "Vispārēji"
 
 #: editor/project_settings_editor.cpp
 msgid "Override For..."
@@ -10102,6 +10109,11 @@ msgstr ""
 msgid "Plugins"
 msgstr ""
 
+#: editor/project_settings_editor.cpp
+#, fuzzy
+msgid "Import Defaults"
+msgstr "Ielādēt Noklusējumu"
+
 #: editor/property_editor.cpp
 msgid "Preset..."
 msgstr ""
@@ -10163,11 +10175,16 @@ msgid "Batch Rename"
 msgstr ""
 
 #: editor/rename_dialog.cpp
-msgid "Prefix"
+#, fuzzy
+msgid "Replace:"
+msgstr "Aizvietot: "
+
+#: editor/rename_dialog.cpp
+msgid "Prefix:"
 msgstr ""
 
 #: editor/rename_dialog.cpp
-msgid "Suffix"
+msgid "Suffix:"
 msgstr ""
 
 #: editor/rename_dialog.cpp
@@ -10213,7 +10230,7 @@ msgid "Per-level Counter"
 msgstr ""
 
 #: editor/rename_dialog.cpp
-msgid "If set the counter restarts for each group of child nodes"
+msgid "If set, the counter restarts for each group of child nodes."
 msgstr ""
 
 #: editor/rename_dialog.cpp
@@ -10221,9 +10238,8 @@ msgid "Initial value for the counter"
 msgstr ""
 
 #: editor/rename_dialog.cpp
-#, fuzzy
 msgid "Step"
-msgstr "Solis (ļi):"
+msgstr "Solis"
 
 #: editor/rename_dialog.cpp
 msgid "Amount by which counter is incremented for each node"
@@ -10273,13 +10289,12 @@ msgid "Reset"
 msgstr "Atiestatīt tālummaiņu"
 
 #: editor/rename_dialog.cpp
-msgid "Regular Expression Error"
+msgid "Regular Expression Error:"
 msgstr ""
 
 #: editor/rename_dialog.cpp
-#, fuzzy
 msgid "At character %s"
-msgstr "Derīgie simboli:"
+msgstr "Pie rakstzīmes %s"
 
 #: editor/reparent_dialog.cpp editor/scene_tree_dock.cpp
 msgid "Reparent Node"
@@ -10344,8 +10359,18 @@ msgid "Instance Child Scene"
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-msgid "Clear Script"
+msgid "Can't paste root node into the same scene."
 msgstr ""
+
+#: editor/scene_tree_dock.cpp
+#, fuzzy
+msgid "Paste Node(s)"
+msgstr "Dublicēt atslēgvietnes"
+
+#: editor/scene_tree_dock.cpp
+#, fuzzy
+msgid "Detach Script"
+msgstr "Galvenais Skripts:"
 
 #: editor/scene_tree_dock.cpp
 msgid "This operation can't be done on the tree root."
@@ -10381,8 +10406,12 @@ msgstr ""
 
 #: editor/scene_tree_dock.cpp
 #, fuzzy
+msgid "Delete %d nodes and any children?"
+msgstr "Izdzēst %d mezglus?"
+
+#: editor/scene_tree_dock.cpp
 msgid "Delete %d nodes?"
-msgstr "Izdzēst"
+msgstr "Izdzēst %d mezglus?"
 
 #: editor/scene_tree_dock.cpp
 msgid "Delete the root node \"%s\"?"
@@ -10393,9 +10422,8 @@ msgid "Delete node \"%s\" and its children?"
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Delete node \"%s\"?"
-msgstr "Izdzēst"
+msgstr "Izdzēst mezglu \"%s\"?"
 
 #: editor/scene_tree_dock.cpp
 msgid "Can not perform with the root node."
@@ -10430,9 +10458,8 @@ msgid "New Scene Root"
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Create Root Node:"
-msgstr "Izveidot Jaunu %s"
+msgstr "Izveidot Cilmes Mezglu:"
 
 #: editor/scene_tree_dock.cpp
 msgid "2D Scene"
@@ -10462,6 +10489,11 @@ msgstr ""
 #: editor/scene_tree_dock.cpp
 msgid "Attach Script"
 msgstr ""
+
+#: editor/scene_tree_dock.cpp
+#, fuzzy
+msgid "Cut Node(s)"
+msgstr "Dublicēt atslēgvietnes"
 
 #: editor/scene_tree_dock.cpp
 msgid "Remove Node(s)"
@@ -10506,6 +10538,13 @@ msgid "Open Documentation"
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
+msgid ""
+"Cannot attach a script: there are no languages registered.\n"
+"This is probably because this editor was built with all language modules "
+"disabled."
+msgstr ""
+
+#: editor/scene_tree_dock.cpp
 msgid "Add Child Node"
 msgstr ""
 
@@ -10543,9 +10582,8 @@ msgid "Delete (No Confirm)"
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-#, fuzzy
 msgid "Add/Create a New Node."
-msgstr "Izveidot Jaunu %s"
+msgstr "Pievienot/Izveidot Jaunu Mezglu."
 
 #: editor/scene_tree_dock.cpp
 msgid ""
@@ -10554,15 +10592,22 @@ msgid ""
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-msgid "Attach a new or existing script for the selected node."
+msgid "Attach a new or existing script to the selected node."
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
-msgid "Clear a script for the selected node."
+msgid "Detach the script from the selected node."
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
 msgid "Remote"
+msgstr ""
+
+#: editor/scene_tree_dock.cpp
+msgid ""
+"If selected, the Remote scene tree dock will cause the project to stutter "
+"every time it updates.\n"
+"Switch back to the Local scene tree dock to improve performance."
 msgstr ""
 
 #: editor/scene_tree_dock.cpp
@@ -10586,9 +10631,8 @@ msgid "Button Group"
 msgstr ""
 
 #: editor/scene_tree_editor.cpp
-#, fuzzy
 msgid "(Connecting From)"
-msgstr "Savieno Signālu:"
+msgstr "(Savienojas No)"
 
 #: editor/scene_tree_editor.cpp
 msgid "Node configuration warning:"
@@ -10659,14 +10703,12 @@ msgid "Select a Node"
 msgstr ""
 
 #: editor/script_create_dialog.cpp
-#, fuzzy
 msgid "Path is empty."
-msgstr "Starpliktuve ir tukša"
+msgstr "Ceļš nav definēts."
 
 #: editor/script_create_dialog.cpp
-#, fuzzy
 msgid "Filename is empty."
-msgstr "Starpliktuve ir tukša"
+msgstr "Faila Nosaukums nav definēts."
 
 #: editor/script_create_dialog.cpp
 msgid "Path is not local."
@@ -10679,6 +10721,10 @@ msgstr "Nederīgs nosaukums."
 
 #: editor/script_create_dialog.cpp
 msgid "A directory with the same name exists."
+msgstr ""
+
+#: editor/script_create_dialog.cpp
+msgid "File does not exist."
 msgstr ""
 
 #: editor/script_create_dialog.cpp
@@ -10723,6 +10769,10 @@ msgid "File exists, it will be reused."
 msgstr ""
 
 #: editor/script_create_dialog.cpp
+msgid "Invalid path."
+msgstr "Nederīgs ceļš."
+
+#: editor/script_create_dialog.cpp
 #, fuzzy
 msgid "Invalid class name."
 msgstr "Nederīgs nosaukums."
@@ -10744,9 +10794,8 @@ msgid "Built-in script (into scene file)."
 msgstr ""
 
 #: editor/script_create_dialog.cpp
-#, fuzzy
 msgid "Will create a new script file."
-msgstr "Izveidot Jaunu %s"
+msgstr "Izveidos jaunu skripta failu."
 
 #: editor/script_create_dialog.cpp
 #, fuzzy
@@ -10811,14 +10860,12 @@ msgid "C++ Source"
 msgstr "Resurs"
 
 #: editor/script_editor_debugger.cpp
-#, fuzzy
 msgid "Source:"
-msgstr "Resurs"
+msgstr "Avots:"
 
 #: editor/script_editor_debugger.cpp
-#, fuzzy
 msgid "C++ Source:"
-msgstr "Resurs"
+msgstr "C++ Avots:"
 
 #: editor/script_editor_debugger.cpp
 msgid "Stack Trace"
@@ -10829,9 +10876,8 @@ msgid "Errors"
 msgstr ""
 
 #: editor/script_editor_debugger.cpp
-#, fuzzy
 msgid "Child process connected."
-msgstr "Savienot"
+msgstr "Bērna process savienots."
 
 #: editor/script_editor_debugger.cpp
 msgid "Copy Error"
@@ -11254,6 +11300,34 @@ msgstr ""
 msgid "Give a MeshLibrary resource to this GridMap to use its meshes."
 msgstr ""
 
+#: modules/lightmapper_cpu/lightmapper_cpu.cpp
+msgid "Begin Bake"
+msgstr ""
+
+#: modules/lightmapper_cpu/lightmapper_cpu.cpp
+msgid "Preparing data structures"
+msgstr ""
+
+#: modules/lightmapper_cpu/lightmapper_cpu.cpp
+msgid "Generate buffers"
+msgstr ""
+
+#: modules/lightmapper_cpu/lightmapper_cpu.cpp
+msgid "Direct lighting"
+msgstr ""
+
+#: modules/lightmapper_cpu/lightmapper_cpu.cpp
+msgid "Indirect lighting"
+msgstr ""
+
+#: modules/lightmapper_cpu/lightmapper_cpu.cpp
+msgid "Post processing"
+msgstr ""
+
+#: modules/lightmapper_cpu/lightmapper_cpu.cpp
+msgid "Plotting lightmaps"
+msgstr ""
+
 #: modules/mono/csharp_script.cpp
 msgid "Class name can't be a reserved keyword"
 msgstr ""
@@ -11373,14 +11447,12 @@ msgid "Set Variable Type"
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Add Input Port"
-msgstr "Favorīti:"
+msgstr "Pievienot Ieejas Pieslēgvietu"
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Add Output Port"
-msgstr "Favorīti:"
+msgstr "Pievienot Izejas Pieslēgvietu"
 
 #: modules/visual_script/visual_script_editor.cpp
 #, fuzzy
@@ -11390,27 +11462,24 @@ msgstr ""
 "nosaukumu."
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Create a new function."
-msgstr "Izveidot Jaunu %s"
+msgstr "Izveidot jaunu funkciju."
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Variables:"
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Create a new variable."
-msgstr "Izveidot Jaunu %s"
+msgstr "Izveidot jaunu mainīgo."
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Signals:"
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Create a new signal."
-msgstr "Izveidot"
+msgstr "Izveidot jaunu signālu."
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Name is not a valid identifier:"
@@ -11620,24 +11689,20 @@ msgid "Members:"
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Change Base Type:"
-msgstr "Nomainīt %s Tipu"
+msgstr "Nomainīt Bāzes Tipu:"
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Add Nodes..."
-msgstr "Favorīti:"
+msgstr "Pievienot Mezglus..."
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Add Function..."
-msgstr "Izveidot Funkciju"
+msgstr "Pievienot Funkciju..."
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "function_name"
-msgstr "Funkcijas:"
+msgstr "funkcijas_nosaukums"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Select or create a function to edit its graph."
@@ -11660,9 +11725,8 @@ msgid "Cut Nodes"
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-#, fuzzy
 msgid "Make Function"
-msgstr "Funkcijas:"
+msgstr "Izveidot Funkciju"
 
 #: modules/visual_script/visual_script_editor.cpp
 msgid "Refresh Graph"
@@ -11767,23 +11831,7 @@ msgid "Select device from the list"
 msgstr ""
 
 #: platform/android/export/export.cpp
-msgid "ADB executable not configured in the Editor Settings."
-msgstr ""
-
-#: platform/android/export/export.cpp
-msgid "OpenJDK jarsigner not configured in the Editor Settings."
-msgstr ""
-
-#: platform/android/export/export.cpp
-msgid "Debug keystore not configured in the Editor Settings nor in the preset."
-msgstr ""
-
-#: platform/android/export/export.cpp
-msgid "Custom build requires a valid Android SDK path in Editor Settings."
-msgstr ""
-
-#: platform/android/export/export.cpp
-msgid "Invalid Android SDK path for custom build in Editor Settings."
+msgid "Unable to find the 'apksigner' tool."
 msgstr ""
 
 #: platform/android/export/export.cpp
@@ -11793,13 +11841,90 @@ msgid ""
 msgstr ""
 
 #: platform/android/export/export.cpp
+msgid "Debug keystore not configured in the Editor Settings nor in the preset."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "Release keystore incorrectly configured in the export preset."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "A valid Android SDK path is required in Editor Settings."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "Invalid Android SDK path in Editor Settings."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "Missing 'platform-tools' directory!"
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "Unable to find Android SDK platform-tools' adb command."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "Please check in the Android SDK directory specified in Editor Settings."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "Missing 'build-tools' directory!"
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "Unable to find Android SDK build-tools' apksigner command."
+msgstr ""
+
+#: platform/android/export/export.cpp
 msgid "Invalid public key for APK expansion."
 msgstr ""
 
 #: platform/android/export/export.cpp
-#, fuzzy
 msgid "Invalid package name:"
-msgstr "Nederīgs nosaukums."
+msgstr "Nederīgs paketes nosaukums:"
+
+#: platform/android/export/export.cpp
+msgid ""
+"Invalid \"GodotPaymentV3\" module included in the \"android/modules\" "
+"project setting (changed in Godot 3.2.2).\n"
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "\"Use Custom Build\" must be enabled to use the plugins."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid ""
+"\"Degrees Of Freedom\" is only valid when \"Xr Mode\" is \"Oculus Mobile VR"
+"\"."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid ""
+"\"Hand Tracking\" is only valid when \"Xr Mode\" is \"Oculus Mobile VR\"."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid ""
+"\"Focus Awareness\" is only valid when \"Xr Mode\" is \"Oculus Mobile VR\"."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "\"Export AAB\" is only valid when \"Use Custom Build\" is enabled."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "Invalid filename! Android App Bundle requires the *.aab extension."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "APK Expansion not compatible with Android App Bundle."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "Invalid filename! Android APK requires the *.apk extension."
+msgstr ""
 
 #: platform/android/export/export.cpp
 msgid ""
@@ -11826,7 +11951,13 @@ msgid ""
 msgstr ""
 
 #: platform/android/export/export.cpp
-msgid "No build apk generated at: "
+msgid "Moving output"
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid ""
+"Unable to copy and rename export file, check gradle project directory for "
+"outputs."
 msgstr ""
 
 #: platform/iphone/export/export.cpp
@@ -11842,9 +11973,8 @@ msgid "App Store Team ID not specified - cannot configure the project."
 msgstr ""
 
 #: platform/iphone/export/export.cpp
-#, fuzzy
 msgid "Invalid Identifier:"
-msgstr "Nederīgs fonta izmērs."
+msgstr "Nederīgs Identifikators:"
 
 #: platform/iphone/export/export.cpp
 msgid "Required icon is not specified in the preset."
@@ -11974,6 +12104,14 @@ msgstr ""
 msgid "An empty CollisionPolygon2D has no effect on collision."
 msgstr ""
 
+#: scene/2d/collision_polygon_2d.cpp
+msgid "Invalid polygon. At least 3 points are needed in 'Solids' build mode."
+msgstr ""
+
+#: scene/2d/collision_polygon_2d.cpp
+msgid "Invalid polygon. At least 2 points are needed in 'Segments' build mode."
+msgstr ""
+
 #: scene/2d/collision_shape_2d.cpp
 msgid ""
 "CollisionShape2D only serves to provide a collision shape to a "
@@ -11987,10 +12125,36 @@ msgid ""
 "shape resource for it!"
 msgstr ""
 
+#: scene/2d/collision_shape_2d.cpp
+msgid ""
+"Polygon-based shapes are not meant be used nor edited directly through the "
+"CollisionShape2D node. Please use the CollisionPolygon2D node instead."
+msgstr ""
+
 #: scene/2d/cpu_particles_2d.cpp
 msgid ""
 "CPUParticles2D animation requires the usage of a CanvasItemMaterial with "
 "\"Particles Animation\" enabled."
+msgstr ""
+
+#: scene/2d/joints_2d.cpp
+msgid "Node A and Node B must be PhysicsBody2Ds"
+msgstr ""
+
+#: scene/2d/joints_2d.cpp
+msgid "Node A must be a PhysicsBody2D"
+msgstr ""
+
+#: scene/2d/joints_2d.cpp
+msgid "Node B must be a PhysicsBody2D"
+msgstr ""
+
+#: scene/2d/joints_2d.cpp
+msgid "Joint is not connected to two PhysicsBody2Ds"
+msgstr ""
+
+#: scene/2d/joints_2d.cpp
+msgid "Node A and Node B must be different PhysicsBody2Ds"
 msgstr ""
 
 #: scene/2d/light_2d.cpp
@@ -12114,27 +12278,27 @@ msgid "ARVROrigin requires an ARVRCamera child node."
 msgstr ""
 
 #: scene/3d/baked_lightmap.cpp
-msgid "%d%%"
+msgid "Finding meshes and lights"
 msgstr ""
 
 #: scene/3d/baked_lightmap.cpp
-msgid "(Time Left: %d:%02d s)"
+msgid "Preparing geometry (%d/%d)"
 msgstr ""
 
 #: scene/3d/baked_lightmap.cpp
-msgid "Plotting Meshes: "
+msgid "Preparing environment"
 msgstr ""
 
 #: scene/3d/baked_lightmap.cpp
-msgid "Plotting Lights:"
-msgstr ""
-
-#: scene/3d/baked_lightmap.cpp scene/3d/gi_probe.cpp
-msgid "Finishing Plot"
+msgid "Generating capture"
 msgstr ""
 
 #: scene/3d/baked_lightmap.cpp
-msgid "Lighting Meshes: "
+msgid "Saving lightmaps"
+msgstr ""
+
+#: scene/3d/baked_lightmap.cpp
+msgid "Done"
 msgstr ""
 
 #: scene/3d/collision_object.cpp
@@ -12194,6 +12358,10 @@ msgid "Plotting Meshes"
 msgstr ""
 
 #: scene/3d/gi_probe.cpp
+msgid "Finishing Plot"
+msgstr ""
+
+#: scene/3d/gi_probe.cpp
 msgid ""
 "GIProbes are not supported by the GLES2 video driver.\n"
 "Use a BakedLightmap instead."
@@ -12248,6 +12416,26 @@ msgid ""
 "Change the size in children collision shapes instead."
 msgstr ""
 
+#: scene/3d/physics_joint.cpp
+msgid "Node A and Node B must be PhysicsBodies"
+msgstr ""
+
+#: scene/3d/physics_joint.cpp
+msgid "Node A must be a PhysicsBody"
+msgstr ""
+
+#: scene/3d/physics_joint.cpp
+msgid "Node B must be a PhysicsBody"
+msgstr ""
+
+#: scene/3d/physics_joint.cpp
+msgid "Joint is not connected to any PhysicsBodies"
+msgstr ""
+
+#: scene/3d/physics_joint.cpp
+msgid "Node A and Node B must be different PhysicsBodies"
+msgstr ""
+
 #: scene/3d/remote_transform.cpp
 msgid ""
 "The \"Remote Path\" property must point to a valid Spatial or Spatial-"
@@ -12299,9 +12487,8 @@ msgid "On BlendTree node '%s', animation not found: '%s'"
 msgstr ""
 
 #: scene/animation/animation_blend_tree.cpp
-#, fuzzy
 msgid "Animation not found: '%s'"
-msgstr "Animācijas garums (sekundēs)."
+msgstr "Animācija netika atrasta: '%s'"
 
 #: scene/animation/animation_tree.cpp
 msgid "In node '%s', invalid animation: '%s'."
@@ -12313,9 +12500,8 @@ msgid "Invalid animation: '%s'."
 msgstr "Nederīgs fonta izmērs."
 
 #: scene/animation/animation_tree.cpp
-#, fuzzy
 msgid "Nothing connected to input '%s' of node '%s'."
-msgstr "Atvienot '%s' no '%s'"
+msgstr "Nekas nav savienots ar ieeju '%s' mezglam '%s'."
 
 #: scene/animation/animation_tree.cpp
 msgid "No root AnimationNode for the graph is set."
@@ -12361,9 +12547,8 @@ msgid "Switch between hexadecimal and code values."
 msgstr ""
 
 #: scene/gui/color_picker.cpp
-#, fuzzy
 msgid "Add current color as a preset."
-msgstr "Pievienot pašreizējo krāsu kā iepriekšnoteiktu krāsu"
+msgstr "Pievienot pašreizējo krāsu kā iepriekšnoteiktu krāsu."
 
 #: scene/gui/container.cpp
 msgid ""
@@ -12385,6 +12570,14 @@ msgstr "Brīdinājums!"
 #: scene/gui/dialogs.cpp
 msgid "Please Confirm..."
 msgstr "Lūdzu Apstipriniet..."
+
+#: scene/gui/file_dialog.cpp
+msgid "Must use a valid extension."
+msgstr ""
+
+#: scene/gui/graph_edit.cpp
+msgid "Enable grid minimap."
+msgstr ""
 
 #: scene/gui/popup.cpp
 msgid ""
@@ -12427,6 +12620,12 @@ msgid "Viewport size must be greater than 0 to render anything."
 msgstr ""
 
 #: scene/resources/visual_shader_nodes.cpp
+msgid ""
+"The sampler port is connected but not used. Consider changing the source to "
+"'SamplerPort'."
+msgstr ""
+
+#: scene/resources/visual_shader_nodes.cpp
 #, fuzzy
 msgid "Invalid source for preview."
 msgstr "Nederīgs fonta izmērs."
@@ -12456,6 +12655,9 @@ msgstr ""
 #: servers/visual/shader_language.cpp
 msgid "Constants cannot be modified."
 msgstr ""
+
+#~ msgid "Add initial export..."
+#~ msgstr "Pievienot sākuma eksportu..."
 
 #, fuzzy
 #~ msgid "Brief Description"

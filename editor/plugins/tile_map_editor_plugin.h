@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -38,13 +38,11 @@
 #include "scene/gui/label.h"
 #include "scene/gui/line_edit.h"
 #include "scene/gui/menu_button.h"
-#include "scene/gui/tool_button.h"
 
 class TileMapEditor : public VBoxContainer {
 	GDCLASS(TileMapEditor, VBoxContainer);
 
 	enum Tool {
-
 		TOOL_NONE,
 		TOOL_PAINTING,
 		TOOL_ERASING,
@@ -59,7 +57,6 @@ class TileMapEditor : public VBoxContainer {
 	};
 
 	enum Options {
-
 		OPTION_COPY,
 		OPTION_ERASE_SELECTION,
 		OPTION_FIX_INVALID,
@@ -88,16 +85,18 @@ class TileMapEditor : public VBoxContainer {
 	Label *tile_info;
 	MenuButton *options;
 
-	ToolButton *paint_button;
-	ToolButton *bucket_fill_button;
-	ToolButton *picker_button;
-	ToolButton *select_button;
+	Button *paint_button;
+	Button *line_button;
+	Button *rectangle_button;
+	Button *bucket_fill_button;
+	Button *picker_button;
+	Button *select_button;
 
-	ToolButton *flip_horizontal_button;
-	ToolButton *flip_vertical_button;
-	ToolButton *rotate_left_button;
-	ToolButton *rotate_right_button;
-	ToolButton *clear_transform_button;
+	Button *flip_horizontal_button;
+	Button *flip_vertical_button;
+	Button *rotate_left_button;
+	Button *rotate_right_button;
+	Button *clear_transform_button;
 
 	CheckBox *manual_button;
 	CheckBox *priority_button;
@@ -107,6 +106,7 @@ class TileMapEditor : public VBoxContainer {
 
 	bool selection_active;
 	bool mouse_over;
+	bool mouse_down;
 
 	bool flip_h;
 	bool flip_v;
@@ -117,6 +117,7 @@ class TileMapEditor : public VBoxContainer {
 	Rect2i rectangle;
 
 	Point2i over_tile;
+	bool refocus_over_tile = false;
 
 	bool *bucket_cache_visited;
 	Rect2i bucket_cache_rect;
@@ -130,8 +131,6 @@ class TileMapEditor : public VBoxContainer {
 		bool yf = false;
 		bool tr = false;
 		Vector2 ac;
-
-		CellOp() {}
 	};
 
 	Map<Point2i, CellOp> paint_undo;
@@ -143,8 +142,6 @@ class TileMapEditor : public VBoxContainer {
 		bool flip_v = false;
 		bool transpose = false;
 		Point2i autotile_coord;
-
-		TileData() {}
 	};
 
 	List<TileData> copydata;
@@ -182,6 +179,7 @@ class TileMapEditor : public VBoxContainer {
 	void _menu_option(int p_option);
 	void _palette_selected(int index);
 	void _palette_multi_selected(int index, bool selected);
+	void _palette_input(const Ref<InputEvent> &p_event);
 
 	Dictionary _create_cell_dictionary(int tile, bool flip_x, bool flip_y, bool transpose, Vector2 autotile_coord);
 	void _start_undo(const String &p_action);
@@ -228,14 +226,14 @@ protected:
 	void _notification(int p_what);
 
 public:
-	virtual bool forward_canvas_gui_input(const Ref<InputEvent> &p_event) { return tile_map_editor->forward_gui_input(p_event); }
-	virtual void forward_canvas_draw_over_viewport(Control *p_overlay) { tile_map_editor->forward_canvas_draw_over_viewport(p_overlay); }
+	virtual bool forward_canvas_gui_input(const Ref<InputEvent> &p_event) override { return tile_map_editor->forward_gui_input(p_event); }
+	virtual void forward_canvas_draw_over_viewport(Control *p_overlay) override { tile_map_editor->forward_canvas_draw_over_viewport(p_overlay); }
 
-	virtual String get_name() const { return "TileMap"; }
-	bool has_main_screen() const { return false; }
-	virtual void edit(Object *p_object);
-	virtual bool handles(Object *p_object) const;
-	virtual void make_visible(bool p_visible);
+	virtual String get_name() const override { return "TileMap"; }
+	bool has_main_screen() const override { return false; }
+	virtual void edit(Object *p_object) override;
+	virtual bool handles(Object *p_object) const override;
+	virtual void make_visible(bool p_visible) override;
 
 	TileMapEditorPlugin(EditorNode *p_node);
 	~TileMapEditorPlugin();

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -29,7 +29,7 @@
 /*************************************************************************/
 
 #include "voxelizer.h"
-#include "core/math/geometry.h"
+#include "core/math/geometry_3d.h"
 #include "core/os/os.h"
 #include "core/os/threaded_array_processor.h"
 
@@ -124,7 +124,7 @@ void Voxelizer::_plot_face(int p_idx, int p_level, int p_x, int p_y, int p_z, co
 				Vector3 half = (to - from) * 0.5;
 
 				//is in this cell?
-				if (!Geometry::triangle_box_overlap(from + half, half, p_vtx)) {
+				if (!Geometry3D::triangle_box_overlap(from + half, half, p_vtx)) {
 					continue; //face does not span this cell
 				}
 
@@ -151,7 +151,7 @@ void Voxelizer::_plot_face(int p_idx, int p_level, int p_x, int p_y, int p_z, co
 				Vector2 uv;
 				Vector3 lnormal;
 				get_uv_and_normal(intersection, p_vtx, p_uv, p_normal, uv, lnormal);
-				if (lnormal == Vector3()) { //just in case normal as nor provided
+				if (lnormal == Vector3()) { //just in case normal is not provided
 					lnormal = normal;
 				}
 
@@ -183,7 +183,7 @@ void Voxelizer::_plot_face(int p_idx, int p_level, int p_x, int p_y, int p_z, co
 			Vector3 lnormal;
 			Vector2 uv;
 			get_uv_and_normal(inters, p_vtx, p_uv, p_normal, uv, normal);
-			if (lnormal == Vector3()) { //just in case normal as nor provided
+			if (lnormal == Vector3()) { //just in case normal is not provided
 				lnormal = normal;
 			}
 
@@ -267,7 +267,7 @@ void Voxelizer::_plot_face(int p_idx, int p_level, int p_x, int p_y, int p_z, co
 				//test_aabb.grow_by(test_aabb.get_longest_axis_size()*0.05); //grow a bit to avoid numerical error in real-time
 				Vector3 qsize = test_aabb.size * 0.5; //quarter size, for fast aabb test
 
-				if (!Geometry::triangle_box_overlap(test_aabb.position + qsize, qsize, p_vtx)) {
+				if (!Geometry3D::triangle_box_overlap(test_aabb.position + qsize, qsize, p_vtx)) {
 					//if (!Face3(p_vtx[0],p_vtx[1],p_vtx[2]).intersects_aabb2(aabb)) {
 					//does not fit in child, go on
 					continue;
@@ -294,7 +294,7 @@ void Voxelizer::_plot_face(int p_idx, int p_level, int p_x, int p_y, int p_z, co
 Vector<Color> Voxelizer::_get_bake_texture(Ref<Image> p_image, const Color &p_color_mul, const Color &p_color_add) {
 	Vector<Color> ret;
 
-	if (p_image.is_null() || p_image->empty()) {
+	if (p_image.is_null() || p_image->is_empty()) {
 		ret.resize(bake_texture_size * bake_texture_size);
 		for (int i = 0; i < bake_texture_size * bake_texture_size; i++) {
 			ret.write[i] = p_color_add;
@@ -344,7 +344,7 @@ Voxelizer::MaterialCache Voxelizer::_get_material_cache(Ref<Material> p_material
 
 		Ref<Image> img_albedo;
 		if (albedo_tex.is_valid()) {
-			img_albedo = albedo_tex->get_data();
+			img_albedo = albedo_tex->get_image();
 			mc.albedo = _get_bake_texture(img_albedo, mat->get_albedo(), Color(0, 0, 0)); // albedo texture, color is multiplicative
 		} else {
 			mc.albedo = _get_bake_texture(img_albedo, Color(1, 1, 1), mat->get_albedo()); // no albedo texture, color is additive
@@ -358,7 +358,7 @@ Voxelizer::MaterialCache Voxelizer::_get_material_cache(Ref<Material> p_material
 		Ref<Image> img_emission;
 
 		if (emission_tex.is_valid()) {
-			img_emission = emission_tex->get_data();
+			img_emission = emission_tex->get_image();
 		}
 
 		if (mat->get_emission_operator() == StandardMaterial3D::EMISSION_OP_ADD) {
@@ -439,7 +439,7 @@ void Voxelizer::plot_mesh(const Transform &p_xform, Ref<Mesh> &p_mesh, const Vec
 				}
 
 				//test against original bounds
-				if (!Geometry::triangle_box_overlap(original_bounds.position + original_bounds.size * 0.5, original_bounds.size * 0.5, vtxs)) {
+				if (!Geometry3D::triangle_box_overlap(original_bounds.position + original_bounds.size * 0.5, original_bounds.size * 0.5, vtxs)) {
 					continue;
 				}
 				//plot
@@ -471,7 +471,7 @@ void Voxelizer::plot_mesh(const Transform &p_xform, Ref<Mesh> &p_mesh, const Vec
 				}
 
 				//test against original bounds
-				if (!Geometry::triangle_box_overlap(original_bounds.position + original_bounds.size * 0.5, original_bounds.size * 0.5, vtxs)) {
+				if (!Geometry3D::triangle_box_overlap(original_bounds.position + original_bounds.size * 0.5, original_bounds.size * 0.5, vtxs)) {
 					continue;
 				}
 				//plot face
@@ -580,7 +580,6 @@ void Voxelizer::_fixup_plot(int p_idx, int p_level) {
 
 		/*if (bake_light.size()) {
 			for(int i=0;i<6;i++) {
-
 			}
 		}*/
 
@@ -1008,7 +1007,4 @@ Transform Voxelizer::get_to_cell_space_xform() const {
 }
 
 Voxelizer::Voxelizer() {
-	sorted = false;
-	color_scan_cell_width = 4;
-	bake_texture_size = 128;
 }

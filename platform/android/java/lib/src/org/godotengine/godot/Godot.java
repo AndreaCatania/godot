@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -29,6 +29,9 @@
 /*************************************************************************/
 
 package org.godotengine.godot;
+
+import static android.content.Context.MODE_PRIVATE;
+import static android.content.Context.WINDOW_SERVICE;
 
 import org.godotengine.godot.input.GodotEditText;
 import org.godotengine.godot.plugin.GodotPlugin;
@@ -67,7 +70,9 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.Settings.Secure;
 import android.view.Display;
+import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
@@ -84,7 +89,7 @@ import android.widget.TextView;
 import androidx.annotation.CallSuper;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.Fragment;
 
 import com.google.android.vending.expansion.downloader.DownloadProgressInfo;
 import com.google.android.vending.expansion.downloader.DownloaderClientMarshaller;
@@ -98,11 +103,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-public abstract class Godot extends FragmentActivity implements SensorEventListener, IDownloaderClient {
+public class Godot extends Fragment implements SensorEventListener, IDownloaderClient {
 	private IStub mDownloaderClientStub;
 	private TextView mStatusText;
 	private TextView mProgressFraction;
@@ -126,11 +132,11 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	private boolean activityResumed;
 	private int mState;
 
+	private GodotHost godotHost;
 	private GodotPluginRegistry pluginRegistry;
 
 	static private Intent mCurrentIntent;
 
-	@Override
 	public void onNewIntent(Intent intent) {
 		mCurrentIntent = intent;
 	}
@@ -148,14 +154,14 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 
 	private void setButtonPausedState(boolean paused) {
 		mStatePaused = paused;
-		int stringResourceID = paused ? R.string.text_button_resume :
-										R.string.text_button_pause;
+		int stringResourceID = paused ? R.string.text_button_resume : R.string.text_button_pause;
 		mPauseButton.setText(stringResourceID);
 	}
 
 	private String[] command_line;
 	private boolean use_apk_expansion;
 
+	private ViewGroup containerLayout;
 	public GodotRenderView mRenderView;
 	private boolean godot_initialized = false;
 
@@ -174,7 +180,25 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	public ResultCallback result_callback;
 
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	public void onAttach(Context context) {
+		super.onAttach(context);
+		if (getParentFragment() instanceof GodotHost) {
+			godotHost = (GodotHost)getParentFragment();
+		} else if (getActivity() instanceof GodotHost) {
+			godotHost = (GodotHost)getActivity();
+		}
+	}
+
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		godotHost = null;
+	}
+
+	@CallSuper
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
 		if (result_callback != null) {
 			result_callback.callback(requestCode, resultCode, data);
 			result_callback = null;
@@ -185,8 +209,10 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 		}
 	}
 
+	@CallSuper
 	@Override
 	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 		for (GodotPlugin plugin : pluginRegistry.getAllPlugins()) {
 			plugin.onMainRequestPermissionsResult(requestCode, permissions, grantResults);
 		}
@@ -197,12 +223,30 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	};
 
 	/**
+	 * Invoked on the render thread when the Godot setup is complete.
+	 */
+	@CallSuper
+	protected void onGodotSetupCompleted() {
+		for (GodotPlugin plugin : pluginRegistry.getAllPlugins()) {
+			plugin.onGodotSetupCompleted();
+		}
+
+		if (godotHost != null) {
+			godotHost.onGodotSetupCompleted();
+		}
+	}
+
+	/**
 	 * Invoked on the render thread when the Godot main loop has started.
 	 */
 	@CallSuper
 	protected void onGodotMainLoopStarted() {
 		for (GodotPlugin plugin : pluginRegistry.getAllPlugins()) {
 			plugin.onGodotMainLoopStarted();
+		}
+
+		if (godotHost != null) {
+			godotHost.onGodotMainLoopStarted();
 		}
 	}
 
@@ -211,27 +255,29 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	 */
 	@Keep
 	private void onVideoInit() {
-		final FrameLayout layout = new FrameLayout(this);
-		layout.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-		setContentView(layout);
+		final Activity activity = getActivity();
+		containerLayout = new FrameLayout(activity);
+		containerLayout.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
 		// GodotEditText layout
-		GodotEditText editText = new GodotEditText(this);
-		editText.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+		GodotEditText editText = new GodotEditText(activity);
+		editText.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT,
+				(int)getResources().getDimension(R.dimen.text_edit_height)));
 		// ...add to FrameLayout
-		layout.addView(editText);
+		containerLayout.addView(editText);
 
 		GodotLib.setup(command_line);
 
-		final String videoDriver = GodotLib.getGlobal("rendering/quality/driver/driver_name");
+		final String videoDriver = GodotLib.getGlobal("rendering/driver/driver_name");
 		if (videoDriver.equals("Vulkan")) {
-			mRenderView = new GodotVulkanRenderView(this);
+			mRenderView = new GodotVulkanRenderView(activity, this);
 		} else {
-			mRenderView = new GodotGLRenderView(this, xrMode, use_32_bits, use_debug_opengl);
+			mRenderView = new GodotGLRenderView(activity, this, xrMode, use_32_bits,
+					use_debug_opengl);
 		}
 
 		View view = mRenderView.getView();
-		layout.addView(view, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+		containerLayout.addView(view, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		editText.setView(mRenderView);
 		io.setEdit(editText);
 
@@ -239,7 +285,7 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 			@Override
 			public void onGlobalLayout() {
 				Point fullSize = new Point();
-				getWindowManager().getDefaultDisplay().getSize(fullSize);
+				activity.getWindowManager().getDefaultDisplay().getSize(fullSize);
 				Rect gameSize = new Rect();
 				mRenderView.getView().getWindowVisibleDisplayFrame(gameSize);
 
@@ -262,9 +308,9 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 
 		// Include the returned non-null views in the Godot view hierarchy.
 		for (GodotPlugin plugin : pluginRegistry.getAllPlugins()) {
-			View pluginView = plugin.onMainCreateView(this);
+			View pluginView = plugin.onMainCreate(activity);
 			if (pluginView != null) {
-				layout.addView(pluginView);
+				containerLayout.addView(pluginView);
 			}
 		}
 	}
@@ -274,9 +320,9 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 			@Override
 			public void run() {
 				if (p_enabled) {
-					getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+					getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 				} else {
-					getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+					getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 				}
 			}
 		});
@@ -290,12 +336,12 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	@Keep
 	private void vibrate(int durationMs) {
 		if (requestPermission("VIBRATE")) {
-			Vibrator v = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+			Vibrator v = (Vibrator)getContext().getSystemService(Context.VIBRATOR_SERVICE);
 			if (v != null) {
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 					v.vibrate(VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE));
 				} else {
-					//deprecated in API 26
+					// deprecated in API 26
 					v.vibrate(durationMs);
 				}
 			}
@@ -314,13 +360,16 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 		// Using instrumentation is a way of making the whole app process restart, because Android
 		// will kill any process of the same package which was already running.
 		//
-		Bundle args = new Bundle();
-		args.putParcelable("intent", mCurrentIntent);
-		startInstrumentation(new ComponentName(this, GodotInstrumentation.class), null, args);
+		final Activity activity = getActivity();
+		if (activity != null) {
+			Bundle args = new Bundle();
+			args.putParcelable("intent", mCurrentIntent);
+			activity.startInstrumentation(new ComponentName(activity, GodotInstrumentation.class), null, args);
+		}
 	}
 
 	public void alert(final String message, final String title) {
-		final Activity activity = this;
+		final Activity activity = getActivity();
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -340,15 +389,31 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	}
 
 	public int getGLESVersionCode() {
-		ActivityManager am = (ActivityManager)this.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager am = (ActivityManager)getContext().getSystemService(Context.ACTIVITY_SERVICE);
 		ConfigurationInfo deviceInfo = am.getDeviceConfigurationInfo();
 		return deviceInfo.reqGlEsVersion;
 	}
 
-	private String[] getCommandLine() {
+	@CallSuper
+	protected String[] getCommandLine() {
+		String[] original = parseCommandLine();
+		String[] updated;
+		List<String> hostCommandLine = godotHost != null ? godotHost.getCommandLine() : null;
+		if (hostCommandLine == null || hostCommandLine.isEmpty()) {
+			updated = original;
+		} else {
+			updated = Arrays.copyOf(original, original.length + hostCommandLine.size());
+			for (int i = 0; i < hostCommandLine.size(); i++) {
+				updated[original.length + i] = hostCommandLine.get(i);
+			}
+		}
+		return updated;
+	}
+
+	private String[] parseCommandLine() {
 		InputStream is;
 		try {
-			is = getAssets().open("_cl_");
+			is = getActivity().getAssets().open("_cl_");
 			byte[] len = new byte[4];
 			int r = is.read(len);
 			if (r < 4) {
@@ -425,11 +490,12 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 			command_line = new_cmdline;
 		}
 
-		io = new GodotIO(this);
-		io.unique_id = Secure.getString(getContentResolver(), Secure.ANDROID_ID);
+		final Activity activity = getActivity();
+		io = new GodotIO(activity);
+		io.unique_id = Secure.getString(activity.getContentResolver(), Secure.ANDROID_ID);
 		GodotLib.io = io;
-		netUtils = new GodotNetUtils(this);
-		mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+		netUtils = new GodotNetUtils(activity);
+		mSensorManager = (SensorManager)activity.getSystemService(Context.SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
 		mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
@@ -439,7 +505,7 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 		mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 		mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
 
-		GodotLib.initialize(this, getAssets(), use_apk_expansion);
+		GodotLib.initialize(activity, this, activity.getAssets(), use_apk_expansion);
 
 		result_callback = null;
 
@@ -453,151 +519,162 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	}
 
 	@Override
-	protected void onCreate(Bundle icicle) {
+	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
-		Window window = getWindow();
+
+		final Activity activity = getActivity();
+		Window window = activity.getWindow();
 		window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-		mClipboard = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+		mClipboard = (ClipboardManager)activity.getSystemService(Context.CLIPBOARD_SERVICE);
 		pluginRegistry = GodotPluginRegistry.initializePluginRegistry(this);
 
-		//check for apk expansion API
-		if (true) {
-			boolean md5mismatch = false;
-			command_line = getCommandLine();
-			String main_pack_md5 = null;
-			String main_pack_key = null;
+		// check for apk expansion API
+		boolean md5mismatch = false;
+		command_line = getCommandLine();
+		String main_pack_md5 = null;
+		String main_pack_key = null;
 
-			List<String> new_args = new LinkedList<String>();
+		List<String> new_args = new LinkedList<String>();
 
-			for (int i = 0; i < command_line.length; i++) {
-				boolean has_extra = i < command_line.length - 1;
-				if (command_line[i].equals(XRMode.REGULAR.cmdLineArg)) {
-					xrMode = XRMode.REGULAR;
-				} else if (command_line[i].equals(XRMode.OVR.cmdLineArg)) {
-					xrMode = XRMode.OVR;
-				} else if (command_line[i].equals("--use_depth_32")) {
-					use_32_bits = true;
-				} else if (command_line[i].equals("--debug_opengl")) {
-					use_debug_opengl = true;
-				} else if (command_line[i].equals("--use_immersive")) {
-					use_immersive = true;
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) { // check if the application runs on an android 4.4+
-						window.getDecorView().setSystemUiVisibility(
-								View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-								View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-								View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-								View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | // hide nav bar
-								View.SYSTEM_UI_FLAG_FULLSCREEN | // hide status bar
-								View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+		for (int i = 0; i < command_line.length; i++) {
+			boolean has_extra = i < command_line.length - 1;
+			if (command_line[i].equals(XRMode.REGULAR.cmdLineArg)) {
+				xrMode = XRMode.REGULAR;
+			} else if (command_line[i].equals(XRMode.OVR.cmdLineArg)) {
+				xrMode = XRMode.OVR;
+			} else if (command_line[i].equals("--use_depth_32")) {
+				use_32_bits = true;
+			} else if (command_line[i].equals("--debug_opengl")) {
+				use_debug_opengl = true;
+			} else if (command_line[i].equals("--use_immersive")) {
+				use_immersive = true;
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) { // check if the application runs on an android 4.4+
+					window.getDecorView().setSystemUiVisibility(
+							View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+							View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+							View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+							View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | // hide nav bar
+							View.SYSTEM_UI_FLAG_FULLSCREEN | // hide status bar
+							View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
 
-						UiChangeListener();
-					}
-				} else if (command_line[i].equals("--use_apk_expansion")) {
-					use_apk_expansion = true;
-				} else if (has_extra && command_line[i].equals("--apk_expansion_md5")) {
-					main_pack_md5 = command_line[i + 1];
-					i++;
-				} else if (has_extra && command_line[i].equals("--apk_expansion_key")) {
-					main_pack_key = command_line[i + 1];
-					SharedPreferences prefs = getSharedPreferences("app_data_keys", MODE_PRIVATE);
-					Editor editor = prefs.edit();
-					editor.putString("store_public_key", main_pack_key);
-
-					editor.apply();
-					i++;
-				} else if (command_line[i].trim().length() != 0) {
-					new_args.add(command_line[i]);
+					UiChangeListener();
 				}
+			} else if (command_line[i].equals("--use_apk_expansion")) {
+				use_apk_expansion = true;
+			} else if (has_extra && command_line[i].equals("--apk_expansion_md5")) {
+				main_pack_md5 = command_line[i + 1];
+				i++;
+			} else if (has_extra && command_line[i].equals("--apk_expansion_key")) {
+				main_pack_key = command_line[i + 1];
+				SharedPreferences prefs = activity.getSharedPreferences("app_data_keys",
+						MODE_PRIVATE);
+				Editor editor = prefs.edit();
+				editor.putString("store_public_key", main_pack_key);
+
+				editor.apply();
+				i++;
+			} else if (command_line[i].trim().length() != 0) {
+				new_args.add(command_line[i]);
+			}
+		}
+
+		if (new_args.isEmpty()) {
+			command_line = null;
+		} else {
+			command_line = new_args.toArray(new String[new_args.size()]);
+		}
+		if (use_apk_expansion && main_pack_md5 != null && main_pack_key != null) {
+			// check that environment is ok!
+			if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+				// show popup and die
 			}
 
-			if (new_args.isEmpty()) {
-				command_line = null;
-			} else {
-				command_line = new_args.toArray(new String[new_args.size()]);
+			// Build the full path to the app's expansion files
+			try {
+				expansion_pack_path = Helpers.getSaveFilePath(getContext());
+				expansion_pack_path += "/main." + activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionCode + "." + activity.getPackageName() + ".obb";
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-			if (use_apk_expansion && main_pack_md5 != null && main_pack_key != null) {
-				//check that environment is ok!
-				if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-					//show popup and die
-				}
 
-				// Build the full path to the app's expansion files
+			File f = new File(expansion_pack_path);
+
+			boolean pack_valid = true;
+
+			if (!f.exists()) {
+				pack_valid = false;
+
+			} else if (obbIsCorrupted(expansion_pack_path, main_pack_md5)) {
+				pack_valid = false;
 				try {
-					expansion_pack_path = Helpers.getSaveFilePath(getApplicationContext());
-					expansion_pack_path += "/main." + getPackageManager().getPackageInfo(getPackageName(), 0).versionCode + "." + this.getPackageName() + ".obb";
+					f.delete();
 				} catch (Exception e) {
-					e.printStackTrace();
 				}
+			}
 
-				File f = new File(expansion_pack_path);
+			if (!pack_valid) {
+				Intent notifierIntent = new Intent(activity, activity.getClass());
+				notifierIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+										Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-				boolean pack_valid = true;
+				PendingIntent pendingIntent = PendingIntent.getActivity(activity, 0,
+						notifierIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-				if (!f.exists()) {
-					pack_valid = false;
+				int startResult;
+				try {
+					startResult = DownloaderClientMarshaller.startDownloadServiceIfRequired(
+							getContext(),
+							pendingIntent,
+							GodotDownloaderService.class);
 
-				} else if (obbIsCorrupted(expansion_pack_path, main_pack_md5)) {
-					pack_valid = false;
-					try {
-						f.delete();
-					} catch (Exception e) {
-					}
-				}
-
-				if (!pack_valid) {
-					Intent notifierIntent = new Intent(this, this.getClass());
-					notifierIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
-											Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-					PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-							notifierIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-					int startResult;
-					try {
-						startResult = DownloaderClientMarshaller.startDownloadServiceIfRequired(
-								getApplicationContext(),
-								pendingIntent,
+					if (startResult != DownloaderClientMarshaller.NO_DOWNLOAD_REQUIRED) {
+						// This is where you do set up to display the download
+						// progress (next step in onCreateView)
+						mDownloaderClientStub = DownloaderClientMarshaller.CreateStub(this,
 								GodotDownloaderService.class);
 
-						if (startResult != DownloaderClientMarshaller.NO_DOWNLOAD_REQUIRED) {
-							// This is where you do set up to display the download
-							// progress (next step)
-							mDownloaderClientStub = DownloaderClientMarshaller.CreateStub(this,
-									GodotDownloaderService.class);
-
-							setContentView(R.layout.downloading_expansion);
-							mPB = (ProgressBar)findViewById(R.id.progressBar);
-							mStatusText = (TextView)findViewById(R.id.statusText);
-							mProgressFraction = (TextView)findViewById(R.id.progressAsFraction);
-							mProgressPercent = (TextView)findViewById(R.id.progressAsPercentage);
-							mAverageSpeed = (TextView)findViewById(R.id.progressAverageSpeed);
-							mTimeRemaining = (TextView)findViewById(R.id.progressTimeRemaining);
-							mDashboard = findViewById(R.id.downloaderDashboard);
-							mCellMessage = findViewById(R.id.approveCellular);
-							mPauseButton = (Button)findViewById(R.id.pauseButton);
-							mWiFiSettingsButton = (Button)findViewById(R.id.wifiSettingsButton);
-
-							return;
-						}
-					} catch (NameNotFoundException e) {
-						// TODO Auto-generated catch block
+						return;
 					}
+				} catch (NameNotFoundException e) {
+					// TODO Auto-generated catch block
 				}
 			}
 		}
 
-		mCurrentIntent = getIntent();
+		mCurrentIntent = activity.getIntent();
 
 		initializeGodot();
 	}
 
 	@Override
-	protected void onDestroy() {
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle icicle) {
+		if (mDownloaderClientStub != null) {
+			View downloadingExpansionView =
+					inflater.inflate(R.layout.downloading_expansion, container, false);
+			mPB = (ProgressBar)downloadingExpansionView.findViewById(R.id.progressBar);
+			mStatusText = (TextView)downloadingExpansionView.findViewById(R.id.statusText);
+			mProgressFraction = (TextView)downloadingExpansionView.findViewById(R.id.progressAsFraction);
+			mProgressPercent = (TextView)downloadingExpansionView.findViewById(R.id.progressAsPercentage);
+			mAverageSpeed = (TextView)downloadingExpansionView.findViewById(R.id.progressAverageSpeed);
+			mTimeRemaining = (TextView)downloadingExpansionView.findViewById(R.id.progressTimeRemaining);
+			mDashboard = downloadingExpansionView.findViewById(R.id.downloaderDashboard);
+			mCellMessage = downloadingExpansionView.findViewById(R.id.approveCellular);
+			mPauseButton = (Button)downloadingExpansionView.findViewById(R.id.pauseButton);
+			mWiFiSettingsButton = (Button)downloadingExpansionView.findViewById(R.id.wifiSettingsButton);
+
+			return downloadingExpansionView;
+		}
+
+		return containerLayout;
+	}
+
+	@Override
+	public void onDestroy() {
 		for (GodotPlugin plugin : pluginRegistry.getAllPlugins()) {
 			plugin.onMainDestroy();
 		}
 
-		GodotLib.ondestroy(this);
+		GodotLib.ondestroy();
 
 		super.onDestroy();
 
@@ -607,13 +684,13 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	}
 
 	@Override
-	protected void onPause() {
+	public void onPause() {
 		super.onPause();
 		activityResumed = false;
 
 		if (!godot_initialized) {
 			if (null != mDownloaderClientStub) {
-				mDownloaderClientStub.disconnect(this);
+				mDownloaderClientStub.disconnect(getActivity());
 			}
 			return;
 		}
@@ -643,12 +720,12 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	}
 
 	@Override
-	protected void onResume() {
+	public void onResume() {
 		super.onResume();
 		activityResumed = true;
 		if (!godot_initialized) {
 			if (null != mDownloaderClientStub) {
-				mDownloaderClientStub.connect(this);
+				mDownloaderClientStub.connect(getActivity());
 			}
 			return;
 		}
@@ -661,7 +738,7 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 		mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
 
 		if (use_immersive && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) { // check if the application runs on an android 4.4+
-			Window window = getWindow();
+			Window window = getActivity().getWindow();
 			window.getDecorView().setSystemUiVisibility(
 					View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
 					View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
@@ -677,7 +754,7 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	}
 
 	public void UiChangeListener() {
-		final View decorView = getWindow().getDecorView();
+		final View decorView = getActivity().getWindow().getDecorView();
 		decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
 			@Override
 			public void onSystemUiVisibilityChange(int visibility) {
@@ -698,7 +775,8 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		Display display = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+		Display display =
+				((WindowManager)getActivity().getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
 		int displayRotation = display.getRotation();
 
 		float[] adjustedValues = new float[3];
@@ -747,9 +825,7 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 
 	/*
 	@Override public boolean dispatchKeyEvent(KeyEvent event) {
-
 		if (event.getKeyCode()==KeyEvent.KEYCODE_BACK) {
-
 			System.out.printf("** BACK REQUEST!\n");
 
 			GodotLib.quit();
@@ -761,7 +837,6 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	}
 	*/
 
-	@Override
 	public void onBackPressed() {
 		boolean shouldQuit = true;
 
@@ -789,6 +864,12 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	public final void runOnRenderThread(@NonNull Runnable action) {
 		if (mRenderView != null) {
 			mRenderView.queueOnRenderThread(action);
+		}
+	}
+
+	public final void runOnUiThread(@NonNull Runnable action) {
+		if (getActivity() != null) {
+			getActivity().runOnUiThread(action);
 		}
 	}
 
@@ -837,75 +918,17 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 		}
 	}
 
-	public boolean gotTouchEvent(final MotionEvent event) {
-		final int evcount = event.getPointerCount();
-		if (evcount == 0)
-			return true;
-
-		if (mRenderView != null) {
-			final int[] arr = new int[event.getPointerCount() * 3];
-
-			for (int i = 0; i < event.getPointerCount(); i++) {
-				arr[i * 3 + 0] = (int)event.getPointerId(i);
-				arr[i * 3 + 1] = (int)event.getX(i);
-				arr[i * 3 + 2] = (int)event.getY(i);
-			}
-			final int pointer_idx = event.getPointerId(event.getActionIndex());
-
-			//System.out.printf("gaction: %d\n",event.getAction());
-			final int action = event.getAction() & MotionEvent.ACTION_MASK;
-			mRenderView.queueOnRenderThread(new Runnable() {
-				@Override
-				public void run() {
-					switch (action) {
-						case MotionEvent.ACTION_DOWN: {
-							GodotLib.touch(0, 0, evcount, arr);
-							//System.out.printf("action down at: %f,%f\n", event.getX(),event.getY());
-						} break;
-						case MotionEvent.ACTION_MOVE: {
-							GodotLib.touch(1, 0, evcount, arr);
-							/*
-							for(int i=0;i<event.getPointerCount();i++) {
-								System.out.printf("%d - moved to: %f,%f\n",i, event.getX(i),event.getY(i));
-							}
-							*/
-						} break;
-						case MotionEvent.ACTION_POINTER_UP: {
-							GodotLib.touch(4, pointer_idx, evcount, arr);
-							//System.out.printf("%d - s.up at: %f,%f\n",pointer_idx, event.getX(pointer_idx),event.getY(pointer_idx));
-						} break;
-						case MotionEvent.ACTION_POINTER_DOWN: {
-							GodotLib.touch(3, pointer_idx, evcount, arr);
-							//System.out.printf("%d - s.down at: %f,%f\n",pointer_idx, event.getX(pointer_idx),event.getY(pointer_idx));
-						} break;
-						case MotionEvent.ACTION_CANCEL:
-						case MotionEvent.ACTION_UP: {
-							GodotLib.touch(2, 0, evcount, arr);
-							/*
-							for(int i=0;i<event.getPointerCount();i++) {
-								System.out.printf("%d - up! %f,%f\n",i, event.getX(i),event.getY(i));
-							}
-							*/
-						} break;
-					}
-				}
-			});
-		}
-		return true;
-	}
-
-	@Override
 	public boolean onKeyMultiple(final int inKeyCode, int repeatCount, KeyEvent event) {
 		String s = event.getCharacters();
 		if (s == null || s.length() == 0)
-			return super.onKeyMultiple(inKeyCode, repeatCount, event);
+			return false;
 
 		final char[] cc = s.toCharArray();
 		int cnt = 0;
 		for (int i = cc.length; --i >= 0; cnt += cc[i] != 0 ? 1 : 0)
 			;
 		if (cnt == 0)
-			return super.onKeyMultiple(inKeyCode, repeatCount, event);
+			return false;
 		mRenderView.queueOnRenderThread(new Runnable() {
 			// This method will be called on the rendering thread:
 			public void run() {
@@ -923,15 +946,15 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	}
 
 	public boolean requestPermission(String p_name) {
-		return PermissionsUtil.requestPermission(p_name, this);
+		return PermissionsUtil.requestPermission(p_name, getActivity());
 	}
 
 	public boolean requestPermissions() {
-		return PermissionsUtil.requestManifestPermissions(this);
+		return PermissionsUtil.requestManifestPermissions(getActivity());
 	}
 
 	public String[] getGrantedPermissions() {
-		return PermissionsUtil.getGrantedPermissions(this);
+		return PermissionsUtil.getGrantedPermissions(getActivity());
 	}
 
 	/**
@@ -1029,5 +1052,10 @@ public abstract class Godot extends FragmentActivity implements SensorEventListe
 	}
 	public void initInputDevices() {
 		mRenderView.initInputDevices();
+	}
+
+	@Keep
+	private GodotRenderView getRenderView() { // used by native side to get renderView
+		return mRenderView;
 	}
 }

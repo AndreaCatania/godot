@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -49,7 +49,7 @@ public:
 	void set_curve(const Ref<Curve3D> &p_curve);
 	Ref<Curve3D> get_curve() const;
 
-	Path3D();
+	Path3D() {}
 };
 
 class PathFollow3D : public Node3D {
@@ -57,7 +57,6 @@ class PathFollow3D : public Node3D {
 
 public:
 	enum RotationMode {
-
 		ROTATION_NONE,
 		ROTATION_Y,
 		ROTATION_XY,
@@ -66,19 +65,19 @@ public:
 	};
 
 private:
-	Path3D *path;
-	real_t delta_offset; // change in offset since last _update_transform
-	real_t offset;
-	real_t h_offset;
-	real_t v_offset;
-	bool cubic;
-	bool loop;
-	RotationMode rotation_mode;
+	Path3D *path = nullptr;
+	real_t delta_offset = 0.0; // Change in offset since last _update_transform.
+	real_t offset = 0.0;
+	real_t h_offset = 0.0;
+	real_t v_offset = 0.0;
+	bool cubic = true;
+	bool loop = true;
+	RotationMode rotation_mode = ROTATION_XYZ;
 
-	void _update_transform();
+	void _update_transform(bool p_update_xyz_rot = true);
 
 protected:
-	virtual void _validate_property(PropertyInfo &property) const;
+	virtual void _validate_property(PropertyInfo &property) const override;
 
 	void _notification(int p_what);
 	static void _bind_methods();
@@ -105,9 +104,9 @@ public:
 	void set_cubic_interpolation(bool p_enable);
 	bool get_cubic_interpolation() const;
 
-	String get_configuration_warning() const;
+	TypedArray<String> get_configuration_warnings() const override;
 
-	PathFollow3D();
+	PathFollow3D() {}
 };
 
 VARIANT_ENUM_CAST(PathFollow3D::RotationMode);

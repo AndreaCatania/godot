@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -84,8 +84,8 @@ class EditorPropertyArray : public EditorProperty {
 	bool dropping;
 
 	Ref<EditorPropertyArrayObject> object;
-	int page_len;
-	int page_idx;
+	int page_len = 20;
+	int page_idx = 0;
 	int changing_type_idx;
 	Button *edit;
 	VBoxContainer *vbox;
@@ -118,7 +118,7 @@ protected:
 
 public:
 	void setup(Variant::Type p_array_type, const String &p_hint_string = "");
-	virtual void update_property();
+	virtual void update_property() override;
 	EditorPropertyArray();
 };
 
@@ -129,8 +129,8 @@ class EditorPropertyDictionary : public EditorProperty {
 	bool updating;
 
 	Ref<EditorPropertyDictionaryObject> object;
-	int page_len;
-	int page_idx;
+	int page_len = 20;
+	int page_idx = 0;
 	int changing_type_idx;
 	Button *edit;
 	VBoxContainer *vbox;
@@ -152,7 +152,7 @@ protected:
 	void _notification(int p_what);
 
 public:
-	virtual void update_property();
+	virtual void update_property() override;
 	EditorPropertyDictionary();
 };
 

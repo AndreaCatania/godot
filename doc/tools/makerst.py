@@ -110,6 +110,9 @@ class ClassDef:
         self.theme_items = None  # type: Optional[OrderedDict[str, List[ThemeItemDef]]]
         self.tutorials = []  # type: List[str]
 
+        # Used to match the class with XML source for output filtering purposes.
+        self.filepath = ""  # type: str
+
 
 class State:
     def __init__(self):  # type: () -> None
@@ -118,11 +121,12 @@ class State:
         self.classes = OrderedDict()  # type: OrderedDict[str, ClassDef]
         self.current_class = ""  # type: str
 
-    def parse_class(self, class_root):  # type: (ET.Element) -> None
+    def parse_class(self, class_root, filepath):  # type: (ET.Element, str) -> None
         class_name = class_root.attrib["name"]
 
         class_def = ClassDef(class_name)
         self.classes[class_name] = class_def
+        class_def.filepath = filepath
 
         inherits = class_root.get("inherits")
         if inherits is not None:
@@ -278,6 +282,7 @@ def parse_arguments(root):  # type: (ET.Element) -> List[ParameterDef]
 def main():  # type: () -> None
     parser = argparse.ArgumentParser()
     parser.add_argument("path", nargs="+", help="A path to an XML file or a directory containing XML files to parse.")
+    parser.add_argument("--filter", default="", help="The filepath pattern for XML files to filter.")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--output", "-o", default=".", help="The directory to save output .rst files in.")
     group.add_argument(
@@ -286,6 +291,8 @@ def main():  # type: () -> None
         help="If passed, no output will be generated and XML files are only checked for errors.",
     )
     args = parser.parse_args()
+
+    print("Checking for errors in the XML class reference...")
 
     file_list = []  # type: List[str]
 
@@ -331,21 +338,28 @@ def main():  # type: () -> None
             print_error("Duplicate class '{}'".format(name), state)
             continue
 
-        classes[name] = doc
+        classes[name] = (doc, cur_file)
 
     for name, data in classes.items():
         try:
-            state.parse_class(data)
+            state.parse_class(data[0], data[1])
         except Exception as e:
             print_error("Exception while parsing class '{}': {}".format(name, e), state)
 
     state.sort_classes()
 
+    pattern = re.compile(args.filter)
+
     for class_name, class_def in state.classes.items():
+        if args.filter and not pattern.search(class_def.filepath):
+            continue
         state.current_class = class_name
         make_rst_class(class_def, state, args.dry_run, args.output)
 
-    if state.errored:
+    if not state.errored:
+        print("No errors found.")
+    else:
+        print("Errors were found in the class reference XML. Please check the messages above.")
         exit(1)
 
 
@@ -423,7 +437,7 @@ def make_rst_class(class_def, state, dry_run, output_dir):  # type: (ClassDef, S
         for property_def in class_def.properties.values():
             type_rst = property_def.type_name.to_rst(state)
             default = property_def.default_value
-            if property_def.overridden:
+            if default is not None and property_def.overridden:
                 ml.append((type_rst, property_def.name, default + " *(parent override)*"))
             else:
                 ref = ":ref:`{0}<class_{1}_property_{0}>`".format(property_def.name, class_name)
@@ -560,70 +574,7 @@ def make_rst_class(class_def, state, dry_run, output_dir):  # type: (ClassDef, S
 
                 index += 1
 
-
-def make_class_list(class_list, columns):  # type: (List[str], int) -> None
-    # This function is no longer used.
-    f = open("class_list.rst", "w", encoding="utf-8")
-    col_max = len(class_list) // columns + 1
-    print(("col max is ", col_max))
-    fit_columns = []  # type: List[List[str]]
-
-    for _ in range(0, columns):
-        fit_columns.append([])
-
-    indexers = []  # type List[str]
-    last_initial = ""
-
-    for idx, name in enumerate(class_list):
-        col = idx // col_max
-        if col >= columns:
-            col = columns - 1
-        fit_columns[col].append(name)
-        idx += 1
-        if name[:1] != last_initial:
-            indexers.append(name)
-        last_initial = name[:1]
-
-    row_max = 0
-    f.write("\n")
-
-    for n in range(0, columns):
-        if len(fit_columns[n]) > row_max:
-            row_max = len(fit_columns[n])
-
-    f.write("| ")
-    for n in range(0, columns):
-        f.write(" | |")
-
-    f.write("\n")
-    f.write("+")
-    for n in range(0, columns):
-        f.write("--+-------+")
-    f.write("\n")
-
-    for r in range(0, row_max):
-        s = "+ "
-        for c in range(0, columns):
-            if r >= len(fit_columns[c]):
-                continue
-
-            classname = fit_columns[c][r]
-            initial = classname[0]
-            if classname in indexers:
-                s += "**" + initial + "** | "
-            else:
-                s += " | "
-
-            s += "[" + classname + "](class_" + classname.lower() + ") | "
-
-        s += "\n"
-        f.write(s)
-
-    for n in range(0, columns):
-        f.write("--+-------+")
-    f.write("\n")
-
-    f.close()
+    f.write(make_footer())
 
 
 def escape_rst(text, until_pos=-1):  # type: (str) -> str
@@ -660,6 +611,43 @@ def escape_rst(text, until_pos=-1):  # type: (str) -> str
     return text
 
 
+def format_codeblock(code_type, post_text, indent_level, state):  # types: str, str, int, state
+    end_pos = post_text.find("[/" + code_type + "]")
+    if end_pos == -1:
+        print_error("[" + code_type + "] without a closing tag, file: {}".format(state.current_class), state)
+        return None
+
+    code_text = post_text[len("[" + code_type + "]") : end_pos]
+    post_text = post_text[end_pos:]
+
+    # Remove extraneous tabs
+    code_pos = 0
+    while True:
+        code_pos = code_text.find("\n", code_pos)
+        if code_pos == -1:
+            break
+
+        to_skip = 0
+        while code_pos + to_skip + 1 < len(code_text) and code_text[code_pos + to_skip + 1] == "\t":
+            to_skip += 1
+
+        if to_skip > indent_level:
+            print_error(
+                "Four spaces should be used for indentation within ["
+                + code_type
+                + "], file: {}".format(state.current_class),
+                state,
+            )
+
+        if len(code_text[code_pos + to_skip + 1 :]) == 0:
+            code_text = code_text[:code_pos] + "\n"
+            code_pos += 1
+        else:
+            code_text = code_text[:code_pos] + "\n    " + code_text[code_pos + to_skip + 1 :]
+            code_pos += 5 - to_skip
+    return ["\n[" + code_type + "]" + code_text + post_text, len("\n[" + code_type + "]" + code_text)]
+
+
 def rstize_text(text, state):  # type: (str, State) -> str
     # Linebreak + tabs in the XML should become two line breaks unless in a "codeblock"
     pos = 0
@@ -676,43 +664,17 @@ def rstize_text(text, state):  # type: (str, State) -> str
         post_text = text[pos + 1 :]
 
         # Handle codeblocks
-        if post_text.startswith("[codeblock]"):
-            end_pos = post_text.find("[/codeblock]")
-            if end_pos == -1:
-                print_error("[codeblock] without a closing tag, file: {}".format(state.current_class), state)
+        if (
+            post_text.startswith("[codeblock]")
+            or post_text.startswith("[gdscript]")
+            or post_text.startswith("[csharp]")
+        ):
+            block_type = post_text[1:].split("]")[0]
+            result = format_codeblock(block_type, post_text, indent_level, state)
+            if result is None:
                 return ""
-
-            code_text = post_text[len("[codeblock]") : end_pos]
-            post_text = post_text[end_pos:]
-
-            # Remove extraneous tabs
-            code_pos = 0
-            while True:
-                code_pos = code_text.find("\n", code_pos)
-                if code_pos == -1:
-                    break
-
-                to_skip = 0
-                while code_pos + to_skip + 1 < len(code_text) and code_text[code_pos + to_skip + 1] == "\t":
-                    to_skip += 1
-
-                if to_skip > indent_level:
-                    print_error(
-                        "Four spaces should be used for indentation within [codeblock], file: {}".format(
-                            state.current_class
-                        ),
-                        state,
-                    )
-
-                if len(code_text[code_pos + to_skip + 1 :]) == 0:
-                    code_text = code_text[:code_pos] + "\n"
-                    code_pos += 1
-                else:
-                    code_text = code_text[:code_pos] + "\n    " + code_text[code_pos + to_skip + 1 :]
-                    code_pos += 5 - to_skip
-
-            text = pre_text + "\n[codeblock]" + code_text + post_text
-            pos += len("\n[codeblock]" + code_text)
+            text = pre_text + result[0]
+            pos += result[1]
 
         # Handle normal text
         else:
@@ -757,7 +719,7 @@ def rstize_text(text, state):  # type: (str, State) -> str
         else:  # command
             cmd = tag_text
             space_pos = tag_text.find(" ")
-            if cmd == "/codeblock":
+            if cmd == "/codeblock" or cmd == "/gdscript" or cmd == "/csharp":
                 tag_text = ""
                 tag_depth -= 1
                 inside_code = False
@@ -873,6 +835,20 @@ def rstize_text(text, state):  # type: (str, State) -> str
                 tag_depth += 1
                 tag_text = "\n::\n"
                 inside_code = True
+            elif cmd == "gdscript":
+                tag_depth += 1
+                tag_text = "\n .. code-tab:: gdscript GDScript\n"
+                inside_code = True
+            elif cmd == "csharp":
+                tag_depth += 1
+                tag_text = "\n .. code-tab:: csharp\n"
+                inside_code = True
+            elif cmd == "codeblocks":
+                tag_depth += 1
+                tag_text = "\n.. tabs::"
+            elif cmd == "/codeblocks":
+                tag_depth -= 1
+                tag_text = ""
             elif cmd == "br":
                 # Make a new paragraph instead of a linebreak, rst is not so linebreak friendly
                 tag_text = "\n\n"
@@ -1055,13 +1031,30 @@ def make_method_signature(
     out += " **)**"
 
     if isinstance(method_def, MethodDef) and method_def.qualifiers is not None:
-        out += " " + method_def.qualifiers
+        # Use substitutions for abbreviations. This is used to display tooltips on hover.
+        # See `make_footer()` for descriptions.
+        for qualifier in method_def.qualifiers.split():
+            out += " |" + qualifier + "|"
 
     return ret_type, out
 
 
 def make_heading(title, underline):  # type: (str, str) -> str
     return title + "\n" + (underline * len(title)) + "\n\n"
+
+
+def make_footer():  # type: () -> str
+    # Generate reusable abbreviation substitutions.
+    # This way, we avoid bloating the generated rST with duplicate abbreviations.
+    # fmt: off
+    return (
+        ".. |virtual| replace:: :abbr:`virtual (This method should typically be overridden by the user to have any effect.)`\n"
+        ".. |const| replace:: :abbr:`const (This method has no side effects. It doesn't modify any of the instance's member variables.)`\n"
+        ".. |vararg| replace:: :abbr:`vararg (This method accepts any number of arguments after the ones described here.)`\n"
+        ".. |constructor| replace:: :abbr:`constructor (This method is used to construct a type.)`\n"
+        ".. |operator| replace:: :abbr:`operator (This method describes a valid operator to use with this type as left-hand operand.)`\n"
+    )
+    # fmt: on
 
 
 def make_url(link):  # type: (str) -> str

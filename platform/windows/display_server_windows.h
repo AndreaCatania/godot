@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -33,9 +33,9 @@
 
 #include "servers/display_server.h"
 
+#include "core/config/project_settings.h"
 #include "core/input/input.h"
 #include "core/os/os.h"
-#include "core/project_settings.h"
 #include "crash_handler_windows.h"
 #include "drivers/unix/ip_unix.h"
 #include "drivers/wasapi/audio_driver_wasapi.h"
@@ -43,8 +43,8 @@
 #include "joypad_windows.h"
 #include "key_mapping_windows.h"
 #include "servers/audio_server.h"
-#include "servers/rendering/rasterizer.h"
-#include "servers/rendering/rasterizer_rd/rasterizer_rd.h"
+#include "servers/rendering/renderer_compositor.h"
+#include "servers/rendering/renderer_rd/renderer_compositor_rd.h"
 #include "servers/rendering_server.h"
 
 #ifdef XAUDIO2_ENABLED
@@ -229,6 +229,14 @@ typedef struct tagPOINTER_PEN_INFO {
 #define WM_POINTERUPDATE 0x0245
 #endif
 
+#ifndef WM_POINTERENTER
+#define WM_POINTERENTER 0x0249
+#endif
+
+#ifndef WM_POINTERLEAVE
+#define WM_POINTERLEAVE 0x024A
+#endif
+
 typedef BOOL(WINAPI *GetPointerTypePtr)(uint32_t p_id, POINTER_INPUT_TYPE *p_type);
 typedef BOOL(WINAPI *GetPointerPenInfoPtr)(uint32_t p_id, POINTER_PEN_INFO *p_pen_info);
 
@@ -265,8 +273,13 @@ class DisplayServerWindows : public DisplayServer {
 	static WTEnablePtr wintab_WTEnable;
 
 	// Windows Ink API
+	static bool winink_available;
 	static GetPointerTypePtr win8p_GetPointerType;
 	static GetPointerPenInfoPtr win8p_GetPointerPenInfo;
+
+	void _update_tablet_ctx(const String &p_old_driver, const String &p_new_driver);
+	String tablet_driver;
+	Vector<String> tablet_drivers;
 
 	void GetMaskBitmaps(HBITMAP hSourceBitmap, COLORREF clrTransparent, OUT HBITMAP &hAndMaskBitmap, OUT HBITMAP &hXorMaskBitmap);
 
@@ -304,10 +317,13 @@ class DisplayServerWindows : public DisplayServer {
 	int pressrc;
 	HINSTANCE hInstance; // Holds The Instance Of The Application
 	String rendering_driver;
+	bool app_focused = false;
 
 	struct WindowData {
 		HWND hWnd;
 		//layered window
+
+		Vector<Vector2> mpath;
 
 		bool preserve_window_size = false;
 		bool pre_fs_valid = false;
@@ -323,11 +339,20 @@ class DisplayServerWindows : public DisplayServer {
 		bool no_focus = false;
 		bool window_has_focus = false;
 
+		// Used to transfer data between events using timer.
+		WPARAM saved_wparam;
+		LPARAM saved_lparam;
+
+		// Timers.
+		uint32_t move_timer_id = 0U;
+		uint32_t focus_timer_id = 0U;
+
 		HANDLE wtctx;
 		LOGCONTEXTW wtlc;
 		int min_pressure;
 		int max_pressure;
 		bool tilt_supported;
+		bool block_mm = false;
 
 		int last_pressure_update;
 		float last_pressure;
@@ -370,8 +395,6 @@ class DisplayServerWindows : public DisplayServer {
 
 	WindowID last_focused_window = INVALID_WINDOW_ID;
 
-	uint32_t move_timer_id;
-
 	HCURSOR hCursor;
 
 	WNDPROC user_proc = nullptr;
@@ -394,18 +417,20 @@ class DisplayServerWindows : public DisplayServer {
 	WNDCLASSEXW wc;
 
 	HCURSOR cursors[CURSOR_MAX] = { nullptr };
-	CursorShape cursor_shape;
+	CursorShape cursor_shape = CursorShape::CURSOR_ARROW;
 	Map<CursorShape, Vector<Variant>> cursors_cache;
 
 	void _drag_event(WindowID p_window, float p_x, float p_y, int idx);
 	void _touch_event(WindowID p_window, bool p_pressed, float p_x, float p_y, int idx);
 
-	void _update_window_style(WindowID p_window, bool p_repaint = true, bool p_maximized = false);
+	void _update_window_style(WindowID p_window, bool p_repaint = true);
+	void _update_window_mouse_passthrough(WindowID p_window);
 
 	void _update_real_mouse_position(WindowID p_window);
 
 	void _set_mouse_mode_impl(MouseMode p_mode);
 
+	void _process_activate_event(WindowID p_window_id, WPARAM wParam, LPARAM lParam);
 	void _process_key_events();
 
 	static void _dispatch_input_events(const Ref<InputEvent> &p_event);
@@ -445,6 +470,7 @@ public:
 	virtual Vector<DisplayServer::WindowID> get_window_list() const;
 
 	virtual WindowID create_sub_window(WindowMode p_mode, uint32_t p_flags, const Rect2i &p_rect = Rect2i());
+	virtual void show_window(WindowID p_window);
 	virtual void delete_sub_window(WindowID p_window);
 
 	virtual WindowID get_window_at_screen_position(const Point2i &p_position) const;
@@ -461,6 +487,7 @@ public:
 	virtual void window_set_drop_files_callback(const Callable &p_callable, WindowID p_window = MAIN_WINDOW_ID);
 
 	virtual void window_set_title(const String &p_title, WindowID p_window = MAIN_WINDOW_ID);
+	virtual void window_set_mouse_passthrough(const Vector<Vector2> &p_region, WindowID p_window = MAIN_WINDOW_ID);
 
 	virtual int window_get_current_screen(WindowID p_window = MAIN_WINDOW_ID) const;
 	virtual void window_set_current_screen(int p_screen, WindowID p_window = MAIN_WINDOW_ID);
@@ -505,11 +532,20 @@ public:
 	virtual CursorShape cursor_get_shape() const;
 	virtual void cursor_set_custom_image(const RES &p_cursor, CursorShape p_shape = CURSOR_ARROW, const Vector2 &p_hotspot = Vector2());
 
-	virtual bool get_swap_ok_cancel();
+	virtual bool get_swap_cancel_ok();
 
 	virtual void enable_for_stealing_focus(OS::ProcessID pid);
 
-	virtual LatinKeyboardVariant get_latin_keyboard_variant() const;
+	virtual int keyboard_get_layout_count() const;
+	virtual int keyboard_get_current_layout() const;
+	virtual void keyboard_set_current_layout(int p_index);
+	virtual String keyboard_get_layout_language(int p_index) const;
+	virtual String keyboard_get_layout_name(int p_index) const;
+
+	virtual int tablet_get_driver_count() const;
+	virtual String tablet_get_driver_name(int p_driver) const;
+	virtual String tablet_get_current_driver() const;
+	virtual void tablet_set_current_driver(const String &p_driver);
 
 	virtual void process_events();
 

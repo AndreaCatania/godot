@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -37,6 +37,7 @@
 #include "scene/2d/sprite_2d.h"
 #include "scene/3d/sprite_3d.h"
 #include "scene/animation/animation_player.h"
+#include "scene/resources/text_line.h"
 #include "servers/audio/audio_stream.h"
 
 /// BOOL ///
@@ -80,12 +81,14 @@ void AnimationTrackEditBool::draw_key(int p_index, float p_pixels_sec, int p_x, 
 
 int AnimationTrackEditColor::get_key_height() const {
 	Ref<Font> font = get_theme_font("font", "Label");
-	return font->get_height() * 0.8;
+	int font_size = get_theme_font_size("font_size", "Label");
+	return font->get_height(font_size) * 0.8;
 }
 
 Rect2 AnimationTrackEditColor::get_key_rect(int p_index, float p_pixels_sec) {
 	Ref<Font> font = get_theme_font("font", "Label");
-	int fh = font->get_height() * 0.8;
+	int font_size = get_theme_font_size("font_size", "Label");
+	int fh = font->get_height(font_size) * 0.8;
 	return Rect2(-fh / 2, 0, fh, get_size().height);
 }
 
@@ -95,56 +98,78 @@ bool AnimationTrackEditColor::is_key_selectable_by_distance() const {
 
 void AnimationTrackEditColor::draw_key_link(int p_index, float p_pixels_sec, int p_x, int p_next_x, int p_clip_left, int p_clip_right) {
 	Ref<Font> font = get_theme_font("font", "Label");
-	int fh = (font->get_height() * 0.8);
+	int font_size = get_theme_font_size("font_size", "Label");
+	int fh = (font->get_height(font_size) * 0.8);
+
+	fh /= 3;
 
 	int x_from = p_x + fh / 2 - 1;
 	int x_to = p_next_x - fh / 2 + 1;
-	fh /= 3;
+	x_from = MAX(x_from, p_clip_left);
+	x_to = MIN(x_to, p_clip_right);
+
+	int y_from = (get_size().height - fh) / 2;
 
 	if (x_from > p_clip_right || x_to < p_clip_left) {
 		return;
 	}
 
-	Color color = get_animation()->track_get_key_value(get_track(), p_index);
-	Color color_next = get_animation()->track_get_key_value(get_track(), p_index + 1);
+	Vector<Color> color_samples;
+	color_samples.append(get_animation()->track_get_key_value(get_track(), p_index));
 
-	if (x_from < p_clip_left) {
-		float c = float(p_clip_left - x_from) / (x_to - x_from);
-		color = color.lerp(color_next, c);
-		x_from = p_clip_left;
+	if (get_animation()->track_get_type(get_track()) == Animation::TYPE_VALUE) {
+		if (get_animation()->track_get_interpolation_type(get_track()) != Animation::INTERPOLATION_NEAREST &&
+				(get_animation()->value_track_get_update_mode(get_track()) == Animation::UPDATE_CONTINUOUS ||
+						get_animation()->value_track_get_update_mode(get_track()) == Animation::UPDATE_CAPTURE) &&
+				!Math::is_zero_approx(get_animation()->track_get_key_transition(get_track(), p_index))) {
+			float start_time = get_animation()->track_get_key_time(get_track(), p_index);
+			float end_time = get_animation()->track_get_key_time(get_track(), p_index + 1);
+
+			Color color_next = get_animation()->value_track_interpolate(get_track(), end_time);
+
+			if (!color_samples[0].is_equal_approx(color_next)) {
+				color_samples.resize(1 + (x_to - x_from) / 64); // Make a color sample every 64 px.
+				for (int i = 1; i < color_samples.size(); i++) {
+					float j = i;
+					color_samples.write[i] = get_animation()->value_track_interpolate(
+							get_track(),
+							Math::lerp(start_time, end_time, j / color_samples.size()));
+				}
+			}
+			color_samples.append(color_next);
+		} else {
+			color_samples.append(color_samples[0]);
+		}
+	} else {
+		color_samples.append(get_animation()->track_get_key_value(get_track(), p_index + 1));
 	}
 
-	if (x_to > p_clip_right) {
-		float c = float(p_clip_right - x_from) / (x_to - x_from);
-		color_next = color.lerp(color_next, c);
-		x_to = p_clip_right;
+	for (int i = 0; i < color_samples.size() - 1; i++) {
+		Vector<Vector2> points;
+		Vector<Color> colors;
+
+		points.push_back(Vector2(Math::lerp(x_from, x_to, float(i) / (color_samples.size() - 1)), y_from));
+		colors.push_back(color_samples[i]);
+
+		points.push_back(Vector2(Math::lerp(x_from, x_to, float(i + 1) / (color_samples.size() - 1)), y_from));
+		colors.push_back(color_samples[i + 1]);
+
+		points.push_back(Vector2(Math::lerp(x_from, x_to, float(i + 1) / (color_samples.size() - 1)), y_from + fh));
+		colors.push_back(color_samples[i + 1]);
+
+		points.push_back(Vector2(Math::lerp(x_from, x_to, float(i) / (color_samples.size() - 1)), y_from + fh));
+		colors.push_back(color_samples[i]);
+
+		draw_primitive(points, colors, Vector<Vector2>());
 	}
-
-	int y_from = (get_size().height - fh) / 2;
-
-	Vector<Vector2> points;
-	Vector<Color> colors;
-
-	points.push_back(Vector2(x_from, y_from));
-	colors.push_back(color);
-
-	points.push_back(Vector2(x_to, y_from));
-	colors.push_back(color_next);
-
-	points.push_back(Vector2(x_to, y_from + fh));
-	colors.push_back(color_next);
-
-	points.push_back(Vector2(x_from, y_from + fh));
-	colors.push_back(color);
-
-	draw_primitive(points, colors, Vector<Vector2>());
 }
 
 void AnimationTrackEditColor::draw_key(int p_index, float p_pixels_sec, int p_x, bool p_selected, int p_clip_left, int p_clip_right) {
 	Color color = get_animation()->track_get_key_value(get_track(), p_index);
 
 	Ref<Font> font = get_theme_font("font", "Label");
-	int fh = font->get_height() * 0.8;
+	int font_size = get_theme_font_size("font_size", "Label");
+	int fh = font->get_height(font_size) * 0.8;
 
 	Rect2 rect(Vector2(p_x - fh / 2, int(get_size().height - fh) / 2), Size2(fh, fh));
 
@@ -182,7 +207,8 @@ int AnimationTrackEditAudio::get_key_height() const {
 	}
 
 	Ref<Font> font = get_theme_font("font", "Label");
-	return int(font->get_height() * 1.5);
+	int font_size = get_theme_font_size("font_size", "Label");
+	return int(font->get_height(font_size) * 1.5);
 }
 
 Rect2 AnimationTrackEditAudio::get_key_rect(int p_index, float p_pixels_sec) {
@@ -214,7 +240,8 @@ Rect2 AnimationTrackEditAudio::get_key_rect(int p_index, float p_pixels_sec) {
 		return Rect2(0, 0, len * p_pixels_sec, get_size().height);
 	} else {
 		Ref<Font> font = get_theme_font("font", "Label");
-		int fh = font->get_height() * 0.8;
+		int font_size = get_theme_font_size("font_size", "Label");
+		int fh = font->get_height(font_size) * 0.8;
 		return Rect2(0, 0, fh, get_size().height);
 	}
 }
@@ -277,7 +304,8 @@ void AnimationTrackEditAudio::draw_key(int p_index, float p_pixels_sec, int p_x,
 		}
 
 		Ref<Font> font = get_theme_font("font", "Label");
-		float fh = int(font->get_height() * 1.5);
+		int font_size = get_theme_font_size("font_size", "Label");
+		float fh = int(font->get_height(font_size) * 1.5);
 		Rect2 rect = Rect2(from_x, (get_size().height - fh) / 2, to_x - from_x, fh);
 		draw_rect(rect, Color(0.25, 0.25, 0.25));
 
@@ -307,7 +335,8 @@ void AnimationTrackEditAudio::draw_key(int p_index, float p_pixels_sec, int p_x,
 		}
 	} else {
 		Ref<Font> font = get_theme_font("font", "Label");
-		int fh = font->get_height() * 0.8;
+		int font_size = get_theme_font_size("font_size", "Label");
+		int fh = font->get_height(font_size) * 0.8;
 		Rect2 rect(Vector2(p_x, int(get_size().height - fh) / 2), Size2(fh, fh));
 
 		Color color = get_theme_color("font_color", "Label");
@@ -339,7 +368,8 @@ int AnimationTrackEditSpriteFrame::get_key_height() const {
 	}
 
 	Ref<Font> font = get_theme_font("font", "Label");
-	return int(font->get_height() * 2);
+	int font_size = get_theme_font_size("font_size", "Label");
+	return int(font->get_height(font_size) * 2);
 }
 
 Rect2 AnimationTrackEditSpriteFrame::get_key_rect(int p_index, float p_pixels_sec) {
@@ -406,7 +436,8 @@ Rect2 AnimationTrackEditSpriteFrame::get_key_rect(int p_index, float p_pixels_se
 	size = size.floor();
 
 	Ref<Font> font = get_theme_font("font", "Label");
-	int height = int(font->get_height() * 2);
+	int font_size = get_theme_font_size("font_size", "Label");
+	int height = int(font->get_height(font_size) * 2);
 	int width = height * size.width / size.height;
 
 	return Rect2(0, 0, width, get_size().height);
@@ -496,7 +527,8 @@ void AnimationTrackEditSpriteFrame::draw_key(int p_index, float p_pixels_sec, in
 	}
 
 	Ref<Font> font = get_theme_font("font", "Label");
-	int height = int(font->get_height() * 2);
+	int font_size = get_theme_font_size("font_size", "Label");
+	int height = int(font->get_height(font_size) * 2);
 
 	int width = height * region.size.width / region.size.height;
 
@@ -539,7 +571,8 @@ int AnimationTrackEditSubAnim::get_key_height() const {
 	}
 
 	Ref<Font> font = get_theme_font("font", "Label");
-	return int(font->get_height() * 1.5);
+	int font_size = get_theme_font_size("font_size", "Label");
+	return int(font->get_height(font_size) * 1.5);
 }
 
 Rect2 AnimationTrackEditSubAnim::get_key_rect(int p_index, float p_pixels_sec) {
@@ -567,7 +600,8 @@ Rect2 AnimationTrackEditSubAnim::get_key_rect(int p_index, float p_pixels_sec) {
 		return Rect2(0, 0, len * p_pixels_sec, get_size().height);
 	} else {
 		Ref<Font> font = get_theme_font("font", "Label");
-		int fh = font->get_height() * 0.8;
+		int font_size = get_theme_font_size("font_size", "Label");
+		int fh = font->get_height(font_size) * 0.8;
 		return Rect2(0, 0, fh, get_size().height);
 	}
 }
@@ -621,7 +655,8 @@ void AnimationTrackEditSubAnim::draw_key(int p_index, float p_pixels_sec, int p_
 		}
 
 		Ref<Font> font = get_theme_font("font", "Label");
-		int fh = font->get_height() * 1.5;
+		int font_size = get_theme_font_size("font_size", "Label");
+		int fh = font->get_height(font_size) * 1.5;
 
 		Rect2 rect(from_x, int(get_size().height - fh) / 2, to_x - from_x, fh);
 
@@ -664,7 +699,7 @@ void AnimationTrackEditSubAnim::draw_key(int p_index, float p_pixels_sec, int p_
 
 		int limit = to_x - from_x - 4;
 		if (limit > 0) {
-			draw_string(font, Point2(from_x + 2, int(get_size().height - font->get_height()) / 2 + font->get_ascent()), anim, color);
+			draw_string(font, Point2(from_x + 2, int(get_size().height - font->get_height(font_size)) / 2 + font->get_ascent(font_size)), anim, HALIGN_LEFT, -1, font_size, color);
 		}
 
 		if (p_selected) {
@@ -673,7 +708,8 @@ void AnimationTrackEditSubAnim::draw_key(int p_index, float p_pixels_sec, int p_
 		}
 	} else {
 		Ref<Font> font = get_theme_font("font", "Label");
-		int fh = font->get_height() * 0.8;
+		int font_size = get_theme_font_size("font_size", "Label");
+		int fh = font->get_height(font_size) * 0.8;
 		Rect2 rect(Vector2(p_x, int(get_size().height - fh) / 2), Size2(fh, fh));
 
 		Color color = get_theme_color("font_color", "Label");
@@ -771,7 +807,8 @@ void AnimationTrackEditTypeAudio::_preview_changed(ObjectID p_which) {
 
 int AnimationTrackEditTypeAudio::get_key_height() const {
 	Ref<Font> font = get_theme_font("font", "Label");
-	return int(font->get_height() * 1.5);
+	int font_size = get_theme_font_size("font_size", "Label");
+	return int(font->get_height(font_size) * 1.5);
 }
 
 Rect2 AnimationTrackEditTypeAudio::get_key_rect(int p_index, float p_pixels_sec) {
@@ -835,7 +872,8 @@ void AnimationTrackEditTypeAudio::draw_key(int p_index, float p_pixels_sec, int 
 	}
 
 	Ref<Font> font = get_theme_font("font", "Label");
-	float fh = int(font->get_height() * 1.5);
+	int font_size = get_theme_font_size("font_size", "Label");
+	float fh = int(font->get_height(font_size) * 1.5);
 
 	float len = stream->get_length();
 
@@ -998,6 +1036,8 @@ void AnimationTrackEditTypeAudio::drop_data(const Point2 &p_point, const Variant
 }
 
 void AnimationTrackEditTypeAudio::_gui_input(const Ref<InputEvent> &p_event) {
+	ERR_FAIL_COND(p_event.is_null());
+
 	Ref<InputEventMouseMotion> mm = p_event;
 	if (!len_resizing && mm.is_valid()) {
 		bool use_hsize_cursor = false;
@@ -1058,7 +1098,7 @@ void AnimationTrackEditTypeAudio::_gui_input(const Ref<InputEvent> &p_event) {
 	}
 
 	Ref<InputEventMouseButton> mb = p_event;
-	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == BUTTON_LEFT && get_default_cursor_shape() == CURSOR_HSIZE) {
+	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MOUSE_BUTTON_LEFT && get_default_cursor_shape() == CURSOR_HSIZE) {
 		len_resizing = true;
 		len_resizing_start = mb->get_shift();
 		len_resizing_from_px = mb->get_position().x;
@@ -1068,7 +1108,7 @@ void AnimationTrackEditTypeAudio::_gui_input(const Ref<InputEvent> &p_event) {
 		return;
 	}
 
-	if (len_resizing && mb.is_valid() && !mb->is_pressed() && mb->get_button_index() == BUTTON_LEFT) {
+	if (len_resizing && mb.is_valid() && !mb->is_pressed() && mb->get_button_index() == MOUSE_BUTTON_LEFT) {
 		float ofs_local = -len_resizing_rel / get_timeline()->get_zoom_scale();
 		if (len_resizing_start) {
 			float prev_ofs = get_animation()->audio_track_get_key_start_offset(get_track(), len_resizing_index);
@@ -1104,7 +1144,8 @@ int AnimationTrackEditTypeAnimation::get_key_height() const {
 	}
 
 	Ref<Font> font = get_theme_font("font", "Label");
-	return int(font->get_height() * 1.5);
+	int font_size = get_theme_font_size("font_size", "Label");
+	return int(font->get_height(font_size) * 1.5);
 }
 
 Rect2 AnimationTrackEditTypeAnimation::get_key_rect(int p_index, float p_pixels_sec) {
@@ -1132,7 +1173,8 @@ Rect2 AnimationTrackEditTypeAnimation::get_key_rect(int p_index, float p_pixels_
 		return Rect2(0, 0, len * p_pixels_sec, get_size().height);
 	} else {
 		Ref<Font> font = get_theme_font("font", "Label");
-		int fh = font->get_height() * 0.8;
+		int font_size = get_theme_font_size("font_size", "Label");
+		int fh = font->get_height(font_size) * 0.8;
 		return Rect2(0, 0, fh, get_size().height);
 	}
 }
@@ -1186,7 +1228,8 @@ void AnimationTrackEditTypeAnimation::draw_key(int p_index, float p_pixels_sec, 
 		}
 
 		Ref<Font> font = get_theme_font("font", "Label");
-		int fh = font->get_height() * 1.5;
+		int font_size = get_theme_font_size("font_size", "Label");
+		int fh = font->get_height(font_size) * 1.5;
 
 		Rect2 rect(from_x, int(get_size().height - fh) / 2, to_x - from_x, fh);
 
@@ -1229,7 +1272,7 @@ void AnimationTrackEditTypeAnimation::draw_key(int p_index, float p_pixels_sec, 
 
 		int limit = to_x - from_x - 4;
 		if (limit > 0) {
-			draw_string(font, Point2(from_x + 2, int(get_size().height - font->get_height()) / 2 + font->get_ascent()), anim, color);
+			draw_string(font, Point2(from_x + 2, int(get_size().height - font->get_height(font_size)) / 2 + font->get_ascent(font_size)), anim, HALIGN_LEFT, -1, font_size, color);
 		}
 
 		if (p_selected) {
@@ -1238,7 +1281,8 @@ void AnimationTrackEditTypeAnimation::draw_key(int p_index, float p_pixels_sec, 
 		}
 	} else {
 		Ref<Font> font = get_theme_font("font", "Label");
-		int fh = font->get_height() * 0.8;
+		int font_size = get_theme_font_size("font_size", "Label");
+		int fh = font->get_height(font_size) * 0.8;
 		Rect2 rect(Vector2(p_x, int(get_size().height - fh) / 2), Size2(fh, fh));
 
 		Color color = get_theme_color("font_color", "Label");

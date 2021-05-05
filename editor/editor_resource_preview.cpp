@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,13 +30,11 @@
 
 #include "editor_resource_preview.h"
 
-#include "core/method_bind_ext.gen.inc"
-
+#include "core/config/project_settings.h"
 #include "core/io/resource_loader.h"
 #include "core/io/resource_saver.h"
-#include "core/message_queue.h"
+#include "core/object/message_queue.h"
 #include "core/os/file_access.h"
-#include "core/project_settings.h"
 #include "editor_node.h"
 #include "editor_scale.h"
 #include "editor_settings.h"
@@ -110,7 +108,7 @@ void EditorResourcePreview::_preview_ready(const String &p_str, const Ref<Textur
 		uint64_t modified_time = 0;
 
 		if (p_str.begins_with("ID:")) {
-			hash = uint32_t(p_str.get_slicec(':', 2).to_int64());
+			hash = uint32_t(p_str.get_slicec(':', 2).to_int());
 			path = "ID:" + p_str.get_slicec(':', 1);
 		} else {
 			modified_time = FileAccess::get_modified_time(path);
@@ -164,7 +162,6 @@ void EditorResourcePreview::_generate_preview(Ref<ImageTexture> &r_texture, Ref<
 		r_texture = generated;
 
 		int small_thumbnail_size = EditorNode::get_singleton()->get_theme_base()->get_theme_icon("Object", "EditorIcons")->get_width(); // Kind of a workaround to retrieve the default icon size
-		small_thumbnail_size *= EDSCALE;
 
 		if (preview_generators[i]->can_generate_small_preview()) {
 			Ref<Texture2D> generated_small;
@@ -177,7 +174,7 @@ void EditorResourcePreview::_generate_preview(Ref<ImageTexture> &r_texture, Ref<
 		}
 
 		if (!r_small_texture.is_valid() && r_texture.is_valid() && preview_generators[i]->generate_small_preview_automatically()) {
-			Ref<Image> small_image = r_texture->get_data();
+			Ref<Image> small_image = r_texture->get_image();
 			small_image = small_image->duplicate();
 			small_image->resize(small_thumbnail_size, small_thumbnail_size, Image::INTERPOLATE_CUBIC);
 			r_small_texture.instance();
@@ -209,8 +206,8 @@ void EditorResourcePreview::_generate_preview(Ref<ImageTexture> &r_texture, Ref<
 }
 
 void EditorResourcePreview::_thread() {
-	exited = false;
-	while (!exit) {
+	exited.clear();
+	while (!exit.is_set()) {
 		preview_sem.wait();
 		preview_mutex.lock();
 
@@ -257,9 +254,9 @@ void EditorResourcePreview::_thread() {
 						_generate_preview(texture, small_texture, item, cache_base);
 					} else {
 						uint64_t modtime = FileAccess::get_modified_time(item.path);
-						int tsize = f->get_line().to_int64();
+						int tsize = f->get_line().to_int();
 						bool has_small_texture = f->get_line().to_int();
-						uint64_t last_modtime = f->get_line().to_int64();
+						uint64_t last_modtime = f->get_line().to_int();
 
 						bool cache_valid = true;
 
@@ -329,7 +326,7 @@ void EditorResourcePreview::_thread() {
 			preview_mutex.unlock();
 		}
 	}
-	exited = true;
+	exited.set();
 }
 
 void EditorResourcePreview::queue_edited_resource_preview(const Ref<Resource> &p_res, Object *p_receiver, const StringName &p_receiver_func, const Variant &p_userdata) {
@@ -427,30 +424,25 @@ void EditorResourcePreview::check_for_invalidation(const String &p_path) {
 }
 
 void EditorResourcePreview::start() {
-	ERR_FAIL_COND_MSG(thread, "Thread already started.");
-	thread = Thread::create(_thread_func, this);
+	ERR_FAIL_COND_MSG(thread.is_started(), "Thread already started.");
+	thread.start(_thread_func, this);
 }
 
 void EditorResourcePreview::stop() {
-	if (thread) {
-		exit = true;
+	if (thread.is_started()) {
+		exit.set();
 		preview_sem.post();
-		while (!exited) {
+		while (!exited.is_set()) {
 			OS::get_singleton()->delay_usec(10000);
 			RenderingServer::get_singleton()->sync(); //sync pending stuff, as thread may be blocked on visual server
 		}
-		Thread::wait_to_finish(thread);
-		memdelete(thread);
-		thread = nullptr;
+		thread.wait_to_finish();
 	}
 }
 
 EditorResourcePreview::EditorResourcePreview() {
-	thread = nullptr;
 	singleton = this;
 	order = 0;
-	exit = false;
-	exited = false;
 }
 
 EditorResourcePreview::~EditorResourcePreview() {

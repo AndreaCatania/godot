@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,7 +32,7 @@
 #define NET_SOCKET_H
 
 #include "core/io/ip.h"
-#include "core/reference.h"
+#include "core/object/reference.h"
 
 class NetSocket : public Reference {
 protected:
@@ -67,6 +67,7 @@ public:
 
 	virtual bool is_open() const = 0;
 	virtual int get_available_bytes() const = 0;
+	virtual Error get_socket_address(IP_Address *r_ip, uint16_t *r_port) const = 0;
 
 	virtual Error set_broadcasting_enabled(bool p_enabled) = 0; // Returns OK if the socket option has been set successfully.
 	virtual void set_blocking_enabled(bool p_enabled) = 0;

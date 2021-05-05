@@ -22,8 +22,6 @@ allprojects {
 }
 
 ext {
-    sconsExt = org.gradle.internal.os.OperatingSystem.current().isWindows() ? ".bat" : ""
-
     supportedAbis = ["armv7", "arm64v8", "x86", "x86_64"]
     supportedTargets = ["release", "debug"]
 
@@ -97,13 +95,6 @@ task copyReleaseAARToAppModule(type: Copy) {
     include('godot-lib.release.aar')
 }
 
-task copyGodotPaymentPluginToAppModule(type: Copy) {
-    dependsOn ':plugins:godotpayment:assembleRelease'
-    from('plugins/godotpayment/build/outputs/aar')
-    into('app/libs/plugins')
-    include('GodotPayment.release.aar')
-}
-
 /**
  * Copy the Godot android library archive release file into the root bin directory.
  * Depends on the library build task to ensure the AAR file is generated prior to copying.
@@ -121,7 +112,7 @@ task copyReleaseAARToBin(type: Copy) {
  * The zip file also includes some gradle tools to allow building of the custom build.
  */
 task zipCustomBuild(type: Zip) {
-    dependsOn ':generateGodotTemplates'
+    onlyIf { generateGodotTemplates.state.executed || generateDevTemplate.state.executed }
     doFirst {
         logger.lifecycle("Generating Godot custom build template")
     }
@@ -131,16 +122,17 @@ task zipCustomBuild(type: Zip) {
     destinationDir(file(binDir))
 }
 
-/**
- * Master task used to coordinate the tasks defined above to generate the set of Godot templates.
- */
-task generateGodotTemplates(type: GradleBuild) {
+def templateExcludedBuildTask() {
     // We exclude these gradle tasks so we can run the scons command manually.
+    def excludedTasks = []
     for (String buildType : supportedTargets) {
-        startParameter.excludedTaskNames += ":lib:" + getSconsTaskName(buildType)
+        excludedTasks += ":lib:" + getSconsTaskName(buildType)
     }
+    return excludedTasks
+}
 
-    tasks = []
+def templateBuildTasks() {
+    def tasks = []
 
     // Only build the apks and aar files for which we have native shared libraries.
     for (String target : supportedTargets) {
@@ -161,7 +153,29 @@ task generateGodotTemplates(type: GradleBuild) {
         }
     }
 
-    dependsOn 'copyGodotPaymentPluginToAppModule'
+    return tasks
+}
+
+/**
+ * Master task used to coordinate the tasks defined above to generate the set of Godot templates.
+ */
+task generateGodotTemplates(type: GradleBuild) {
+    startParameter.excludedTaskNames = templateExcludedBuildTask()
+    tasks = templateBuildTasks()
+
+    finalizedBy 'zipCustomBuild'
+}
+
+/**
+ * Generates the same output as generateGodotTemplates but with dev symbols
+ */
+task generateDevTemplate (type: GradleBuild) {
+    // add parameter to set symbols to true
+    startParameter.projectProperties += [doNotStrip: true]
+
+    startParameter.excludedTaskNames = templateExcludedBuildTask()
+    tasks = templateBuildTasks()
+
     finalizedBy 'zipCustomBuild'
 }
 
@@ -175,12 +189,6 @@ task cleanGodotTemplates(type: Delete) {
     // Delete the library generated AAR files
     delete("lib/build/outputs/aar")
 
-    // Delete the godotpayment libs directory contents
-    delete("plugins/godotpayment/libs")
-
-    // Delete the generated godotpayment aar
-    delete("plugins/godotpayment/build/outputs/aar")
-
     // Delete the app libs directory contents
     delete("app/libs")
 
@@ -193,4 +201,6 @@ task cleanGodotTemplates(type: Delete) {
     delete("$binDir/android_source.zip")
     delete("$binDir/godot-lib.debug.aar")
     delete("$binDir/godot-lib.release.aar")
+
+    finalizedBy getTasksByName("clean", true)
 }

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -40,7 +40,6 @@
 #include "scene/gui/separator.h"
 #include "scene/gui/split_container.h"
 #include "scene/gui/texture_rect.h"
-#include "scene/gui/tool_button.h"
 
 class DependencyRemoveDialog;
 
@@ -95,9 +94,9 @@ private:
 	bool can_create_dir;
 	LineEdit *dir;
 
-	ToolButton *dir_prev;
-	ToolButton *dir_next;
-	ToolButton *dir_up;
+	Button *dir_prev;
+	Button *dir_next;
+	Button *dir_up;
 
 	HBoxContainer *drives_container;
 	HBoxContainer *shortcuts_container;
@@ -111,20 +110,19 @@ private:
 	LineEdit *file;
 	OptionButton *filter;
 	AcceptDialog *mkdirerr;
-	AcceptDialog *exterr;
 	DirAccess *dir_access;
 	ConfirmationDialog *confirm_save;
 	DependencyRemoveDialog *remove_dialog;
 
-	ToolButton *mode_thumbnails;
-	ToolButton *mode_list;
+	Button *mode_thumbnails;
+	Button *mode_list;
 
-	ToolButton *refresh;
-	ToolButton *favorite;
-	ToolButton *show_hidden;
+	Button *refresh;
+	Button *favorite;
+	Button *show_hidden;
 
-	ToolButton *fav_up;
-	ToolButton *fav_down;
+	Button *fav_up;
+	Button *fav_down;
 
 	ItemList *favorites;
 	ItemList *recent;
@@ -186,7 +184,7 @@ private:
 	void _go_back();
 	void _go_forward();
 
-	virtual void _post_popup();
+	virtual void _post_popup() override;
 
 	void _save_to_recent();
 	//callback function is callback(String p_path,Ref<Texture2D> preview,Variant udata) preview null if could not load
@@ -204,6 +202,7 @@ protected:
 	static void _bind_methods();
 	//bind helpers
 public:
+	void popup_file_dialog();
 	void clear_filters();
 	void add_filter(const String &p_filter);
 

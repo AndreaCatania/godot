@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -29,7 +29,7 @@
 /*************************************************************************/
 
 #include "polygon_path_finder.h"
-#include "core/math/geometry.h"
+#include "core/math/geometry_2d.h"
 
 bool PolygonPathFinder::_is_point_inside(const Vector2 &p_point) const {
 	int crosses = 0;
@@ -40,7 +40,7 @@ bool PolygonPathFinder::_is_point_inside(const Vector2 &p_point) const {
 		Vector2 a = points[e.points[0]].pos;
 		Vector2 b = points[e.points[1]].pos;
 
-		if (Geometry::segment_intersects_segment_2d(a, b, p_point, outside_point, nullptr)) {
+		if (Geometry2D::segment_intersects_segment(a, b, p_point, outside_point, nullptr)) {
 			crosses++;
 		}
 	}
@@ -77,7 +77,7 @@ void PolygonPathFinder::setup(const Vector<Vector2> &p_points, const Vector<int>
 	outside_point.x += 20.451 + Math::randf() * 10.2039;
 	outside_point.y += 21.193 + Math::randf() * 12.5412;
 
-	//insert edges (which are also connetions)
+	//insert edges (which are also connections)
 
 	for (int i = 0; i < p_connections.size(); i += 2) {
 		Edge e(p_connections[i], p_connections[i + 1]);
@@ -114,7 +114,7 @@ void PolygonPathFinder::setup(const Vector<Vector2> &p_points, const Vector<int>
 				Vector2 a = points[e.points[0]].pos;
 				Vector2 b = points[e.points[1]].pos;
 
-				if (Geometry::segment_intersects_segment_2d(a, b, from, to, nullptr)) {
+				if (Geometry2D::segment_intersects_segment(a, b, from, to, nullptr)) {
 					valid = false;
 					break;
 				}
@@ -147,7 +147,7 @@ Vector<Vector2> PolygonPathFinder::find_path(const Vector2 &p_from, const Vector
 				points[e.points[1]].pos
 			};
 
-			Vector2 closest = Geometry::get_closest_point_to_segment_2d(from, seg);
+			Vector2 closest = Geometry2D::get_closest_point_to_segment(from, seg);
 			float d = from.distance_squared_to(closest);
 
 			if (d < closest_dist) {
@@ -171,7 +171,7 @@ Vector<Vector2> PolygonPathFinder::find_path(const Vector2 &p_from, const Vector
 				points[e.points[1]].pos
 			};
 
-			Vector2 closest = Geometry::get_closest_point_to_segment_2d(to, seg);
+			Vector2 closest = Geometry2D::get_closest_point_to_segment(to, seg);
 			float d = to.distance_squared_to(closest);
 
 			if (d < closest_dist) {
@@ -200,7 +200,7 @@ Vector<Vector2> PolygonPathFinder::find_path(const Vector2 &p_from, const Vector
 			Vector2 a = points[e.points[0]].pos;
 			Vector2 b = points[e.points[1]].pos;
 
-			if (Geometry::segment_intersects_segment_2d(a, b, from, to, nullptr)) {
+			if (Geometry2D::segment_intersects_segment(a, b, from, to, nullptr)) {
 				can_see_eachother = false;
 				break;
 			}
@@ -255,7 +255,7 @@ Vector<Vector2> PolygonPathFinder::find_path(const Vector2 &p_from, const Vector
 						e.points[1] != ignore_from_edge.points[1] &&
 						e.points[0] != ignore_from_edge.points[0] &&
 						e.points[1] != ignore_from_edge.points[0]) {
-					if (Geometry::segment_intersects_segment_2d(a, b, from, points[i].pos, nullptr)) {
+					if (Geometry2D::segment_intersects_segment(a, b, from, points[i].pos, nullptr)) {
 						valid_a = false;
 					}
 				}
@@ -266,7 +266,7 @@ Vector<Vector2> PolygonPathFinder::find_path(const Vector2 &p_from, const Vector
 						e.points[1] != ignore_to_edge.points[1] &&
 						e.points[0] != ignore_to_edge.points[0] &&
 						e.points[1] != ignore_to_edge.points[0]) {
-					if (Geometry::segment_intersects_segment_2d(a, b, to, points[i].pos, nullptr)) {
+					if (Geometry2D::segment_intersects_segment(a, b, to, points[i].pos, nullptr)) {
 						valid_b = false;
 					}
 				}
@@ -335,7 +335,7 @@ Vector<Vector2> PolygonPathFinder::find_path(const Vector2 &p_from, const Vector
 				//oh this was visited already, can we win the cost?
 
 				if (p.distance > distance) {
-					p.prev = least_cost_point; //reasign previous
+					p.prev = least_cost_point; //reassign previous
 					p.distance = distance;
 				}
 			} else {
@@ -368,7 +368,7 @@ Vector<Vector2> PolygonPathFinder::find_path(const Vector2 &p_from, const Vector
 			path.push_back(points[at].pos);
 		} while (at != aidx);
 
-		path.invert();
+		path.reverse();
 	}
 
 	for (int i = 0; i < points.size() - 2; i++) {
@@ -499,7 +499,7 @@ Vector2 PolygonPathFinder::get_closest_point(const Vector2 &p_point) const {
 			points[e.points[1]].pos
 		};
 
-		Vector2 closest = Geometry::get_closest_point_to_segment_2d(p_point, seg);
+		Vector2 closest = Geometry2D::get_closest_point_to_segment(p_point, seg);
 		float d = p_point.distance_squared_to(closest);
 
 		if (d < closest_dist) {
@@ -521,7 +521,7 @@ Vector<Vector2> PolygonPathFinder::get_intersections(const Vector2 &p_from, cons
 		Vector2 b = points[E->get().points[1]].pos;
 
 		Vector2 res;
-		if (Geometry::segment_intersects_segment_2d(a, b, p_from, p_to, &res)) {
+		if (Geometry2D::segment_intersects_segment(a, b, p_from, p_to, &res)) {
 			inters.push_back(res);
 		}
 	}

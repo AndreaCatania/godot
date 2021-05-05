@@ -23,7 +23,7 @@
 				If [code]true[/code], [code]right[/code] will place the button to the right of any sibling buttons.
 			</description>
 		</method>
-		<method name="add_cancel">
+		<method name="add_cancel_button">
 			<return type="Button">
 			</return>
 			<argument index="0" name="name" type="String">
@@ -39,7 +39,7 @@
 				Returns the label used for built-in text.
 			</description>
 		</method>
-		<method name="get_ok">
+		<method name="get_ok_button">
 			<return type="Button">
 			</return>
 			<description>
@@ -67,6 +67,7 @@
 		<member name="dialog_text" type="String" setter="set_text" getter="get_text" default="&quot;&quot;">
 			The text displayed by the dialog.
 		</member>
+		<member name="exclusive" type="bool" setter="set_exclusive" getter="is_exclusive" override="true" default="true" />
 		<member name="title" type="String" setter="set_title" getter="get_title" override="true" default="&quot;Alert!&quot;" />
 		<member name="transient" type="bool" setter="set_transient" getter="is_transient" override="true" default="true" />
 		<member name="visible" type="bool" setter="set_visible" getter="is_visible" override="true" default="false" />
@@ -75,6 +76,7 @@
 	<signals>
 		<signal name="cancelled">
 			<description>
+				Emitted when the dialog is closed or the button created with [method add_cancel_button] is pressed.
 			</description>
 		</signal>
 		<signal name="confirmed">

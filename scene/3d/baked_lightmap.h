@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,7 +31,7 @@
 #ifndef BAKED_LIGHTMAP_H
 #define BAKED_LIGHTMAP_H
 
-#include "core/local_vector.h"
+#include "core/templates/local_vector.h"
 #include "scene/3d/light_3d.h"
 #include "scene/3d/lightmapper.h"
 #include "scene/3d/mesh_instance_3d.h"
@@ -53,9 +53,9 @@ class BakedLightmapData : public Resource {
 
 	struct User {
 		NodePath path;
-		int32_t sub_instance;
+		int32_t sub_instance = 0;
 		Rect2 uv_scale;
-		int slice_index;
+		int slice_index = 0;
 	};
 
 	Vector<User> users;
@@ -94,7 +94,7 @@ public:
 
 	void clear();
 
-	virtual RID get_rid() const;
+	virtual RID get_rid() const override;
 	BakedLightmapData();
 	~BakedLightmapData();
 };
@@ -136,32 +136,32 @@ public:
 	};
 
 private:
-	BakeQuality bake_quality;
-	bool use_denoiser;
-	int bounces;
-	float bias;
-	int max_texture_size;
-	bool interior;
-	EnvironmentMode environment_mode;
+	BakeQuality bake_quality = BAKE_QUALITY_MEDIUM;
+	bool use_denoiser = true;
+	int bounces = 1;
+	float bias = 0.0005;
+	int max_texture_size = 16384;
+	bool interior = false;
+	EnvironmentMode environment_mode = ENVIRONMENT_MODE_DISABLED;
 	Ref<Sky> environment_custom_sky;
-	Color environment_custom_color;
-	float environment_custom_energy;
-	bool directional;
-	GenerateProbes gen_probes;
+	Color environment_custom_color = Color(0.2, 0.7, 1.0);
+	float environment_custom_energy = 1.0;
+	bool directional = false;
+	GenerateProbes gen_probes = GENERATE_PROBES_DISABLED;
 
 	Ref<BakedLightmapData> light_data;
 
 	struct LightsFound {
 		Transform xform;
-		Light3D *light;
+		Light3D *light = nullptr;
 	};
 
 	struct MeshesFound {
 		Transform xform;
 		NodePath node_path;
-		int32_t subindex;
+		int32_t subindex = 0;
 		Ref<Mesh> mesh;
-		int32_t lightmap_scale;
+		int32_t lightmap_scale = 0;
 		Vector<Ref<Material>> overrides;
 	};
 
@@ -172,19 +172,20 @@ private:
 
 	struct BakeTimeData {
 		String text;
-		int pass;
-		uint64_t last_step;
+		int pass = 0;
+		uint64_t last_step = 0;
 	};
 
 	struct BSPSimplex {
-		int vertices[4];
-		int planes[4];
+		int vertices[4] = {};
+		int planes[4] = {};
 	};
 
 	struct BSPNode {
 		static const int32_t EMPTY_LEAF = INT32_MIN;
 		Plane plane;
-		int32_t over = EMPTY_LEAF, under = EMPTY_LEAF;
+		int32_t over = EMPTY_LEAF;
+		int32_t under = EMPTY_LEAF;
 	};
 
 	int _bsp_get_simplex_side(const Vector<Vector3> &p_points, const LocalVector<BSPSimplex> &p_simplices, const Plane &p_plane, uint32_t p_simplex) const;
@@ -192,16 +193,16 @@ private:
 
 	struct BakeStepUD {
 		Lightmapper::BakeStepFunc func;
-		void *ud;
-		float from_percent;
-		float to_percent;
+		void *ud = nullptr;
+		float from_percent = 0.0;
+		float to_percent = 0.0;
 	};
 
 	static bool _lightmap_bake_step_function(float p_completion, const String &p_text, void *ud, bool p_refresh);
 
 	struct GenProbesOctree {
 		Vector3i offset;
-		uint32_t size;
+		uint32_t size = 0;
 		GenProbesOctree *children[8] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 		~GenProbesOctree() {
 			for (int i = 0; i < 8; i++) {
@@ -224,7 +225,7 @@ private:
 	void _gen_new_positions_from_octree(const GenProbesOctree *p_cell, float p_cell_size, const Vector<Vector3> &probe_positions, LocalVector<Vector3> &new_probe_positions, HashMap<Vector3i, bool, Vector3iHash> &positions_used, const AABB &p_bounds);
 
 protected:
-	void _validate_property(PropertyInfo &property) const;
+	void _validate_property(PropertyInfo &property) const override;
 	static void _bind_methods();
 	void _notification(int p_what);
 
@@ -268,8 +269,8 @@ public:
 	void set_generate_probes(GenerateProbes p_generate_probes);
 	GenerateProbes get_generate_probes() const;
 
-	AABB get_aabb() const;
-	Vector<Face3> get_faces(uint32_t p_usage_flags) const;
+	AABB get_aabb() const override;
+	Vector<Face3> get_faces(uint32_t p_usage_flags) const override;
 
 	BakeError bake(Node *p_from_node, String p_image_data_path = "", Lightmapper::BakeStepFunc p_bake_step = nullptr, void *p_bake_userdata = nullptr);
 	BakedLightmap();

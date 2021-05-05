@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -74,7 +74,7 @@ int PacketPeerMbedDTLS::bio_recv(void *ctx, unsigned char *buf, size_t len) {
 	if (err != OK) {
 		return MBEDTLS_ERR_SSL_INTERNAL_ERROR;
 	}
-	copymem(buf, buffer, buffer_size);
+	memcpy(buf, buffer, buffer_size);
 	return buffer_size;
 }
 
@@ -89,8 +89,8 @@ int PacketPeerMbedDTLS::_set_cookie() {
 	uint8_t client_id[18];
 	IP_Address addr = base->get_packet_address();
 	uint16_t port = base->get_packet_port();
-	copymem(client_id, addr.get_ipv6(), 16);
-	copymem(&client_id[16], (uint8_t *)&port, 2);
+	memcpy(client_id, addr.get_ipv6(), 16);
+	memcpy(&client_id[16], (uint8_t *)&port, 2);
 	return mbedtls_ssl_set_client_transport_id(ssl_ctx->get_context(), client_id, 18);
 }
 
@@ -246,7 +246,6 @@ int PacketPeerMbedDTLS::get_max_packet_size() const {
 
 PacketPeerMbedDTLS::PacketPeerMbedDTLS() {
 	ssl_ctx.instance();
-	status = STATUS_DISCONNECTED;
 }
 
 PacketPeerMbedDTLS::~PacketPeerMbedDTLS() {

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,7 +30,7 @@
 
 #include "crypto.h"
 
-#include "core/engine.h"
+#include "core/config/engine.h"
 #include "core/io/certs_compressed.gen.h"
 #include "core/io/compression.h"
 
@@ -45,8 +45,11 @@ CryptoKey *CryptoKey::create() {
 }
 
 void CryptoKey::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("save", "path"), &CryptoKey::save);
-	ClassDB::bind_method(D_METHOD("load", "path"), &CryptoKey::load);
+	ClassDB::bind_method(D_METHOD("save", "path", "public_only"), &CryptoKey::save, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("load", "path", "public_only"), &CryptoKey::load, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("is_public_only"), &CryptoKey::is_public_only);
+	ClassDB::bind_method(D_METHOD("save_to_string", "public_only"), &CryptoKey::save_to_string, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("load_from_string", "string_key", "public_only"), &CryptoKey::load_from_string, DEFVAL(false));
 }
 
 X509Certificate *(*X509Certificate::_create)() = nullptr;
@@ -62,6 +65,22 @@ void X509Certificate::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("load", "path"), &X509Certificate::load);
 }
 
+/// HMACContext
+
+void HMACContext::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("start", "hash_type", "key"), &HMACContext::start);
+	ClassDB::bind_method(D_METHOD("update", "data"), &HMACContext::update);
+	ClassDB::bind_method(D_METHOD("finish"), &HMACContext::finish);
+}
+
+HMACContext *(*HMACContext::_create)() = nullptr;
+HMACContext *HMACContext::create() {
+	if (_create) {
+		return _create();
+	}
+	ERR_FAIL_V_MSG(nullptr, "HMACContext is not available when the mbedtls module is disabled.");
+}
+
 /// Crypto
 
 void (*Crypto::_load_default_certificates)(String p_path) = nullptr;
@@ -70,7 +89,7 @@ Crypto *Crypto::create() {
 	if (_create) {
 		return _create();
 	}
-	return memnew(Crypto);
+	ERR_FAIL_V_MSG(nullptr, "Crypto is not available when the mbedtls module is disabled.");
 }
 
 void Crypto::load_default_certificates(String p_path) {
@@ -79,27 +98,50 @@ void Crypto::load_default_certificates(String p_path) {
 	}
 }
 
+PackedByteArray Crypto::hmac_digest(HashingContext::HashType p_hash_type, PackedByteArray p_key, PackedByteArray p_msg) {
+	Ref<HMACContext> ctx = Ref<HMACContext>(HMACContext::create());
+	ERR_FAIL_COND_V_MSG(ctx.is_null(), PackedByteArray(), "HMAC is not available without mbedtls module.");
+	Error err = ctx->start(p_hash_type, p_key);
+	ERR_FAIL_COND_V(err != OK, PackedByteArray());
+	err = ctx->update(p_msg);
+	ERR_FAIL_COND_V(err != OK, PackedByteArray());
+	return ctx->finish();
+}
+
+// Compares two HMACS for equality without leaking timing information in order to prevent timing attacks.
+// @see: https://paragonie.com/blog/2015/11/preventing-timing-attacks-on-string-comparison-with-double-hmac-strategy
+bool Crypto::constant_time_compare(PackedByteArray p_trusted, PackedByteArray p_received) {
+	const uint8_t *t = p_trusted.ptr();
+	const uint8_t *r = p_received.ptr();
+	int tlen = p_trusted.size();
+	int rlen = p_received.size();
+	// If the lengths are different then nothing else matters.
+	if (tlen != rlen) {
+		return false;
+	}
+
+	uint8_t v = 0;
+	for (int i = 0; i < tlen; i++) {
+		v |= t[i] ^ r[i];
+	}
+	return v == 0;
+}
+
 void Crypto::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("generate_random_bytes", "size"), &Crypto::generate_random_bytes);
 	ClassDB::bind_method(D_METHOD("generate_rsa", "size"), &Crypto::generate_rsa);
 	ClassDB::bind_method(D_METHOD("generate_self_signed_certificate", "key", "issuer_name", "not_before", "not_after"), &Crypto::generate_self_signed_certificate, DEFVAL("CN=myserver,O=myorganisation,C=IT"), DEFVAL("20140101000000"), DEFVAL("20340101000000"));
-}
-
-PackedByteArray Crypto::generate_random_bytes(int p_bytes) {
-	ERR_FAIL_V_MSG(PackedByteArray(), "generate_random_bytes is not available when mbedtls module is disabled.");
-}
-
-Ref<CryptoKey> Crypto::generate_rsa(int p_bytes) {
-	ERR_FAIL_V_MSG(nullptr, "generate_rsa is not available when mbedtls module is disabled.");
-}
-
-Ref<X509Certificate> Crypto::generate_self_signed_certificate(Ref<CryptoKey> p_key, String p_issuer_name, String p_not_before, String p_not_after) {
-	ERR_FAIL_V_MSG(nullptr, "generate_self_signed_certificate is not available when mbedtls module is disabled.");
+	ClassDB::bind_method(D_METHOD("sign", "hash_type", "hash", "key"), &Crypto::sign);
+	ClassDB::bind_method(D_METHOD("verify", "hash_type", "hash", "signature", "key"), &Crypto::verify);
+	ClassDB::bind_method(D_METHOD("encrypt", "key", "plaintext"), &Crypto::encrypt);
+	ClassDB::bind_method(D_METHOD("decrypt", "key", "ciphertext"), &Crypto::decrypt);
+	ClassDB::bind_method(D_METHOD("hmac_digest", "hash_type", "key", "msg"), &Crypto::hmac_digest);
+	ClassDB::bind_method(D_METHOD("constant_time_compare", "trusted", "received"), &Crypto::constant_time_compare);
 }
 
 /// Resource loader/saver
 
-RES ResourceFormatLoaderCrypto::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, bool p_no_cache) {
+RES ResourceFormatLoaderCrypto::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, CacheMode p_cache_mode) {
 	String el = p_path.get_extension().to_lower();
 	if (el == "crt") {
 		X509Certificate *cert = X509Certificate::create();
@@ -110,7 +152,13 @@ RES ResourceFormatLoaderCrypto::load(const String &p_path, const String &p_origi
 	} else if (el == "key") {
 		CryptoKey *key = CryptoKey::create();
 		if (key) {
-			key->load(p_path);
+			key->load(p_path, false);
+		}
+		return key;
+	} else if (el == "pub") {
+		CryptoKey *key = CryptoKey::create();
+		if (key) {
+			key->load(p_path, true);
 		}
 		return key;
 	}
@@ -120,6 +168,7 @@ RES ResourceFormatLoaderCrypto::load(const String &p_path, const String &p_origi
 void ResourceFormatLoaderCrypto::get_recognized_extensions(List<String> *p_extensions) const {
 	p_extensions->push_back("crt");
 	p_extensions->push_back("key");
+	p_extensions->push_back("pub");
 }
 
 bool ResourceFormatLoaderCrypto::handles_type(const String &p_type) const {
@@ -130,7 +179,7 @@ String ResourceFormatLoaderCrypto::get_resource_type(const String &p_path) const
 	String el = p_path.get_extension().to_lower();
 	if (el == "crt") {
 		return "X509Certificate";
-	} else if (el == "key") {
+	} else if (el == "key" || el == "pub") {
 		return "CryptoKey";
 	}
 	return "";
@@ -143,7 +192,8 @@ Error ResourceFormatSaverCrypto::save(const String &p_path, const RES &p_resourc
 	if (cert.is_valid()) {
 		err = cert->save(p_path);
 	} else if (key.is_valid()) {
-		err = key->save(p_path);
+		String el = p_path.get_extension().to_lower();
+		err = key->save(p_path, el == "pub");
 	} else {
 		ERR_FAIL_V(ERR_INVALID_PARAMETER);
 	}
@@ -158,7 +208,10 @@ void ResourceFormatSaverCrypto::get_recognized_extensions(const RES &p_resource,
 		p_extensions->push_back("crt");
 	}
 	if (key) {
-		p_extensions->push_back("key");
+		if (!key->is_public_only()) {
+			p_extensions->push_back("key");
+		}
+		p_extensions->push_back("pub");
 	}
 }
 

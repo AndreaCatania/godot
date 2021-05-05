@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,8 +31,8 @@
 #ifndef RENDERING_DEVICE_H
 #define RENDERING_DEVICE_H
 
-#include "core/object.h"
-#include "core/typed_array.h"
+#include "core/object/class_db.h"
+#include "core/variant/typed_array.h"
 #include "servers/display_server.h"
 
 class RDTextureFormat;
@@ -51,6 +51,13 @@ class RDPipelineColorBlendState;
 class RenderingDevice : public Object {
 	GDCLASS(RenderingDevice, Object)
 public:
+	enum DeviceFamily {
+		DEVICE_UNKNOWN,
+		DEVICE_OPENGL,
+		DEVICE_VULKAN,
+		DEVICE_DIRECTX
+	};
+
 	enum ShaderStage {
 		SHADER_STAGE_VERTEX,
 		SHADER_STAGE_FRAGMENT,
@@ -70,7 +77,29 @@ public:
 		SHADER_LANGUAGE_HLSL
 	};
 
-	typedef Vector<uint8_t> (*ShaderCompileFunction)(ShaderStage p_stage, const String &p_source_code, ShaderLanguage p_language, String *r_error);
+	enum SubgroupOperations {
+		SUBGROUP_BASIC_BIT = 1,
+		SUBGROUP_VOTE_BIT = 2,
+		SUBGROUP_ARITHMETIC_BIT = 4,
+		SUBGROUP_BALLOT_BIT = 8,
+		SUBGROUP_SHUFFLE_BIT = 16,
+		SUBGROUP_SHUFFLE_RELATIVE_BIT = 32,
+		SUBGROUP_CLUSTERED_BIT = 64,
+		SUBGROUP_QUAD_BIT = 128,
+	};
+
+	struct Capabilities {
+		// main device info
+		DeviceFamily device_family = DEVICE_UNKNOWN;
+		uint32_t version_major = 1.0;
+		uint32_t version_minor = 0.0;
+		// subgroup capabilities
+		uint32_t subgroup_size = 0;
+		uint32_t subgroup_in_shaders = 0; // Set flags using SHADER_STAGE_VERTEX_BIT, SHADER_STAGE_FRAGMENT_BIT, etc.
+		uint32_t subgroup_operations = 0; // Set flags, using SubgroupOperations
+	};
+
+	typedef Vector<uint8_t> (*ShaderCompileFunction)(ShaderStage p_stage, const String &p_source_code, ShaderLanguage p_language, String *r_error, const Capabilities *p_capabilities);
 	typedef Vector<uint8_t> (*ShaderCacheFunction)(ShaderStage p_stage, const String &p_source_code, ShaderLanguage p_language);
 
 private:
@@ -81,6 +110,8 @@ private:
 
 protected:
 	static void _bind_methods();
+
+	Capabilities device_capabilities;
 
 public:
 	//base numeric ID for all types
@@ -336,6 +367,18 @@ public:
 	};
 
 	/*****************/
+	/**** BARRIER ****/
+	/*****************/
+
+	enum BarrierMask {
+		BARRIER_MASK_RASTER = 1,
+		BARRIER_MASK_COMPUTE = 2,
+		BARRIER_MASK_TRANSFER = 4,
+		BARRIER_MASK_NO_BARRIER = 8,
+		BARRIER_MASK_ALL = BARRIER_MASK_RASTER | BARRIER_MASK_COMPUTE | BARRIER_MASK_TRANSFER
+	};
+
+	/*****************/
 	/**** TEXTURE ****/
 	/*****************/
 
@@ -392,7 +435,7 @@ public:
 		uint32_t depth;
 		uint32_t array_layers;
 		uint32_t mipmaps;
-		TextureType type;
+		TextureType texture_type;
 		TextureSamples samples;
 		uint32_t usage_bits;
 		Vector<DataFormat> shareable_formats;
@@ -404,7 +447,7 @@ public:
 			depth = 1;
 			array_layers = 1;
 			mipmaps = 1;
-			type = TEXTURE_TYPE_2D;
+			texture_type = TEXTURE_TYPE_2D;
 			samples = TEXTURE_SAMPLES_1;
 			usage_bits = 0;
 		}
@@ -433,20 +476,21 @@ public:
 		TEXTURE_SLICE_2D,
 		TEXTURE_SLICE_CUBEMAP,
 		TEXTURE_SLICE_3D,
+		TEXTURE_SLICE_2D_ARRAY,
 	};
 
 	virtual RID texture_create_shared_from_slice(const TextureView &p_view, RID p_with_texture, uint32_t p_layer, uint32_t p_mipmap, TextureSliceType p_slice_type = TEXTURE_SLICE_2D) = 0;
 
-	virtual Error texture_update(RID p_texture, uint32_t p_layer, const Vector<uint8_t> &p_data, bool p_sync_with_draw = false) = 0; //this function can be used from any thread and it takes effect at the beginning of the frame, unless sync with draw is used, which is used to mix updates with draw calls
+	virtual Error texture_update(RID p_texture, uint32_t p_layer, const Vector<uint8_t> &p_data, uint32_t p_post_barrier = BARRIER_MASK_ALL) = 0;
 	virtual Vector<uint8_t> texture_get_data(RID p_texture, uint32_t p_layer) = 0; // CPU textures will return immediately, while GPU textures will most likely force a flush
 
 	virtual bool texture_is_format_supported_for_usage(DataFormat p_format, uint32_t p_usage) const = 0;
 	virtual bool texture_is_shared(RID p_texture) = 0;
 	virtual bool texture_is_valid(RID p_texture) = 0;
 
-	virtual Error texture_copy(RID p_from_texture, RID p_to_texture, const Vector3 &p_from, const Vector3 &p_to, const Vector3 &p_size, uint32_t p_src_mipmap, uint32_t p_dst_mipmap, uint32_t p_src_layer, uint32_t p_dst_layer, bool p_sync_with_draw = false) = 0;
-	virtual Error texture_clear(RID p_texture, const Color &p_color, uint32_t p_base_mipmap, uint32_t p_mipmaps, uint32_t p_base_layer, uint32_t p_layers, bool p_sync_with_draw = false) = 0;
-	virtual Error texture_resolve_multisample(RID p_from_texture, RID p_to_texture, bool p_sync_with_draw = false) = 0;
+	virtual Error texture_copy(RID p_from_texture, RID p_to_texture, const Vector3 &p_from, const Vector3 &p_to, const Vector3 &p_size, uint32_t p_src_mipmap, uint32_t p_dst_mipmap, uint32_t p_src_layer, uint32_t p_dst_layer, uint32_t p_post_barrier = BARRIER_MASK_ALL) = 0;
+	virtual Error texture_clear(RID p_texture, const Color &p_color, uint32_t p_base_mipmap, uint32_t p_mipmaps, uint32_t p_base_layer, uint32_t p_layers, uint32_t p_post_barrier = BARRIER_MASK_ALL) = 0;
+	virtual Error texture_resolve_multisample(RID p_from_texture, RID p_to_texture, uint32_t p_post_barrier = BARRIER_MASK_ALL) = 0;
 
 	/*********************/
 	/**** FRAMEBUFFER ****/
@@ -467,9 +511,11 @@ public:
 
 	// This ID is warranted to be unique for the same formats, does not need to be freed
 	virtual FramebufferFormatID framebuffer_format_create(const Vector<AttachmentFormat> &p_format) = 0;
+	virtual FramebufferFormatID framebuffer_format_create_empty(TextureSamples p_samples = TEXTURE_SAMPLES_1) = 0;
 	virtual TextureSamples framebuffer_format_get_texture_samples(FramebufferFormatID p_format) = 0;
 
 	virtual RID framebuffer_create(const Vector<RID> &p_texture_attachments, FramebufferFormatID p_format_check = INVALID_ID) = 0;
+	virtual RID framebuffer_create_empty(const Size2i &p_size, TextureSamples p_samples = TEXTURE_SAMPLES_1, FramebufferFormatID p_format_check = INVALID_ID) = 0;
 
 	virtual FramebufferFormatID framebuffer_get_format(RID p_framebuffer) = 0;
 
@@ -562,7 +608,7 @@ public:
 			frequency = VERTEX_FREQUENCY_VERTEX;
 		}
 	};
-	virtual RID vertex_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data = Vector<uint8_t>()) = 0;
+	virtual RID vertex_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data = Vector<uint8_t>(), bool p_use_as_storage = false) = 0;
 
 	typedef int64_t VertexFormatID;
 
@@ -581,6 +627,8 @@ public:
 	/****************/
 	/**** SHADER ****/
 	/****************/
+
+	const Capabilities *get_device_capabilities() const { return &device_capabilities; };
 
 	virtual Vector<uint8_t> shader_compile_from_source(ShaderStage p_stage, const String &p_source_code, ShaderLanguage p_language = SHADER_LANGUAGE_GLSL, String *r_error = nullptr, bool p_allow_cache = true);
 
@@ -618,12 +666,16 @@ public:
 		UNIFORM_TYPE_MAX
 	};
 
+	enum StorageBufferUsage {
+		STORAGE_BUFFER_USAGE_DISPATCH_INDIRECT = 1
+	};
+
 	virtual RID uniform_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data = Vector<uint8_t>()) = 0;
-	virtual RID storage_buffer_create(uint32_t p_size, const Vector<uint8_t> &p_data = Vector<uint8_t>()) = 0;
+	virtual RID storage_buffer_create(uint32_t p_size, const Vector<uint8_t> &p_data = Vector<uint8_t>(), uint32_t p_usage = 0) = 0;
 	virtual RID texture_buffer_create(uint32_t p_size_elements, DataFormat p_format, const Vector<uint8_t> &p_data = Vector<uint8_t>()) = 0;
 
 	struct Uniform {
-		UniformType type;
+		UniformType uniform_type;
 		int binding; //binding index as specified in shader
 
 		//for single items, provide one ID, for
@@ -634,7 +686,7 @@ public:
 		Vector<RID> ids;
 
 		Uniform() {
-			type = UNIFORM_TYPE_IMAGE;
+			uniform_type = UNIFORM_TYPE_IMAGE;
 			binding = 0;
 		}
 	};
@@ -642,7 +694,8 @@ public:
 	virtual RID uniform_set_create(const Vector<Uniform> &p_uniforms, RID p_shader, uint32_t p_shader_set) = 0;
 	virtual bool uniform_set_is_valid(RID p_uniform_set) = 0;
 
-	virtual Error buffer_update(RID p_buffer, uint32_t p_offset, uint32_t p_size, const void *p_data, bool p_sync_with_draw = false) = 0; //this function can be used from any thread and it takes effect at the beginning of the frame, unless sync with draw is used, which is used to mix updates with draw calls
+	virtual Error buffer_update(RID p_buffer, uint32_t p_offset, uint32_t p_size, const void *p_data, uint32_t p_post_barrier = BARRIER_MASK_ALL) = 0;
+	virtual Error buffer_clear(RID p_buffer, uint32_t p_offset, uint32_t p_size, uint32_t p_post_barrier = BARRIER_MASK_ALL) = 0;
 	virtual Vector<uint8_t> buffer_get_data(RID p_buffer) = 0; //this causes stall, only use to retrieve large buffers for saving
 
 	/*************************/
@@ -923,7 +976,9 @@ public:
 	/********************/
 
 	enum InitialAction {
-		INITIAL_ACTION_CLEAR, //start rendering and clear the framebuffer (supply params)
+		INITIAL_ACTION_CLEAR, //start rendering and clear the whole framebuffer (region or not) (supply params)
+		INITIAL_ACTION_CLEAR_REGION, //start rendering and clear the framebuffer in the specified region (supply params)
+		INITIAL_ACTION_CLEAR_REGION_CONTINUE, //countinue rendering and clear the framebuffer in the specified region (supply params)
 		INITIAL_ACTION_KEEP, //start rendering, but keep attached color texture contents (depth will be cleared)
 		INITIAL_ACTION_DROP, //start rendering, ignore what is there, just write above it
 		INITIAL_ACTION_CONTINUE, //continue rendering (framebuffer must have been left in "continue" state as final action previously)
@@ -940,8 +995,8 @@ public:
 	typedef int64_t DrawListID;
 
 	virtual DrawListID draw_list_begin_for_screen(DisplayServer::WindowID p_screen = 0, const Color &p_clear_color = Color()) = 0;
-	virtual DrawListID draw_list_begin(RID p_framebuffer, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values = Vector<Color>(), float p_clear_depth = 1.0, uint32_t p_clear_stencil = 0, const Rect2 &p_region = Rect2()) = 0;
-	virtual Error draw_list_begin_split(RID p_framebuffer, uint32_t p_splits, DrawListID *r_split_ids, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values = Vector<Color>(), float p_clear_depth = 1.0, uint32_t p_clear_stencil = 0, const Rect2 &p_region = Rect2()) = 0;
+	virtual DrawListID draw_list_begin(RID p_framebuffer, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values = Vector<Color>(), float p_clear_depth = 1.0, uint32_t p_clear_stencil = 0, const Rect2 &p_region = Rect2(), const Vector<RID> &p_storage_textures = Vector<RID>()) = 0;
+	virtual Error draw_list_begin_split(RID p_framebuffer, uint32_t p_splits, DrawListID *r_split_ids, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values = Vector<Color>(), float p_clear_depth = 1.0, uint32_t p_clear_stencil = 0, const Rect2 &p_region = Rect2(), const Vector<RID> &p_storage_textures = Vector<RID>()) = 0;
 
 	virtual void draw_list_bind_render_pipeline(DrawListID p_list, RID p_render_pipeline) = 0;
 	virtual void draw_list_bind_uniform_set(DrawListID p_list, RID p_uniform_set, uint32_t p_index) = 0;
@@ -955,7 +1010,7 @@ public:
 	virtual void draw_list_enable_scissor(DrawListID p_list, const Rect2 &p_rect) = 0;
 	virtual void draw_list_disable_scissor(DrawListID p_list) = 0;
 
-	virtual void draw_list_end() = 0;
+	virtual void draw_list_end(uint32_t p_post_barrier = BARRIER_MASK_ALL) = 0;
 
 	/***********************/
 	/**** COMPUTE LISTS ****/
@@ -963,14 +1018,19 @@ public:
 
 	typedef int64_t ComputeListID;
 
-	virtual ComputeListID compute_list_begin() = 0;
+	virtual ComputeListID compute_list_begin(bool p_allow_draw_overlap = false) = 0;
 	virtual void compute_list_bind_compute_pipeline(ComputeListID p_list, RID p_compute_pipeline) = 0;
 	virtual void compute_list_bind_uniform_set(ComputeListID p_list, RID p_uniform_set, uint32_t p_index) = 0;
 	virtual void compute_list_set_push_constant(ComputeListID p_list, const void *p_data, uint32_t p_data_size) = 0;
 	virtual void compute_list_dispatch(ComputeListID p_list, uint32_t p_x_groups, uint32_t p_y_groups, uint32_t p_z_groups) = 0;
+	virtual void compute_list_dispatch_threads(ComputeListID p_list, uint32_t p_x_threads, uint32_t p_y_threads, uint32_t p_z_threads) = 0;
+	virtual void compute_list_dispatch_indirect(ComputeListID p_list, RID p_buffer, uint32_t p_offset) = 0;
 	virtual void compute_list_add_barrier(ComputeListID p_list) = 0;
 
-	virtual void compute_list_end() = 0;
+	virtual void compute_list_end(uint32_t p_post_barrier = BARRIER_MASK_ALL) = 0;
+
+	virtual void barrier(uint32_t p_from = BARRIER_MASK_ALL, uint32_t p_to = BARRIER_MASK_ALL) = 0;
+	virtual void full_barrier() = 0;
 
 	/***************/
 	/**** FREE! ****/
@@ -982,7 +1042,7 @@ public:
 	/**** Timing ****/
 	/****************/
 
-	virtual void capture_timestamp(const String &p_name, bool p_sync_to_draw) = 0;
+	virtual void capture_timestamp(const String &p_name) = 0;
 	virtual uint32_t get_captured_timestamps_count() const = 0;
 	virtual uint64_t get_captured_timestamps_frame() const = 0;
 	virtual uint64_t get_captured_timestamp_gpu_time(uint32_t p_index) const = 0;
@@ -1047,6 +1107,16 @@ public:
 
 	virtual RenderingDevice *create_local_device() = 0;
 
+	virtual void set_resource_name(RID p_id, const String p_name) = 0;
+
+	virtual void draw_command_begin_label(String p_label_name, const Color p_color = Color(1, 1, 1, 1)) = 0;
+	virtual void draw_command_insert_label(String p_label_name, const Color p_color = Color(1, 1, 1, 1)) = 0;
+	virtual void draw_command_end_label() = 0;
+
+	virtual String get_device_vendor_name() const = 0;
+	virtual String get_device_name() const = 0;
+	virtual String get_device_pipeline_cache_uuid() const = 0;
+
 	static RenderingDevice *get_singleton();
 	RenderingDevice();
 
@@ -1066,11 +1136,11 @@ protected:
 
 	RID _uniform_set_create(const Array &p_uniforms, RID p_shader, uint32_t p_shader_set);
 
-	Error _buffer_update(RID p_buffer, uint32_t p_offset, uint32_t p_size, const Vector<uint8_t> &p_data, bool p_sync_with_draw = false);
+	Error _buffer_update(RID p_buffer, uint32_t p_offset, uint32_t p_size, const Vector<uint8_t> &p_data, uint32_t p_post_barrier = BARRIER_MASK_ALL);
 
 	RID _render_pipeline_create(RID p_shader, FramebufferFormatID p_framebuffer_format, VertexFormatID p_vertex_format, RenderPrimitive p_render_primitive, const Ref<RDPipelineRasterizationState> &p_rasterization_state, const Ref<RDPipelineMultisampleState> &p_multisample_state, const Ref<RDPipelineDepthStencilState> &p_depth_stencil_state, const Ref<RDPipelineColorBlendState> &p_blend_state, int p_dynamic_state_flags = 0);
 
-	Vector<int64_t> _draw_list_begin_split(RID p_framebuffer, uint32_t p_splits, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values = Vector<Color>(), float p_clear_depth = 1.0, uint32_t p_clear_stencil = 0, const Rect2 &p_region = Rect2());
+	Vector<int64_t> _draw_list_begin_split(RID p_framebuffer, uint32_t p_splits, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values = Vector<Color>(), float p_clear_depth = 1.0, uint32_t p_clear_stencil = 0, const Rect2 &p_region = Rect2(), const TypedArray<RID> &p_storage_textures = TypedArray<RID>());
 	void _draw_list_set_push_constant(DrawListID p_list, const Vector<uint8_t> &p_data, uint32_t p_data_size);
 	void _compute_list_set_push_constant(ComputeListID p_list, const Vector<uint8_t> &p_data, uint32_t p_data_size);
 };
@@ -1089,6 +1159,7 @@ VARIANT_ENUM_CAST(RenderingDevice::SamplerRepeatMode)
 VARIANT_ENUM_CAST(RenderingDevice::SamplerBorderColor)
 VARIANT_ENUM_CAST(RenderingDevice::VertexFrequency)
 VARIANT_ENUM_CAST(RenderingDevice::IndexBufferFormat)
+VARIANT_ENUM_CAST(RenderingDevice::StorageBufferUsage)
 VARIANT_ENUM_CAST(RenderingDevice::UniformType)
 VARIANT_ENUM_CAST(RenderingDevice::RenderPrimitive)
 VARIANT_ENUM_CAST(RenderingDevice::PolygonCullMode)

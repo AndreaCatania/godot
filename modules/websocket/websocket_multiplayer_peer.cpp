@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -33,15 +33,6 @@
 #include "core/os/os.h"
 
 WebSocketMultiplayerPeer::WebSocketMultiplayerPeer() {
-	_is_multiplayer = false;
-	_peer_id = 0;
-	_target_peer = 0;
-	_refusing = false;
-
-	_current_packet.source = 0;
-	_current_packet.destination = 0;
-	_current_packet.size = 0;
-	_current_packet.data = nullptr;
 }
 
 WebSocketMultiplayerPeer::~WebSocketMultiplayerPeer() {
@@ -62,7 +53,7 @@ int WebSocketMultiplayerPeer::_gen_unique_id() const {
 				(uint32_t)((uint64_t)this), hash); //rely on aslr heap
 		hash = hash_djb2_one_32(
 				(uint32_t)((uint64_t)&hash), hash); //rely on aslr stack
-		hash = hash & 0x7FFFFFFF; // make it compatible with unsigned, since negatie id is used for exclusion
+		hash = hash & 0x7FFFFFFF; // make it compatible with unsigned, since negative id is used for exclusion
 	}
 
 	return hash;
@@ -107,6 +98,8 @@ Error WebSocketMultiplayerPeer::get_packet(const uint8_t **r_buffer, int &r_buff
 		memfree(_current_packet.data);
 		_current_packet.data = nullptr;
 	}
+
+	ERR_FAIL_COND_V(_incoming_packets.size() == 0, ERR_UNAVAILABLE);
 
 	_current_packet = _incoming_packets.front()->get();
 	_incoming_packets.pop_front();
@@ -177,10 +170,10 @@ Vector<uint8_t> WebSocketMultiplayerPeer::_make_pkt(uint8_t p_type, int32_t p_fr
 	out.resize(PROTO_SIZE + p_data_size);
 
 	uint8_t *w = out.ptrw();
-	copymem(&w[0], &p_type, 1);
-	copymem(&w[1], &p_from, 4);
-	copymem(&w[5], &p_to, 4);
-	copymem(&w[PROTO_SIZE], p_data, p_data_size);
+	memcpy(&w[0], &p_type, 1);
+	memcpy(&w[1], &p_from, 4);
+	memcpy(&w[5], &p_to, 4);
+	memcpy(&w[PROTO_SIZE], p_data, p_data_size);
 
 	return out;
 }
@@ -195,7 +188,7 @@ void WebSocketMultiplayerPeer::_send_add(int32_t p_peer_id) {
 	for (Map<int, Ref<WebSocketPeer>>::Element *E = _peer_map.front(); E; E = E->next()) {
 		int32_t id = E->key();
 		if (p_peer_id == id) {
-			continue; // Skip the newwly added peer (already confirmed)
+			continue; // Skip the newly added peer (already confirmed)
 		}
 
 		// Send new peer to others
@@ -220,7 +213,7 @@ void WebSocketMultiplayerPeer::_store_pkt(int32_t p_source, int32_t p_dest, cons
 	packet.size = p_data_size;
 	packet.source = p_source;
 	packet.destination = p_dest;
-	copymem(packet.data, &p_data[PROTO_SIZE], p_data_size);
+	memcpy(packet.data, &p_data[PROTO_SIZE], p_data_size);
 	_incoming_packets.push_back(packet);
 	emit_signal("peer_packet", p_source);
 }
@@ -272,9 +265,9 @@ void WebSocketMultiplayerPeer::_process_multiplayer(Ref<WebSocketPeer> p_peer, u
 	uint8_t type = 0;
 	uint32_t from = 0;
 	int32_t to = 0;
-	copymem(&type, in_buffer, 1);
-	copymem(&from, &in_buffer[1], 4);
-	copymem(&to, &in_buffer[5], 4);
+	memcpy(&type, in_buffer, 1);
+	memcpy(&from, &in_buffer[1], 4);
+	memcpy(&to, &in_buffer[5], 4);
 
 	if (is_server()) { // Server can resend
 
@@ -308,7 +301,7 @@ void WebSocketMultiplayerPeer::_process_multiplayer(Ref<WebSocketPeer> p_peer, u
 		// System message
 		ERR_FAIL_COND(data_size < 4);
 		int id = 0;
-		copymem(&id, &in_buffer[PROTO_SIZE], 4);
+		memcpy(&id, &in_buffer[PROTO_SIZE], 4);
 
 		switch (type) {
 			case SYS_ADD: // Add peer
@@ -323,7 +316,7 @@ void WebSocketMultiplayerPeer::_process_multiplayer(Ref<WebSocketPeer> p_peer, u
 				_peer_map.erase(id);
 				emit_signal("peer_disconnected", id);
 				break;
-			case SYS_ID: // Helo, server assigned ID
+			case SYS_ID: // Hello, server assigned ID
 				_peer_id = id;
 				break;
 			default:

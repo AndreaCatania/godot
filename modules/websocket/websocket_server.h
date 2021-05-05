@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,7 +32,7 @@
 #define WEBSOCKET_H
 
 #include "core/crypto/crypto.h"
-#include "core/reference.h"
+#include "core/object/reference.h"
 #include "websocket_multiplayer_peer.h"
 #include "websocket_peer.h"
 
@@ -50,14 +50,12 @@ protected:
 	Ref<X509Certificate> ca_chain;
 
 public:
-	virtual void poll() = 0;
 	virtual Error listen(int p_port, const Vector<String> p_protocols = Vector<String>(), bool gd_mp_api = false) = 0;
 	virtual void stop() = 0;
 	virtual bool is_listening() const = 0;
 	virtual bool has_peer(int p_id) const = 0;
-	virtual Ref<WebSocketPeer> get_peer(int p_id) const = 0;
-	virtual bool is_server() const;
-	ConnectionStatus get_connection_status() const;
+	virtual bool is_server() const override;
+	ConnectionStatus get_connection_status() const override;
 
 	virtual IP_Address get_peer_address(int p_peer_id) const = 0;
 	virtual int get_peer_port(int p_peer_id) const = 0;
@@ -79,8 +77,6 @@ public:
 
 	Ref<X509Certificate> get_ca_chain() const;
 	void set_ca_chain(Ref<X509Certificate> p_ca_chain);
-
-	virtual Error set_buffers(int p_in_buffer, int p_in_packets, int p_out_buffer, int p_out_packets) = 0;
 
 	WebSocketServer();
 	~WebSocketServer();
