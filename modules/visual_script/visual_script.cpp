@@ -46,7 +46,7 @@ bool VisualScriptNode::is_breakpoint() const {
 }
 
 void VisualScriptNode::ports_changed_notify() {
-	emit_signal("ports_changed");
+	emit_signal(SNAME("ports_changed"));
 }
 
 void VisualScriptNode::set_default_input_value(int p_port, const Variant &p_value) {
@@ -264,7 +264,7 @@ void VisualScript::_node_ports_changed(int p_id) {
 
 #ifdef TOOLS_ENABLED
 	set_edited(true); // Something changed, let's set as edited.
-	emit_signal("node_ports_changed", p_id);
+	emit_signal(SNAME("node_ports_changed"), p_id);
 #endif
 }
 
@@ -725,7 +725,7 @@ int VisualScript::get_available_id() const {
 
 /////////////////////////////////
 
-bool VisualScript::can_instance() const {
+bool VisualScript::can_instantiate() const {
 	return true; // ScriptServer::is_scripting_enabled();
 }
 
@@ -954,58 +954,8 @@ bool VisualScript::are_subnodes_edited() const {
 }
 #endif
 
-Vector<ScriptNetData> VisualScript::get_rpc_methods() const {
+const Vector<MultiplayerAPI::RPCConfig> VisualScript::get_rpc_methods() const {
 	return rpc_functions;
-}
-
-uint16_t VisualScript::get_rpc_method_id(const StringName &p_method) const {
-	for (int i = 0; i < rpc_functions.size(); i++) {
-		if (rpc_functions[i].name == p_method) {
-			return i;
-		}
-	}
-	return UINT16_MAX;
-}
-
-StringName VisualScript::get_rpc_method(const uint16_t p_rpc_method_id) const {
-	ERR_FAIL_COND_V(p_rpc_method_id >= rpc_functions.size(), StringName());
-	return rpc_functions[p_rpc_method_id].name;
-}
-
-MultiplayerAPI::RPCMode VisualScript::get_rpc_mode_by_id(const uint16_t p_rpc_method_id) const {
-	ERR_FAIL_COND_V(p_rpc_method_id >= rpc_functions.size(), MultiplayerAPI::RPC_MODE_DISABLED);
-	return rpc_functions[p_rpc_method_id].mode;
-}
-
-MultiplayerAPI::RPCMode VisualScript::get_rpc_mode(const StringName &p_method) const {
-	return get_rpc_mode_by_id(get_rpc_method_id(p_method));
-}
-
-Vector<ScriptNetData> VisualScript::get_rset_properties() const {
-	return rpc_variables;
-}
-
-uint16_t VisualScript::get_rset_property_id(const StringName &p_variable) const {
-	for (int i = 0; i < rpc_variables.size(); i++) {
-		if (rpc_variables[i].name == p_variable) {
-			return i;
-		}
-	}
-	return UINT16_MAX;
-}
-
-StringName VisualScript::get_rset_property(const uint16_t p_rset_property_id) const {
-	ERR_FAIL_COND_V(p_rset_property_id >= rpc_variables.size(), StringName());
-	return rpc_variables[p_rset_property_id].name;
-}
-
-MultiplayerAPI::RPCMode VisualScript::get_rset_mode_by_id(const uint16_t p_rset_variable_id) const {
-	ERR_FAIL_COND_V(p_rset_variable_id >= rpc_variables.size(), MultiplayerAPI::RPC_MODE_DISABLED);
-	return rpc_variables[p_rset_variable_id].mode;
-}
-
-MultiplayerAPI::RPCMode VisualScript::get_rset_mode(const StringName &p_variable) const {
-	return get_rset_mode_by_id(get_rset_property_id(p_variable));
 }
 
 void VisualScript::_set_data(const Dictionary &p_data) {
@@ -1065,7 +1015,6 @@ void VisualScript::_set_data(const Dictionary &p_data) {
 
 	// Takes all the rpc methods.
 	rpc_functions.clear();
-	rpc_variables.clear();
 	List<StringName> fns;
 	functions.get_key_list(&fns);
 	for (const List<StringName>::Element *E = fns.front(); E; E = E->next()) {
@@ -1073,9 +1022,10 @@ void VisualScript::_set_data(const Dictionary &p_data) {
 			Ref<VisualScriptFunction> vsf = nodes[functions[E->get()].func_id].node;
 			if (vsf.is_valid()) {
 				if (vsf->get_rpc_mode() != MultiplayerAPI::RPC_MODE_DISABLED) {
-					ScriptNetData nd;
+					MultiplayerAPI::RPCConfig nd;
 					nd.name = E->get();
-					nd.mode = vsf->get_rpc_mode();
+					nd.rpc_mode = vsf->get_rpc_mode();
+					nd.transfer_mode = MultiplayerPeer::TRANSFER_MODE_RELIABLE; // TODO
 					if (rpc_functions.find(nd) == -1) {
 						rpc_functions.push_back(nd);
 					}
@@ -1085,7 +1035,7 @@ void VisualScript::_set_data(const Dictionary &p_data) {
 	}
 
 	// Sort so we are 100% that they are always the same.
-	rpc_functions.sort_custom<SortNetData>();
+	rpc_functions.sort_custom<MultiplayerAPI::SortRPCConfig>();
 }
 
 Dictionary VisualScript::_get_data() const {
@@ -1882,44 +1832,8 @@ Ref<Script> VisualScriptInstance::get_script() const {
 	return script;
 }
 
-Vector<ScriptNetData> VisualScriptInstance::get_rpc_methods() const {
+const Vector<MultiplayerAPI::RPCConfig> VisualScriptInstance::get_rpc_methods() const {
 	return script->get_rpc_methods();
-}
-
-uint16_t VisualScriptInstance::get_rpc_method_id(const StringName &p_method) const {
-	return script->get_rpc_method_id(p_method);
-}
-
-StringName VisualScriptInstance::get_rpc_method(const uint16_t p_rpc_method_id) const {
-	return script->get_rpc_method(p_rpc_method_id);
-}
-
-MultiplayerAPI::RPCMode VisualScriptInstance::get_rpc_mode_by_id(const uint16_t p_rpc_method_id) const {
-	return script->get_rpc_mode_by_id(p_rpc_method_id);
-}
-
-MultiplayerAPI::RPCMode VisualScriptInstance::get_rpc_mode(const StringName &p_method) const {
-	return script->get_rpc_mode(p_method);
-}
-
-Vector<ScriptNetData> VisualScriptInstance::get_rset_properties() const {
-	return script->get_rset_properties();
-}
-
-uint16_t VisualScriptInstance::get_rset_property_id(const StringName &p_variable) const {
-	return script->get_rset_property_id(p_variable);
-}
-
-StringName VisualScriptInstance::get_rset_property(const uint16_t p_rset_property_id) const {
-	return script->get_rset_property(p_rset_property_id);
-}
-
-MultiplayerAPI::RPCMode VisualScriptInstance::get_rset_mode_by_id(const uint16_t p_rset_variable_id) const {
-	return script->get_rset_mode_by_id(p_rset_variable_id);
-}
-
-MultiplayerAPI::RPCMode VisualScriptInstance::get_rset_mode(const StringName &p_variable) const {
-	return script->get_rset_mode(p_variable);
 }
 
 void VisualScriptInstance::create(const Ref<VisualScript> &p_script, Object *p_owner) {
@@ -2044,7 +1958,7 @@ void VisualScriptInstance::create(const Ref<VisualScript> &p_script, Object *p_o
 			for (const Set<int>::Element *F = node_ids.front(); F; F = F->next()) {
 				Ref<VisualScriptNode> node = script->nodes[F->get()].node;
 
-				VisualScriptNodeInstance *instance = node->instance(this); // Create instance.
+				VisualScriptNodeInstance *instance = node->instantiate(this); // Create instance.
 				ERR_FAIL_COND(!instance);
 
 				instance->base = node.ptr();
@@ -2290,7 +2204,7 @@ Variant VisualScriptFunctionState::resume(Array p_args) {
 
 void VisualScriptFunctionState::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("connect_to_signal", "obj", "signals", "args"), &VisualScriptFunctionState::connect_to_signal);
-	ClassDB::bind_method(D_METHOD("resume", "args"), &VisualScriptFunctionState::resume, DEFVAL(Variant()));
+	ClassDB::bind_method(D_METHOD("resume", "args"), &VisualScriptFunctionState::resume, DEFVAL(Array()));
 	ClassDB::bind_method(D_METHOD("is_valid"), &VisualScriptFunctionState::is_valid);
 	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "_signal_callback", &VisualScriptFunctionState::_signal_callback, MethodInfo("_signal_callback"));
 }
@@ -2348,7 +2262,7 @@ void VisualScriptLanguage::get_string_delimiters(List<String> *p_delimiters) con
 
 Ref<Script> VisualScriptLanguage::get_template(const String &p_class_name, const String &p_base_class_name) const {
 	Ref<VisualScript> script;
-	script.instance();
+	script.instantiate();
 	script->set_instance_base_type(p_base_class_name);
 	return script;
 }
@@ -2362,7 +2276,7 @@ void VisualScriptLanguage::make_template(const String &p_class_name, const Strin
 	script->set_instance_base_type(p_base_class_name);
 }
 
-bool VisualScriptLanguage::validate(const String &p_script, int &r_line_error, int &r_col_error, String &r_test_error, const String &p_path, List<String> *r_functions, List<ScriptLanguage::Warning> *r_warnings, Set<int> *r_safe_lines) const {
+bool VisualScriptLanguage::validate(const String &p_script, const String &p_path, List<String> *r_functions, List<ScriptLanguage::ScriptError> *r_errors, List<ScriptLanguage::Warning> *r_warnings, Set<int> *r_safe_lines) const {
 	return false;
 }
 

@@ -98,7 +98,7 @@ Error SceneDebugger::parse_message(void *p_user, const String &p_msg, const Arra
 
 	} else if (p_msg == "override_camera_3D:transform") {
 		ERR_FAIL_COND_V(p_args.size() < 5, ERR_INVALID_DATA);
-		Transform transform = p_args[0];
+		Transform3D transform = p_args[0];
 		bool is_perspective = p_args[1];
 		float size_or_fov = p_args[2];
 		float near = p_args[3];
@@ -145,12 +145,12 @@ Error SceneDebugger::parse_message(void *p_user, const String &p_msg, const Arra
 		live_editor->_res_set_func(p_args[0], p_args[1], p_args[2]);
 
 	} else if (p_msg == "live_node_call") {
-		ERR_FAIL_COND_V(p_args.size() < 7, ERR_INVALID_DATA);
-		live_editor->_node_call_func(p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5], p_args[6]);
+		ERR_FAIL_COND_V(p_args.size() < 10, ERR_INVALID_DATA);
+		live_editor->_node_call_func(p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5], p_args[6], p_args[7], p_args[8], p_args[9]);
 
 	} else if (p_msg == "live_res_call") {
-		ERR_FAIL_COND_V(p_args.size() < 7, ERR_INVALID_DATA);
-		live_editor->_res_call_func(p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5], p_args[6]);
+		ERR_FAIL_COND_V(p_args.size() < 10, ERR_INVALID_DATA);
+		live_editor->_res_call_func(p_args[0], p_args[1], p_args[2], p_args[3], p_args[4], p_args[5], p_args[6], p_args[7], p_args[8], p_args[9]);
 
 	} else if (p_msg == "live_create_node") {
 		ERR_FAIL_COND_V(p_args.size() < 3, ERR_INVALID_DATA);
@@ -525,7 +525,7 @@ void LiveEditor::_node_set_func(int p_id, const StringName &p_prop, const Varian
 	for (Set<Node *>::Element *F = E->get().front(); F; F = F->next()) {
 		Node *n = F->get();
 
-		if (base && !base->is_a_parent_of(n)) {
+		if (base && !base->is_ancestor_of(n)) {
 			continue;
 		}
 
@@ -569,7 +569,7 @@ void LiveEditor::_node_call_func(int p_id, const StringName &p_method, VARIANT_A
 	for (Set<Node *>::Element *F = E->get().front(); F; F = F->next()) {
 		Node *n = F->get();
 
-		if (base && !base->is_a_parent_of(n)) {
+		if (base && !base->is_ancestor_of(n)) {
 			continue;
 		}
 
@@ -652,7 +652,7 @@ void LiveEditor::_create_node_func(const NodePath &p_parent, const String &p_typ
 	for (Set<Node *>::Element *F = E->get().front(); F; F = F->next()) {
 		Node *n = F->get();
 
-		if (base && !base->is_a_parent_of(n)) {
+		if (base && !base->is_ancestor_of(n)) {
 			continue;
 		}
 
@@ -661,7 +661,7 @@ void LiveEditor::_create_node_func(const NodePath &p_parent, const String &p_typ
 		}
 		Node *n2 = n->get_node(p_parent);
 
-		Node *no = Object::cast_to<Node>(ClassDB::instance(p_type));
+		Node *no = Object::cast_to<Node>(ClassDB::instantiate(p_type));
 		if (!no) {
 			continue;
 		}
@@ -696,7 +696,7 @@ void LiveEditor::_instance_node_func(const NodePath &p_parent, const String &p_p
 	for (Set<Node *>::Element *F = E->get().front(); F; F = F->next()) {
 		Node *n = F->get();
 
-		if (base && !base->is_a_parent_of(n)) {
+		if (base && !base->is_ancestor_of(n)) {
 			continue;
 		}
 
@@ -705,7 +705,7 @@ void LiveEditor::_instance_node_func(const NodePath &p_parent, const String &p_p
 		}
 		Node *n2 = n->get_node(p_parent);
 
-		Node *no = ps->instance();
+		Node *no = ps->instantiate();
 		if (!no) {
 			continue;
 		}
@@ -736,7 +736,7 @@ void LiveEditor::_remove_node_func(const NodePath &p_at) {
 
 		Node *n = F->get();
 
-		if (base && !base->is_a_parent_of(n)) {
+		if (base && !base->is_ancestor_of(n)) {
 			continue;
 		}
 
@@ -772,7 +772,7 @@ void LiveEditor::_remove_and_keep_node_func(const NodePath &p_at, ObjectID p_kee
 
 		Node *n = F->get();
 
-		if (base && !base->is_a_parent_of(n)) {
+		if (base && !base->is_ancestor_of(n)) {
 			continue;
 		}
 
@@ -811,7 +811,7 @@ void LiveEditor::_restore_node_func(ObjectID p_id, const NodePath &p_at, int p_a
 
 		Node *n = F->get();
 
-		if (base && !base->is_a_parent_of(n)) {
+		if (base && !base->is_ancestor_of(n)) {
 			continue;
 		}
 
@@ -862,7 +862,7 @@ void LiveEditor::_duplicate_node_func(const NodePath &p_at, const String &p_new_
 	for (Set<Node *>::Element *F = E->get().front(); F; F = F->next()) {
 		Node *n = F->get();
 
-		if (base && !base->is_a_parent_of(n)) {
+		if (base && !base->is_ancestor_of(n)) {
 			continue;
 		}
 
@@ -901,7 +901,7 @@ void LiveEditor::_reparent_node_func(const NodePath &p_at, const NodePath &p_new
 	for (Set<Node *>::Element *F = E->get().front(); F; F = F->next()) {
 		Node *n = F->get();
 
-		if (base && !base->is_a_parent_of(n)) {
+		if (base && !base->is_ancestor_of(n)) {
 			continue;
 		}
 

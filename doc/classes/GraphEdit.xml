@@ -187,15 +187,18 @@
 		<member name="minimap_opacity" type="float" setter="set_minimap_opacity" getter="get_minimap_opacity" default="0.65">
 			The opacity of the minimap rectangle.
 		</member>
-		<member name="minimap_size" type="Vector2" setter="set_minimap_size" getter="get_minimap_size" default="Vector2( 240, 160 )">
+		<member name="minimap_size" type="Vector2" setter="set_minimap_size" getter="get_minimap_size" default="Vector2(240, 160)">
 			The size of the minimap rectangle. The map itself is based on the size of the grid area and is scaled to fit this rectangle.
 		</member>
 		<member name="rect_clip_content" type="bool" setter="set_clip_contents" getter="is_clipping_contents" override="true" default="true" />
 		<member name="right_disconnects" type="bool" setter="set_right_disconnects" getter="is_right_disconnects_enabled" default="false">
 			If [code]true[/code], enables disconnection of existing connections in the GraphEdit by dragging the right end.
 		</member>
-		<member name="scroll_offset" type="Vector2" setter="set_scroll_ofs" getter="get_scroll_ofs" default="Vector2( 0, 0 )">
+		<member name="scroll_offset" type="Vector2" setter="set_scroll_ofs" getter="get_scroll_ofs" default="Vector2(0, 0)">
 			The scroll offset.
+		</member>
+		<member name="show_zoom_label" type="bool" setter="set_show_zoom_label" getter="is_showing_zoom_label" default="false">
+			If [code]true[/code], makes a label with the current zoom level visible. The zoom value is displayed in percents.
 		</member>
 		<member name="snap_distance" type="int" setter="set_snap" getter="get_snap" default="20">
 			The snapping distance in pixels.
@@ -205,6 +208,15 @@
 		</member>
 		<member name="zoom" type="float" setter="set_zoom" getter="get_zoom" default="1.0">
 			The current zoom value.
+		</member>
+		<member name="zoom_max" type="float" setter="set_zoom_max" getter="get_zoom_max" default="2.0736">
+			The upper zoom limit.
+		</member>
+		<member name="zoom_min" type="float" setter="set_zoom_min" getter="get_zoom_min" default="0.232568">
+			The lower zoom limit.
+		</member>
+		<member name="zoom_step" type="float" setter="set_zoom_step" getter="get_zoom_step" default="1.2">
+			The step of each zoom level.
 		</member>
 	</members>
 	<signals>
@@ -317,7 +329,7 @@
 	<constants>
 	</constants>
 	<theme_items>
-		<theme_item name="activity" type="Color" default="Color( 1, 1, 1, 1 )">
+		<theme_item name="activity" type="Color" default="Color(1, 1, 1, 1)">
 		</theme_item>
 		<theme_item name="bezier_len_neg" type="int" default="160">
 		</theme_item>
@@ -326,10 +338,10 @@
 		<theme_item name="bg" type="StyleBox">
 			The background drawn under the grid.
 		</theme_item>
-		<theme_item name="grid_major" type="Color" default="Color( 1, 1, 1, 0.2 )">
+		<theme_item name="grid_major" type="Color" default="Color(1, 1, 1, 0.2)">
 			Color of major grid lines.
 		</theme_item>
-		<theme_item name="grid_minor" type="Color" default="Color( 1, 1, 1, 0.05 )">
+		<theme_item name="grid_minor" type="Color" default="Color(1, 1, 1, 0.05)">
 			Color of minor grid lines.
 		</theme_item>
 		<theme_item name="minimap" type="Texture2D">
@@ -349,10 +361,10 @@
 		<theme_item name="reset" type="Texture2D">
 			The icon for the zoom reset button.
 		</theme_item>
-		<theme_item name="selection_fill" type="Color" default="Color( 1, 1, 1, 0.3 )">
+		<theme_item name="selection_fill" type="Color" default="Color(1, 1, 1, 0.3)">
 			The fill color of the selection rectangle.
 		</theme_item>
-		<theme_item name="selection_stroke" type="Color" default="Color( 1, 1, 1, 0.8 )">
+		<theme_item name="selection_stroke" type="Color" default="Color(1, 1, 1, 0.8)">
 			The outline color of the selection rectangle.
 		</theme_item>
 		<theme_item name="snap" type="Texture2D">

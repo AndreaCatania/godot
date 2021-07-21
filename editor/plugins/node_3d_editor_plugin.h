@@ -34,7 +34,6 @@
 #include "editor/editor_node.h"
 #include "editor/editor_plugin.h"
 #include "editor/editor_scale.h"
-#include "scene/3d/immediate_geometry_3d.h"
 #include "scene/3d/light_3d.h"
 #include "scene/3d/visual_instance_3d.h"
 #include "scene/3d/world_environment.h"
@@ -52,7 +51,7 @@ class EditorNode3DGizmo : public Node3DGizmo {
 	GDCLASS(EditorNode3DGizmo, Node3DGizmo);
 
 	bool selected;
-	bool instanced;
+	bool instantiated;
 
 public:
 	void set_selected(bool p_selected) { selected = p_selected; }
@@ -206,9 +205,9 @@ class Node3DEditorViewport : public Control {
 		VIEW_DISPLAY_NORMAL_BUFFER,
 		VIEW_DISPLAY_DEBUG_SHADOW_ATLAS,
 		VIEW_DISPLAY_DEBUG_DIRECTIONAL_SHADOW_ATLAS,
-		VIEW_DISPLAY_DEBUG_GIPROBE_ALBEDO,
-		VIEW_DISPLAY_DEBUG_GIPROBE_LIGHTING,
-		VIEW_DISPLAY_DEBUG_GIPROBE_EMISSION,
+		VIEW_DISPLAY_DEBUG_VOXEL_GI_ALBEDO,
+		VIEW_DISPLAY_DEBUG_VOXEL_GI_LIGHTING,
+		VIEW_DISPLAY_DEBUG_VOXEL_GI_EMISSION,
 		VIEW_DISPLAY_DEBUG_SCENE_LUMINANCE,
 		VIEW_DISPLAY_DEBUG_SSAO,
 		VIEW_DISPLAY_DEBUG_PSSM_SPLITS,
@@ -318,11 +317,11 @@ private:
 	void _select_clicked(bool p_append, bool p_single, bool p_allow_locked = false);
 	void _select(Node *p_node, bool p_append, bool p_single);
 	ObjectID _select_ray(const Point2 &p_pos, bool p_append, bool &r_includes_current, int *r_gizmo_handle = nullptr, bool p_alt_select = false);
-	void _find_items_at_pos(const Point2 &p_pos, bool &r_includes_current, Vector<_RayResult> &results, bool p_alt_select = false);
+	void _find_items_at_pos(const Point2 &p_pos, bool &r_includes_current, Vector<_RayResult> &results, bool p_alt_select = false, bool p_include_locked_nodes = false);
 	Vector3 _get_ray_pos(const Vector2 &p_pos) const;
 	Vector3 _get_ray(const Vector2 &p_pos) const;
 	Point2 _point_to_screen(const Vector3 &p_point);
-	Transform _get_camera_transform() const;
+	Transform3D _get_camera_transform() const;
 	int get_selected_count() const;
 
 	Vector3 _get_camera_position() const;
@@ -380,13 +379,14 @@ private:
 	struct EditData {
 		TransformMode mode;
 		TransformPlane plane;
-		Transform original;
+		Transform3D original;
 		Vector3 click_ray;
 		Vector3 click_ray_pos;
 		Vector3 center;
 		Vector3 orig_gizmo_pos;
 		int edited_gizmo = 0;
 		Point2 mouse_pos;
+		Point2 original_mouse_pos;
 		bool snap = false;
 		Ref<EditorNode3DGizmo> gizmo;
 		int gizmo_handle = 0;
@@ -432,7 +432,7 @@ private:
 
 	//
 	void _update_camera(float p_interp_delta);
-	Transform to_camera_transform(const Cursor &p_cursor) const;
+	Transform3D to_camera_transform(const Cursor &p_cursor) const;
 	void _draw();
 
 	void _surface_mouse_enter();
@@ -494,7 +494,7 @@ public:
 			AcceptDialog *p_accept);
 
 	SubViewport *get_viewport_node() { return viewport; }
-	Camera3D *get_camera() { return camera; } // return the default camera object.
+	Camera3D *get_camera_3d() { return camera; } // return the default camera object.
 
 	Node3DEditorViewport(Node3DEditor *p_spatial_editor, EditorNode *p_editor, int p_index);
 	~Node3DEditorViewport();
@@ -505,9 +505,9 @@ class Node3DEditorSelectedItem : public Object {
 
 public:
 	AABB aabb;
-	Transform original; // original location when moving
-	Transform original_local;
-	Transform last_xform; // last transform
+	Transform3D original; // original location when moving
+	Transform3D original_local;
+	Transform3D last_xform; // last transform
 	bool last_xform_dirty;
 	Node3D *sp;
 	RID sbox_instance;
@@ -600,8 +600,6 @@ private:
 
 	ToolMode tool_mode;
 
-	RenderingServer::ScenarioDebugMode scenario_debug;
-
 	RID origin;
 	RID origin_instance;
 	bool origin_enabled;
@@ -641,7 +639,7 @@ private:
 	struct Gizmo {
 		bool visible = false;
 		float scale = 0;
-		Transform transform;
+		Transform3D transform;
 	} gizmo;
 
 	enum MenuOption {
@@ -763,6 +761,8 @@ private:
 	VBoxContainer *sun_vb;
 	Popup *sun_environ_popup;
 	Control *sun_direction;
+	EditorSpinSlider *sun_angle_altitude;
+	EditorSpinSlider *sun_angle_azimuth;
 	ColorPickerButton *sun_color;
 	EditorSpinSlider *sun_energy;
 	EditorSpinSlider *sun_max_distance;
@@ -770,8 +770,9 @@ private:
 
 	void _sun_direction_draw();
 	void _sun_direction_input(const Ref<InputEvent> &p_event);
+	void _sun_direction_angle_set();
 
-	Basis sun_rotation;
+	Vector2 sun_rotation;
 
 	Ref<Shader> sun_direction_shader;
 	Ref<ShaderMaterial> sun_direction_material;
@@ -804,8 +805,8 @@ private:
 	void _preview_settings_changed();
 	void _sun_environ_settings_pressed();
 
-	void _add_sun_to_scene();
-	void _add_environment_to_scene();
+	void _add_sun_to_scene(bool p_already_added_environment = false);
+	void _add_environment_to_scene(bool p_already_added_sun = false);
 
 protected:
 	void _notification(int p_what);
@@ -816,7 +817,6 @@ protected:
 
 public:
 	static Node3DEditor *get_singleton() { return singleton; }
-	void snap_cursor_to_plane(const Plane &p_plane);
 
 	Vector3 snap_point(Vector3 p_target, Vector3 p_start = Vector3(0, 0, 0)) const;
 
@@ -824,7 +824,7 @@ public:
 	float get_zfar() const { return settings_zfar->get_value(); }
 	float get_fov() const { return settings_fov->get_value(); }
 
-	Transform get_gizmo_transform() const { return gizmo.transform; }
+	Transform3D get_gizmo_transform() const { return gizmo.transform; }
 	bool is_gizmo_visible() const { return gizmo.visible; }
 
 	ToolMode get_tool_mode() const { return tool_mode; }
@@ -889,12 +889,7 @@ class Node3DEditorPlugin : public EditorPlugin {
 	Node3DEditor *spatial_editor;
 	EditorNode *editor;
 
-protected:
-	static void _bind_methods();
-
 public:
-	void snap_cursor_to_plane(const Plane &p_plane);
-
 	Node3DEditor *get_spatial_editor() { return spatial_editor; }
 	virtual String get_name() const override { return "3D"; }
 	bool has_main_screen() const override { return true; }

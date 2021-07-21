@@ -175,6 +175,14 @@
 				Returns the custom color of column [code]column[/code].
 			</description>
 		</method>
+		<method name="get_custom_font" qualifiers="const">
+			<return type="Font">
+			</return>
+			<argument index="0" name="column" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="get_expand_right" qualifiers="const">
 			<return type="bool">
 			</return>
@@ -184,7 +192,7 @@
 				Returns [code]true[/code] if [code]expand_right[/code] is set.
 			</description>
 		</method>
-		<method name="get_first_child">
+		<method name="get_first_child" qualifiers="const">
 			<return type="TreeItem">
 			</return>
 			<description>
@@ -252,7 +260,7 @@
 				Returns the metadata value that was set for the given column using [method set_metadata].
 			</description>
 		</method>
-		<method name="get_next">
+		<method name="get_next" qualifiers="const">
 			<return type="TreeItem">
 			</return>
 			<description>
@@ -280,7 +288,7 @@
 				Returns OpenType feature [code]tag[/code] of the item's text.
 			</description>
 		</method>
-		<method name="get_parent">
+		<method name="get_parent" qualifiers="const">
 			<return type="TreeItem">
 			</return>
 			<description>
@@ -383,7 +391,7 @@
 				Returns the given column's tooltip.
 			</description>
 		</method>
-		<method name="get_tree">
+		<method name="get_tree" qualifiers="const">
 			<return type="Tree">
 			</return>
 			<description>
@@ -577,6 +585,16 @@
 			<description>
 				Sets the given column's custom draw callback to [code]callback[/code] method on [code]object[/code].
 				The [code]callback[/code] should accept two arguments: the [TreeItem] that is drawn and its position and size as a [Rect2].
+			</description>
+		</method>
+		<method name="set_custom_font">
+			<return type="void">
+			</return>
+			<argument index="0" name="column" type="int">
+			</argument>
+			<argument index="1" name="font" type="Font">
+			</argument>
+			<description>
 			</description>
 		</method>
 		<method name="set_editable">

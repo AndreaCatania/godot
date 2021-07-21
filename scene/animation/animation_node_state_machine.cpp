@@ -57,7 +57,7 @@ void AnimationNodeStateMachineTransition::set_advance_condition(const StringName
 	} else {
 		advance_condition_name = StringName();
 	}
-	emit_signal("advance_condition_changed");
+	emit_signal(SNAME("advance_condition_changed"));
 }
 
 StringName AnimationNodeStateMachineTransition::get_advance_condition() const {
@@ -115,7 +115,7 @@ void AnimationNodeStateMachineTransition::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_priority", "priority"), &AnimationNodeStateMachineTransition::set_priority);
 	ClassDB::bind_method(D_METHOD("get_priority"), &AnimationNodeStateMachineTransition::get_priority);
 
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "switch_mode", PROPERTY_HINT_ENUM, "Immediate,Sync,AtEnd"), "set_switch_mode", "get_switch_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "switch_mode", PROPERTY_HINT_ENUM, "Immediate,Sync,At End"), "set_switch_mode", "get_switch_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "auto_advance"), "set_auto_advance", "has_auto_advance");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "advance_condition"), "set_advance_condition", "get_advance_condition");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "xfade_time", PROPERTY_HINT_RANGE, "0,240,0.01"), "set_xfade_time", "get_xfade_time");
@@ -496,7 +496,7 @@ void AnimationNodeStateMachinePlayback::_bind_methods() {
 }
 
 AnimationNodeStateMachinePlayback::AnimationNodeStateMachinePlayback() {
-	set_local_to_scene(true); //only one per instanced scene
+	set_local_to_scene(true); //only one per instantiated scene
 }
 
 ///////////////////////////////////////////////////////
@@ -520,7 +520,7 @@ void AnimationNodeStateMachine::get_parameter_list(List<PropertyInfo> *r_list) c
 Variant AnimationNodeStateMachine::get_parameter_default_value(const StringName &p_parameter) const {
 	if (p_parameter == playback) {
 		Ref<AnimationNodeStateMachinePlayback> p;
-		p.instance();
+		p.instantiate();
 		return p;
 	} else {
 		return false; //advance condition
@@ -539,7 +539,7 @@ void AnimationNodeStateMachine::add_node(const StringName &p_name, Ref<Animation
 	states[p_name] = state;
 
 	emit_changed();
-	emit_signal("tree_changed");
+	emit_signal(SNAME("tree_changed"));
 
 	p_node->connect("tree_changed", callable_mp(this, &AnimationNodeStateMachine::_tree_changed), varray(), CONNECT_REFERENCE_COUNTED);
 }
@@ -559,7 +559,7 @@ void AnimationNodeStateMachine::replace_node(const StringName &p_name, Ref<Anima
 	states[p_name].node = p_node;
 
 	emit_changed();
-	emit_signal("tree_changed");
+	emit_signal(SNAME("tree_changed"));
 
 	p_node->connect("tree_changed", callable_mp(this, &AnimationNodeStateMachine::_tree_changed), varray(), CONNECT_REFERENCE_COUNTED);
 }
@@ -636,7 +636,7 @@ void AnimationNodeStateMachine::remove_node(const StringName &p_name) {
 	}*/
 
 	emit_changed();
-	emit_signal("tree_changed");
+	emit_signal(SNAME("tree_changed"));
 }
 
 void AnimationNodeStateMachine::rename_node(const StringName &p_name, const StringName &p_new_name) {
@@ -669,7 +669,7 @@ void AnimationNodeStateMachine::rename_node(const StringName &p_name, const Stri
 	}*/
 
 	//path.clear(); //clear path
-	emit_signal("tree_changed");
+	emit_signal(SNAME("tree_changed"));
 }
 
 void AnimationNodeStateMachine::get_node_list(List<StringName> *r_nodes) const {
@@ -923,7 +923,7 @@ void AnimationNodeStateMachine::reset_state() {
 	graph_offset = Vector2();
 
 	emit_changed();
-	emit_signal("tree_changed");
+	emit_signal(SNAME("tree_changed"));
 }
 
 void AnimationNodeStateMachine::set_node_position(const StringName &p_name, const Vector2 &p_position) {
@@ -937,7 +937,7 @@ Vector2 AnimationNodeStateMachine::get_node_position(const StringName &p_name) c
 }
 
 void AnimationNodeStateMachine::_tree_changed() {
-	emit_signal("tree_changed");
+	emit_signal(SNAME("tree_changed"));
 }
 
 void AnimationNodeStateMachine::_bind_methods() {

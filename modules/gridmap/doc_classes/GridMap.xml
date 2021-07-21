@@ -41,7 +41,7 @@
 			<return type="Array">
 			</return>
 			<description>
-				Returns an array of [ArrayMesh]es and [Transform] references of all bake meshes that exist within the current GridMap.
+				Returns an array of [ArrayMesh]es and [Transform3D] references of all bake meshes that exist within the current GridMap.
 			</description>
 		</method>
 		<method name="get_cell_item" qualifiers="const">
@@ -84,7 +84,7 @@
 			<return type="Array">
 			</return>
 			<description>
-				Returns an array of [Transform] and [Mesh] references corresponding to the non-empty cells in the grid. The transforms are specified in world space.
+				Returns an array of [Transform3D] and [Mesh] references corresponding to the non-empty cells in the grid. The transforms are specified in world space.
 			</description>
 		</method>
 		<method name="get_used_cells" qualifiers="const">
@@ -203,7 +203,7 @@
 			The scale of the cell items.
 			This does not affect the size of the grid cells themselves, only the items in them. This can be used to make cell items overlap their neighbors.
 		</member>
-		<member name="cell_size" type="Vector3" setter="set_cell_size" getter="get_cell_size" default="Vector3( 2, 2, 2 )">
+		<member name="cell_size" type="Vector3" setter="set_cell_size" getter="get_cell_size" default="Vector3(2, 2, 2)">
 			The dimensions of the grid's cells.
 			This does not affect the size of the meshes. See [member cell_scale].
 		</member>

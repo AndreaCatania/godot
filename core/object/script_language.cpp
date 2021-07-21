@@ -100,7 +100,7 @@ Dictionary Script::_get_script_constant_map() {
 }
 
 void Script::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("can_instance"), &Script::can_instance);
+	ClassDB::bind_method(D_METHOD("can_instantiate"), &Script::can_instantiate);
 	//ClassDB::bind_method(D_METHOD("instance_create","base_object"),&Script::instance_create);
 	ClassDB::bind_method(D_METHOD("instance_has", "base_object"), &Script::instance_has);
 	ClassDB::bind_method(D_METHOD("has_source_code"), &Script::has_source_code);
@@ -120,7 +120,7 @@ void Script::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("is_tool"), &Script::is_tool);
 
-	ADD_PROPERTY(PropertyInfo(Variant::STRING, "source_code", PROPERTY_HINT_NONE, "", 0), "set_source_code", "get_source_code");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "source_code", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "set_source_code", "get_source_code");
 }
 
 void ScriptServer::set_scripting_enabled(bool p_enabled) {
@@ -353,10 +353,10 @@ void ScriptLanguage::get_core_type_words(List<String> *p_core_type_words) const 
 	p_core_type_words->push_back("Vector3i");
 	p_core_type_words->push_back("Transform2D");
 	p_core_type_words->push_back("Plane");
-	p_core_type_words->push_back("Quat");
+	p_core_type_words->push_back("Quaternion");
 	p_core_type_words->push_back("AABB");
 	p_core_type_words->push_back("Basis");
-	p_core_type_words->push_back("Transform");
+	p_core_type_words->push_back("Transform3D");
 	p_core_type_words->push_back("Color");
 	p_core_type_words->push_back("StringName");
 	p_core_type_words->push_back("NodePath");
@@ -583,14 +583,6 @@ Variant PlaceHolderScriptInstance::property_get_fallback(const StringName &p_nam
 	}
 
 	return Variant();
-}
-
-uint16_t PlaceHolderScriptInstance::get_rpc_method_id(const StringName &p_method) const {
-	return UINT16_MAX;
-}
-
-uint16_t PlaceHolderScriptInstance::get_rset_property_id(const StringName &p_method) const {
-	return UINT16_MAX;
 }
 
 PlaceHolderScriptInstance::PlaceHolderScriptInstance(ScriptLanguage *p_language, Ref<Script> p_script, Object *p_owner) :

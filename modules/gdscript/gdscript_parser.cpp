@@ -31,9 +31,9 @@
 #include "gdscript_parser.h"
 
 #include "core/config/project_settings.h"
+#include "core/io/file_access.h"
 #include "core/io/resource_loader.h"
 #include "core/math/math_defs.h"
-#include "core/os/file_access.h"
 #include "gdscript.h"
 
 #ifdef DEBUG_ENABLED
@@ -61,9 +61,9 @@ Variant::Type GDScriptParser::get_builtin_type(const StringName &p_type) {
 		builtin_types["Vector3i"] = Variant::VECTOR3I;
 		builtin_types["AABB"] = Variant::AABB;
 		builtin_types["Plane"] = Variant::PLANE;
-		builtin_types["Quat"] = Variant::QUAT;
+		builtin_types["Quaternion"] = Variant::QUATERNION;
 		builtin_types["Basis"] = Variant::BASIS;
-		builtin_types["Transform"] = Variant::TRANSFORM;
+		builtin_types["Transform3D"] = Variant::TRANSFORM3D;
 		builtin_types["Color"] = Variant::COLOR;
 		builtin_types["RID"] = Variant::RID;
 		builtin_types["Object"] = Variant::OBJECT;
@@ -157,7 +157,6 @@ GDScriptParser::GDScriptParser() {
 	register_annotation(MethodInfo("@export_multiline"), AnnotationInfo::VARIABLE, &GDScriptParser::export_annotations<PROPERTY_HINT_MULTILINE_TEXT, Variant::STRING>);
 	register_annotation(MethodInfo("@export_placeholder"), AnnotationInfo::VARIABLE, &GDScriptParser::export_annotations<PROPERTY_HINT_PLACEHOLDER_TEXT, Variant::STRING>);
 	register_annotation(MethodInfo("@export_range", { Variant::FLOAT, "min" }, { Variant::FLOAT, "max" }, { Variant::FLOAT, "step" }, { Variant::STRING, "slider1" }, { Variant::STRING, "slider2" }), AnnotationInfo::VARIABLE, &GDScriptParser::export_annotations<PROPERTY_HINT_RANGE, Variant::FLOAT>, 3);
-	register_annotation(MethodInfo("@export_exp_range", { Variant::FLOAT, "min" }, { Variant::FLOAT, "max" }, { Variant::FLOAT, "step" }, { Variant::STRING, "slider1" }, { Variant::STRING, "slider2" }), AnnotationInfo::VARIABLE, &GDScriptParser::export_annotations<PROPERTY_HINT_EXP_RANGE, Variant::FLOAT>, 3);
 	register_annotation(MethodInfo("@export_exp_easing", { Variant::STRING, "hint1" }, { Variant::STRING, "hint2" }), AnnotationInfo::VARIABLE, &GDScriptParser::export_annotations<PROPERTY_HINT_EXP_EASING, Variant::FLOAT>, 2);
 	register_annotation(MethodInfo("@export_color_no_alpha"), AnnotationInfo::VARIABLE, &GDScriptParser::export_annotations<PROPERTY_HINT_COLOR_NO_ALPHA, Variant::COLOR>);
 	register_annotation(MethodInfo("@export_node_path", { Variant::STRING, "type" }), AnnotationInfo::VARIABLE, &GDScriptParser::export_annotations<PROPERTY_HINT_NODE_PATH_VALID_TYPES, Variant::NODE_PATH>, 1, true);
@@ -169,12 +168,7 @@ GDScriptParser::GDScriptParser() {
 	register_annotation(MethodInfo("@export_flags_3d_physics"), AnnotationInfo::VARIABLE, &GDScriptParser::export_annotations<PROPERTY_HINT_LAYERS_3D_PHYSICS, Variant::INT>);
 	register_annotation(MethodInfo("@export_flags_3d_navigation"), AnnotationInfo::VARIABLE, &GDScriptParser::export_annotations<PROPERTY_HINT_LAYERS_3D_NAVIGATION, Variant::INT>);
 	// Networking.
-	register_annotation(MethodInfo("@remote"), AnnotationInfo::VARIABLE | AnnotationInfo::FUNCTION, &GDScriptParser::network_annotations<MultiplayerAPI::RPC_MODE_REMOTE>);
-	register_annotation(MethodInfo("@master"), AnnotationInfo::VARIABLE | AnnotationInfo::FUNCTION, &GDScriptParser::network_annotations<MultiplayerAPI::RPC_MODE_MASTER>);
-	register_annotation(MethodInfo("@puppet"), AnnotationInfo::VARIABLE | AnnotationInfo::FUNCTION, &GDScriptParser::network_annotations<MultiplayerAPI::RPC_MODE_PUPPET>);
-	register_annotation(MethodInfo("@remotesync"), AnnotationInfo::VARIABLE | AnnotationInfo::FUNCTION, &GDScriptParser::network_annotations<MultiplayerAPI::RPC_MODE_REMOTESYNC>);
-	register_annotation(MethodInfo("@mastersync"), AnnotationInfo::VARIABLE | AnnotationInfo::FUNCTION, &GDScriptParser::network_annotations<MultiplayerAPI::RPC_MODE_MASTERSYNC>);
-	register_annotation(MethodInfo("@puppetsync"), AnnotationInfo::VARIABLE | AnnotationInfo::FUNCTION, &GDScriptParser::network_annotations<MultiplayerAPI::RPC_MODE_PUPPETSYNC>);
+	register_annotation(MethodInfo("@rpc", { Variant::STRING, "mode" }, { Variant::STRING, "sync" }, { Variant::STRING, "transfer_mode" }, { Variant::INT, "transfer_channel" }), AnnotationInfo::FUNCTION, &GDScriptParser::network_annotations<MultiplayerAPI::RPC_MODE_MASTER>, 4, true);
 	// TODO: Warning annotations.
 }
 
@@ -2129,10 +2123,10 @@ GDScriptParser::ExpressionNode *GDScriptParser::parse_builtin_constant(Expressio
 			constant->value = Math_TAU;
 			break;
 		case GDScriptTokenizer::Token::CONST_INF:
-			constant->value = Math_INF;
+			constant->value = INFINITY;
 			break;
 		case GDScriptTokenizer::Token::CONST_NAN:
-			constant->value = Math_NAN;
+			constant->value = NAN;
 			break;
 		default:
 			return nullptr; // Unreachable.
@@ -3431,27 +3425,60 @@ template <MultiplayerAPI::RPCMode t_mode>
 bool GDScriptParser::network_annotations(const AnnotationNode *p_annotation, Node *p_node) {
 	ERR_FAIL_COND_V_MSG(p_node->type != Node::VARIABLE && p_node->type != Node::FUNCTION, false, vformat(R"("%s" annotation can only be applied to variables and functions.)", p_annotation->name));
 
-	switch (p_node->type) {
-		case Node::VARIABLE: {
-			VariableNode *variable = static_cast<VariableNode *>(p_node);
-			if (variable->rpc_mode != MultiplayerAPI::RPC_MODE_DISABLED) {
-				push_error(R"(RPC annotations can only be used once per variable.)", p_annotation);
+	MultiplayerAPI::RPCConfig rpc_config;
+	rpc_config.rpc_mode = t_mode;
+	for (int i = 0; i < p_annotation->resolved_arguments.size(); i++) {
+		if (i == 0) {
+			String mode = p_annotation->resolved_arguments[i].operator String();
+			if (mode == "any") {
+				rpc_config.rpc_mode = MultiplayerAPI::RPC_MODE_REMOTE;
+			} else if (mode == "master") {
+				rpc_config.rpc_mode = MultiplayerAPI::RPC_MODE_MASTER;
+			} else if (mode == "puppet") {
+				rpc_config.rpc_mode = MultiplayerAPI::RPC_MODE_PUPPET;
+			} else {
+				push_error(R"(Invalid RPC mode. Must be one of: 'any', 'master', or 'puppet')", p_annotation);
+				return false;
 			}
-			variable->rpc_mode = t_mode;
-			break;
+		} else if (i == 1) {
+			String sync = p_annotation->resolved_arguments[i].operator String();
+			if (sync == "sync") {
+				rpc_config.sync = true;
+			} else if (sync == "nosync") {
+				rpc_config.sync = false;
+			} else {
+				push_error(R"(Invalid RPC sync mode. Must be one of: 'sync' or 'nosync')", p_annotation);
+				return false;
+			}
+		} else if (i == 2) {
+			String mode = p_annotation->resolved_arguments[i].operator String();
+			if (mode == "reliable") {
+				rpc_config.transfer_mode = MultiplayerPeer::TRANSFER_MODE_RELIABLE;
+			} else if (mode == "unreliable") {
+				rpc_config.transfer_mode = MultiplayerPeer::TRANSFER_MODE_UNRELIABLE;
+			} else if (mode == "ordered") {
+				rpc_config.transfer_mode = MultiplayerPeer::TRANSFER_MODE_UNRELIABLE_ORDERED;
+			} else {
+				push_error(R"(Invalid RPC transfer mode. Must be one of: 'reliable', 'unreliable', 'ordered')", p_annotation);
+				return false;
+			}
+		} else if (i == 3) {
+			rpc_config.channel = p_annotation->resolved_arguments[i].operator int();
 		}
+	}
+	switch (p_node->type) {
 		case Node::FUNCTION: {
 			FunctionNode *function = static_cast<FunctionNode *>(p_node);
-			if (function->rpc_mode != MultiplayerAPI::RPC_MODE_DISABLED) {
+			if (function->rpc_config.rpc_mode != MultiplayerAPI::RPC_MODE_DISABLED) {
 				push_error(R"(RPC annotations can only be used once per function.)", p_annotation);
+				return false;
 			}
-			function->rpc_mode = t_mode;
+			function->rpc_config = rpc_config;
 			break;
 		}
 		default:
 			return false; // Unreachable.
 	}
-
 	return true;
 }
 

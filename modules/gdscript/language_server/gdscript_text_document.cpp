@@ -40,6 +40,7 @@
 
 void GDScriptTextDocument::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("didOpen"), &GDScriptTextDocument::didOpen);
+	ClassDB::bind_method(D_METHOD("didClose"), &GDScriptTextDocument::didClose);
 	ClassDB::bind_method(D_METHOD("didChange"), &GDScriptTextDocument::didChange);
 	ClassDB::bind_method(D_METHOD("nativeSymbol"), &GDScriptTextDocument::nativeSymbol);
 	ClassDB::bind_method(D_METHOD("documentSymbol"), &GDScriptTextDocument::documentSymbol);
@@ -59,6 +60,11 @@ void GDScriptTextDocument::_bind_methods() {
 void GDScriptTextDocument::didOpen(const Variant &p_param) {
 	lsp::TextDocumentItem doc = load_document_item(p_param);
 	sync_script_content(doc.uri, doc.text);
+}
+
+void GDScriptTextDocument::didClose(const Variant &p_param) {
+	// Left empty on purpose. Godot does nothing special on closing a document,
+	// but it satisfies LSP clients that require didClose be implemented.
 }
 
 void GDScriptTextDocument::didChange(const Variant &p_param) {
@@ -367,7 +373,7 @@ Variant GDScriptTextDocument::declaration(const Dictionary &p_params) {
 					id = "class_global:" + symbol->native_class + ":" + symbol->name;
 					break;
 			}
-			call_deferred("show_native_symbol_in_editor", id);
+			call_deferred(SNAME("show_native_symbol_in_editor"), id);
 		} else {
 			notify_client_show_symbol(symbol);
 		}
@@ -404,7 +410,7 @@ void GDScriptTextDocument::sync_script_content(const String &p_path, const Strin
 }
 
 void GDScriptTextDocument::show_native_symbol_in_editor(const String &p_symbol_id) {
-	ScriptEditor::get_singleton()->call_deferred("_help_class_goto", p_symbol_id);
+	ScriptEditor::get_singleton()->call_deferred(SNAME("_help_class_goto"), p_symbol_id);
 
 	DisplayServer::get_singleton()->window_move_to_foreground();
 }

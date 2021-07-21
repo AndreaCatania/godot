@@ -126,21 +126,21 @@
 			</description>
 		</method>
 		<method name="operator *" qualifiers="operator">
-			<return type="float">
-			</return>
-			<argument index="0" name="right" type="float">
-			</argument>
-			<description>
-				Multiplies an [int] and a [float]. The result is a [float].
-			</description>
-		</method>
-		<method name="operator *" qualifiers="operator">
 			<return type="int">
 			</return>
 			<argument index="0" name="right" type="int">
 			</argument>
 			<description>
 				Multiplies two [int]s.
+			</description>
+		</method>
+		<method name="operator *" qualifiers="operator">
+			<return type="float">
+			</return>
+			<argument index="0" name="right" type="float">
+			</argument>
+			<description>
+				Multiplies an [int] and a [float]. The result is a [float].
 			</description>
 		</method>
 		<method name="operator *" qualifiers="operator">
@@ -183,9 +183,9 @@
 			</description>
 		</method>
 		<method name="operator *" qualifiers="operator">
-			<return type="Quat">
+			<return type="Quaternion">
 			</return>
-			<argument index="0" name="right" type="Quat">
+			<argument index="0" name="right" type="Quaternion">
 			</argument>
 			<description>
 				Multiplies each component of the quaternion by the given integer.
@@ -200,16 +200,6 @@
 				Multiplies each component of the color by the given integer.
 				[codeblock]
 				print(2 * Color(0.5, 0.5, 0.5)) # Color(1, 1, 1)
-				[/codeblock]
-			</description>
-		</method>
-		<method name="operator +" qualifiers="operator">
-			<return type="int">
-			</return>
-			<description>
-				Unary plus operator. Doesn't have any effect.
-				[codeblock]
-				var a = +1 # a is 1.
 				[/codeblock]
 			</description>
 		</method>
@@ -229,17 +219,6 @@
 			</argument>
 			<description>
 				Adds two integers.
-			</description>
-		</method>
-		<method name="operator -" qualifiers="operator">
-			<return type="int">
-			</return>
-			<description>
-				Unary minus operator. Negates the number.
-				[codeblock]
-				var a = -1 # a is -1.
-				print(-a) # 1
-				[/codeblock]
 			</description>
 		</method>
 		<method name="operator -" qualifiers="operator">
@@ -412,6 +391,18 @@
 				print(5 ^ 1) # 4
 				print(4 ^ 7) # 3
 				[/codeblock]
+			</description>
+		</method>
+		<method name="operator unary+" qualifiers="operator">
+			<return type="int">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="operator unary-" qualifiers="operator">
+			<return type="int">
+			</return>
+			<description>
 			</description>
 		</method>
 		<method name="operator |" qualifiers="operator">

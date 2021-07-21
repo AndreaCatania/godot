@@ -37,8 +37,8 @@
 
 #include "core/config/project_settings.h"
 #include "core/core_string_names.h"
+#include "core/io/dir_access.h"
 #include "core/io/file_access_pack.h"
-#include "core/os/dir_access.h"
 #include "core/os/os.h"
 #include "core/string/string_builder.h"
 #include "scene/resources/packed_scene.h"
@@ -75,14 +75,14 @@ void init_autoloads() {
 		Node *n = nullptr;
 		if (res->is_class("PackedScene")) {
 			Ref<PackedScene> ps = res;
-			n = ps->instance();
+			n = ps->instantiate();
 		} else if (res->is_class("Script")) {
 			Ref<Script> script_res = res;
 			StringName ibt = script_res->get_instance_base_type();
 			bool valid_type = ClassDB::is_parent_class(ibt, "Node");
 			ERR_CONTINUE_MSG(!valid_type, "Script does not inherit a Node: " + info.path);
 
-			Object *obj = ClassDB::instance(ibt);
+			Object *obj = ClassDB::instantiate(ibt);
 
 			ERR_CONTINUE_MSG(obj == nullptr,
 					"Cannot instance script for autoload, expected 'Node' inheritance, got: " +
@@ -257,6 +257,7 @@ bool GDScriptTestRunner::make_tests() {
 
 	ERR_FAIL_COND_V_MSG(err != OK, false, "Could not open specified test directory.");
 
+	source_dir = dir->get_current_dir() + "/"; // Make it absolute path.
 	return make_tests_for_dir(dir->get_current_dir());
 }
 
@@ -361,11 +362,9 @@ void GDScriptTest::error_handler(void *p_this, const char *p_function, const cha
 			break;
 	}
 
-	builder.append("\n>> ");
+	builder.append("\n>> on function: ");
 	builder.append(p_function);
-	builder.append("\n>> ");
-	builder.append(p_function);
-	builder.append("\n>> ");
+	builder.append("()\n>> ");
 	builder.append(String(p_file).trim_prefix(self->base_dir));
 	builder.append("\n>> ");
 	builder.append(itos(p_line));
@@ -421,7 +420,7 @@ GDScriptTest::TestResult GDScriptTest::execute_test_code(bool p_is_generating) {
 
 	// Create script.
 	Ref<GDScript> script;
-	script.instance();
+	script.instantiate();
 	script->set_path(source_file);
 	script->set_script_path(source_file);
 	err = script->load_source_code(source_file);
@@ -511,10 +510,10 @@ GDScriptTest::TestResult GDScriptTest::execute_test_code(bool p_is_generating) {
 	script->reload();
 
 	// Create object instance for test.
-	Object *obj = ClassDB::instance(script->get_native()->get_name());
-	Ref<Reference> obj_ref;
-	if (obj->is_reference()) {
-		obj_ref = Ref<Reference>(Object::cast_to<Reference>(obj));
+	Object *obj = ClassDB::instantiate(script->get_native()->get_name());
+	Ref<RefCounted> obj_ref;
+	if (obj->is_ref_counted()) {
+		obj_ref = Ref<RefCounted>(Object::cast_to<RefCounted>(obj));
 	}
 	obj->set_script(script);
 	GDScriptInstance *instance = static_cast<GDScriptInstance *>(obj->get_script_instance());

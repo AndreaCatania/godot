@@ -4,7 +4,7 @@
 		Direct access object to a physics body in the [PhysicsServer3D].
 	</brief_description>
 	<description>
-		Provides direct access to a physics body in the [PhysicsServer3D], allowing safe changes to physics properties. This object is passed via the direct state callback of rigid/character bodies, and is intended for changing the direct state of that body. See [method RigidBody3D._integrate_forces].
+		Provides direct access to a physics body in the [PhysicsServer3D], allowing safe changes to physics properties. This object is passed via the direct state callback of dynamic bodies, and is intended for changing the direct state of that body. See [method RigidBody3D._integrate_forces].
 	</description>
 	<tutorials>
 	</tutorials>
@@ -12,7 +12,7 @@
 		<method name="add_central_force">
 			<return type="void">
 			</return>
-			<argument index="0" name="force" type="Vector3" default="Vector3( 0, 0, 0 )">
+			<argument index="0" name="force" type="Vector3" default="Vector3(0, 0, 0)">
 			</argument>
 			<description>
 				Adds a constant directional force without affecting rotation.
@@ -24,7 +24,7 @@
 			</return>
 			<argument index="0" name="force" type="Vector3">
 			</argument>
-			<argument index="1" name="position" type="Vector3" default="Vector3( 0, 0, 0 )">
+			<argument index="1" name="position" type="Vector3" default="Vector3(0, 0, 0)">
 			</argument>
 			<description>
 				Adds a positioned force to the body. Both the force and the offset from the body origin are in global coordinates.
@@ -42,7 +42,7 @@
 		<method name="apply_central_impulse">
 			<return type="void">
 			</return>
-			<argument index="0" name="impulse" type="Vector3" default="Vector3( 0, 0, 0 )">
+			<argument index="0" name="impulse" type="Vector3" default="Vector3(0, 0, 0)">
 			</argument>
 			<description>
 				Applies a single directional impulse without affecting rotation.
@@ -54,7 +54,7 @@
 			</return>
 			<argument index="0" name="impulse" type="Vector3">
 			</argument>
-			<argument index="1" name="position" type="Vector3" default="Vector3( 0, 0, 0 )">
+			<argument index="1" name="position" type="Vector3" default="Vector3(0, 0, 0)">
 			</argument>
 			<description>
 				Applies a positioned impulse to the body. An impulse is time-independent! Applying an impulse every frame would result in a framerate-dependent force. For this reason it should only be used when simulating one-time impacts. The position uses the rotation of the global coordinate system, but is centered at the object's origin.
@@ -214,7 +214,7 @@
 		<member name="total_linear_damp" type="float" setter="" getter="get_total_linear_damp">
 			The rate at which the body stops moving, if there are not any other forces moving it.
 		</member>
-		<member name="transform" type="Transform" setter="set_transform" getter="get_transform">
+		<member name="transform" type="Transform3D" setter="set_transform" getter="get_transform">
 			The body's transformation matrix.
 		</member>
 	</members>

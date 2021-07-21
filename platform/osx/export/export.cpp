@@ -31,11 +31,11 @@
 #include "export.h"
 
 #include "core/config/project_settings.h"
+#include "core/io/dir_access.h"
+#include "core/io/file_access.h"
 #include "core/io/marshalls.h"
 #include "core/io/resource_saver.h"
 #include "core/io/zip_io.h"
-#include "core/os/dir_access.h"
-#include "core/os/file_access.h"
 #include "core/os/os.h"
 #include "core/version.h"
 #include "editor/editor_export.h"
@@ -147,6 +147,7 @@ void EditorExportPlatformOSX::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/icon", PROPERTY_HINT_FILE, "*.png,*.icns"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/bundle_identifier", PROPERTY_HINT_PLACEHOLDER_TEXT, "com.example.game"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/signature"), ""));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/app_category", PROPERTY_HINT_ENUM, "Business,Developer-tools,Education,Entertainment,Finance,Games,Action-games,Adventure-games,Arcade-games,Board-games,Card-games,Casino-games,Dice-games,Educational-games,Family-games,Kids-games,Music-games,Puzzle-games,Racing-games,Role-playing-games,Simulation-games,Sports-games,Strategy-games,Trivia-games,Word-games,Graphics-design,Healthcare-fitness,Lifestyle,Medical,Music,News,Photography,Productivity,Reference,Social-networking,Sports,Travel,Utilities,Video,Weather"), "Games"));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/short_version"), "1.0"));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/version"), "1.0"));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/copyright"), ""));
@@ -162,9 +163,13 @@ void EditorExportPlatformOSX::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/replace_existing_signature"), true));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "codesign/entitlements/custom_file", PROPERTY_HINT_GLOBAL_FILE, "*.plist"), ""));
 
-	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/allow_jit_code_execution"), false));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/allow_unsigned_executable_memory"), false));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/allow_dyld_environment_variables"), false));
+	if (!Engine::get_singleton()->has_singleton("GodotSharp")) {
+		// These entitlements are required to run managed code, and are always enabled in Mono builds.
+		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/allow_jit_code_execution"), false));
+		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/allow_unsigned_executable_memory"), false));
+		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/allow_dyld_environment_variables"), false));
+	}
+
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/disable_library_validation"), false));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/audio_input"), false));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "codesign/entitlements/camera"), false));
@@ -301,7 +306,7 @@ void EditorExportPlatformOSX::_make_icon(const Ref<Image> &p_icon, Vector<uint8_
 		if (icon_infos[i].is_png) {
 			// Encode PNG icon.
 			it->create_from_image(copy);
-			String path = EditorSettings::get_singleton()->get_cache_dir().plus_file("icon.png");
+			String path = EditorPaths::get_singleton()->get_cache_dir().plus_file("icon.png");
 			ResourceSaver::save(path, it);
 
 			FileAccess *f = FileAccess::open(path, FileAccess::READ);
@@ -312,7 +317,7 @@ void EditorExportPlatformOSX::_make_icon(const Ref<Image> &p_icon, Vector<uint8_
 			}
 
 			int ofs = data.size();
-			uint64_t len = f->get_len();
+			uint64_t len = f->get_length();
 			data.resize(data.size() + len + 8);
 			f->get_buffer(&data.write[ofs + 8], len);
 			memdelete(f);
@@ -386,6 +391,9 @@ void EditorExportPlatformOSX::_fix_plist(const Ref<EditorExportPreset> &p_preset
 			strnew += lines[i].replace("$version", p_preset->get("application/version")) + "\n";
 		} else if (lines[i].find("$signature") != -1) {
 			strnew += lines[i].replace("$signature", p_preset->get("application/signature")) + "\n";
+		} else if (lines[i].find("$app_category") != -1) {
+			String cat = p_preset->get("application/app_category");
+			strnew += lines[i].replace("$app_category", cat.to_lower()) + "\n";
 		} else if (lines[i].find("$copyright") != -1) {
 			strnew += lines[i].replace("$copyright", p_preset->get("application/copyright")) + "\n";
 		} else if (lines[i].find("$highres") != -1) {
@@ -610,7 +618,7 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 
 	// Create our application bundle.
 	String tmp_app_dir_name = pkg_name + ".app";
-	String tmp_app_path_name = EditorSettings::get_singleton()->get_cache_dir().plus_file(tmp_app_dir_name);
+	String tmp_app_path_name = EditorPaths::get_singleton()->get_cache_dir().plus_file(tmp_app_dir_name);
 	print_line("Exporting to " + tmp_app_path_name);
 
 	Error err = OK;
@@ -689,14 +697,14 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 				if (iconpath.get_extension() == "icns") {
 					FileAccess *icon = FileAccess::open(iconpath, FileAccess::READ);
 					if (icon) {
-						data.resize(icon->get_len());
-						icon->get_buffer(&data.write[0], icon->get_len());
+						data.resize(icon->get_length());
+						icon->get_buffer(&data.write[0], icon->get_length());
 						icon->close();
 						memdelete(icon);
 					}
 				} else {
 					Ref<Image> icon;
-					icon.instance();
+					icon.instantiate();
 					icon->load(iconpath);
 					if (!icon->is_empty()) {
 						_make_icon(icon, data);
@@ -774,7 +782,7 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 
 		String ent_path = p_preset->get("codesign/entitlements/custom_file");
 		if (sign_enabled && (ent_path == "")) {
-			ent_path = EditorSettings::get_singleton()->get_cache_dir().plus_file(pkg_name + ".entitlements");
+			ent_path = EditorPaths::get_singleton()->get_cache_dir().plus_file(pkg_name + ".entitlements");
 
 			FileAccess *ent_f = FileAccess::open(ent_path, FileAccess::WRITE);
 			if (ent_f) {
@@ -782,18 +790,29 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 				ent_f->store_line("<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">");
 				ent_f->store_line("<plist version=\"1.0\">");
 				ent_f->store_line("<dict>");
-				if ((bool)p_preset->get("codesign/entitlements/allow_jit_code_execution")) {
+				if (Engine::get_singleton()->has_singleton("GodotSharp")) {
+					// These entitlements are required to run managed code, and are always enabled in Mono builds.
 					ent_f->store_line("<key>com.apple.security.cs.allow-jit</key>");
 					ent_f->store_line("<true/>");
-				}
-				if ((bool)p_preset->get("codesign/entitlements/allow_unsigned_executable_memory")) {
 					ent_f->store_line("<key>com.apple.security.cs.allow-unsigned-executable-memory</key>");
 					ent_f->store_line("<true/>");
-				}
-				if ((bool)p_preset->get("codesign/entitlements/allow_dyld_environment_variables")) {
 					ent_f->store_line("<key>com.apple.security.cs.allow-dyld-environment-variables</key>");
 					ent_f->store_line("<true/>");
+				} else {
+					if ((bool)p_preset->get("codesign/entitlements/allow_jit_code_execution")) {
+						ent_f->store_line("<key>com.apple.security.cs.allow-jit</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((bool)p_preset->get("codesign/entitlements/allow_unsigned_executable_memory")) {
+						ent_f->store_line("<key>com.apple.security.cs.allow-unsigned-executable-memory</key>");
+						ent_f->store_line("<true/>");
+					}
+					if ((bool)p_preset->get("codesign/entitlements/allow_dyld_environment_variables")) {
+						ent_f->store_line("<key>com.apple.security.cs.allow-dyld-environment-variables</key>");
+						ent_f->store_line("<true/>");
+					}
 				}
+
 				if ((bool)p_preset->get("codesign/entitlements/disable_library_validation")) {
 					ent_f->store_line("<key>com.apple.security.cs.disable-library-validation</key>");
 					ent_f->store_line("<true/>");
@@ -894,9 +913,22 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 		if (err == OK) {
 			DirAccess *da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 			for (int i = 0; i < shared_objects.size(); i++) {
-				err = da->copy(shared_objects[i].path, tmp_app_path_name + "/Contents/Frameworks/" + shared_objects[i].path.get_file());
+				String src_path = ProjectSettings::get_singleton()->globalize_path(shared_objects[i].path);
+				if (da->dir_exists(src_path)) {
+#ifndef UNIX_ENABLED
+					WARN_PRINT("Relative symlinks are not supported, exported " + src_path.get_file() + " might be broken!");
+#endif
+					print_verbose("export framework: " + src_path + " -> " + tmp_app_path_name + "/Contents/Frameworks/" + src_path.get_file());
+					err = da->make_dir_recursive(tmp_app_path_name + "/Contents/Frameworks/" + src_path.get_file());
+					if (err == OK) {
+						err = da->copy_dir(src_path, tmp_app_path_name + "/Contents/Frameworks/" + src_path.get_file(), -1, true);
+					}
+				} else {
+					print_verbose("export dylib: " + src_path + " -> " + tmp_app_path_name + "/Contents/Frameworks/" + src_path.get_file());
+					err = da->copy(src_path, tmp_app_path_name + "/Contents/Frameworks/" + src_path.get_file());
+				}
 				if (err == OK && sign_enabled) {
-					err = _code_sign(p_preset, tmp_app_path_name + "/Contents/Frameworks/" + shared_objects[i].path.get_file(), ent_path);
+					err = _code_sign(p_preset, tmp_app_path_name + "/Contents/Frameworks/" + src_path.get_file(), ent_path);
 				}
 			}
 			memdelete(da);
@@ -946,7 +978,7 @@ Error EditorExportPlatformOSX::export_project(const Ref<EditorExportPreset> &p_p
 				zlib_filefunc_def io_dst = zipio_create_io_from_file(&dst_f);
 				zipFile zip = zipOpen2(p_path.utf8().get_data(), APPEND_STATUS_CREATE, nullptr, &io_dst);
 
-				_zip_folder_recursive(zip, EditorSettings::get_singleton()->get_cache_dir(), pkg_name + ".app", pkg_name);
+				_zip_folder_recursive(zip, EditorPaths::get_singleton()->get_cache_dir(), pkg_name + ".app", pkg_name);
 
 				zipClose(zip, nullptr);
 			}
@@ -980,7 +1012,48 @@ void EditorExportPlatformOSX::_zip_folder_recursive(zipFile &p_zip, const String
 		if (f == "." || f == "..") {
 			continue;
 		}
-		if (da->current_is_dir()) {
+		if (da->is_link(f)) {
+			OS::Time time = OS::get_singleton()->get_time();
+			OS::Date date = OS::get_singleton()->get_date();
+
+			zip_fileinfo zipfi;
+			zipfi.tmz_date.tm_hour = time.hour;
+			zipfi.tmz_date.tm_mday = date.day;
+			zipfi.tmz_date.tm_min = time.minute;
+			zipfi.tmz_date.tm_mon = date.month - 1; // Note: "tm" month range - 0..11, Godot month range - 1..12, http://www.cplusplus.com/reference/ctime/tm/
+			zipfi.tmz_date.tm_sec = time.second;
+			zipfi.tmz_date.tm_year = date.year;
+			zipfi.dosDate = 0;
+			// 0120000: symbolic link type
+			// 0000755: permissions rwxr-xr-x
+			// 0000644: permissions rw-r--r--
+			uint32_t _mode = 0120644;
+			zipfi.external_fa = (_mode << 16L) | !(_mode & 0200);
+			zipfi.internal_fa = 0;
+
+			zipOpenNewFileInZip4(p_zip,
+					p_folder.plus_file(f).utf8().get_data(),
+					&zipfi,
+					nullptr,
+					0,
+					nullptr,
+					0,
+					nullptr,
+					Z_DEFLATED,
+					Z_DEFAULT_COMPRESSION,
+					0,
+					-MAX_WBITS,
+					DEF_MEM_LEVEL,
+					Z_DEFAULT_STRATEGY,
+					nullptr,
+					0,
+					0x0314, // "version made by", 0x03 - Unix, 0x14 - ZIP specification version 2.0, required to store Unix file permissions
+					0);
+
+			String target = da->read_link(f);
+			zipWriteInFileInZip(p_zip, target.utf8().get_data(), target.utf8().size());
+			zipCloseFileInZip(p_zip);
+		} else if (da->current_is_dir()) {
 			_zip_folder_recursive(p_zip, p_root_path, p_folder.plus_file(f), p_pkg_name);
 		} else {
 			bool is_executable = (p_folder.ends_with("MacOS") && (f == p_pkg_name));
@@ -991,9 +1064,9 @@ void EditorExportPlatformOSX::_zip_folder_recursive(zipFile &p_zip, const String
 			zip_fileinfo zipfi;
 			zipfi.tmz_date.tm_hour = time.hour;
 			zipfi.tmz_date.tm_mday = date.day;
-			zipfi.tmz_date.tm_min = time.min;
+			zipfi.tmz_date.tm_min = time.minute;
 			zipfi.tmz_date.tm_mon = date.month - 1; // Note: "tm" month range - 0..11, Godot month range - 1..12, http://www.cplusplus.com/reference/ctime/tm/
-			zipfi.tmz_date.tm_sec = time.sec;
+			zipfi.tmz_date.tm_sec = time.second;
 			zipfi.tmz_date.tm_year = date.year;
 			zipfi.dosDate = 0;
 			// 0100000: regular file type
@@ -1093,7 +1166,7 @@ bool EditorExportPlatformOSX::can_export(const Ref<EditorExportPreset> &p_preset
 
 EditorExportPlatformOSX::EditorExportPlatformOSX() {
 	Ref<Image> img = memnew(Image(_osx_logo));
-	logo.instance();
+	logo.instantiate();
 	logo->create_from_image(img);
 }
 
@@ -1102,7 +1175,7 @@ EditorExportPlatformOSX::~EditorExportPlatformOSX() {
 
 void register_osx_exporter() {
 	Ref<EditorExportPlatformOSX> platform;
-	platform.instance();
+	platform.instantiate();
 
 	EditorExport::get_singleton()->add_export_platform(platform);
 }

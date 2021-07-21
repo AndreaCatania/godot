@@ -390,6 +390,15 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_constant("shadow_outline_size", "Label", 1 * scale);
 	theme->set_constant("line_spacing", "Label", 3 * scale);
 
+	theme->set_type_variation("HeaderSmall", "Label");
+	theme->set_font_size("font_size", "HeaderSmall", default_font_size + 4);
+
+	theme->set_type_variation("HeaderMedium", "Label");
+	theme->set_font_size("font_size", "HeaderMedium", default_font_size + 8);
+
+	theme->set_type_variation("HeaderLarge", "Label");
+	theme->set_font_size("font_size", "HeaderLarge", default_font_size + 12);
+
 	// LineEdit
 
 	theme->set_stylebox("normal", "LineEdit", make_stylebox(line_edit_png, 5, 5, 5, 5));
@@ -432,7 +441,6 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_stylebox("normal", "TextEdit", make_stylebox(tree_bg_png, 3, 3, 3, 3, 0, 0, 0, 0));
 	theme->set_stylebox("focus", "TextEdit", focus);
 	theme->set_stylebox("read_only", "TextEdit", make_stylebox(tree_bg_disabled_png, 4, 4, 4, 4, 0, 0, 0, 0));
-	theme->set_stylebox("completion", "TextEdit", make_stylebox(tree_bg_png, 3, 3, 3, 3, 0, 0, 0, 0));
 
 	theme->set_icon("tab", "TextEdit", make_icon(tab_png));
 	theme->set_icon("space", "TextEdit", make_icon(space_png));
@@ -441,27 +449,17 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_font_size("font_size", "TextEdit", -1);
 
 	theme->set_color("background_color", "TextEdit", Color(0, 0, 0, 0));
-	theme->set_color("completion_background_color", "TextEdit", Color(0.17, 0.16, 0.2));
-	theme->set_color("completion_selected_color", "TextEdit", Color(0.26, 0.26, 0.27));
-	theme->set_color("completion_existing_color", "TextEdit", Color(0.87, 0.87, 0.87, 0.13));
-	theme->set_color("completion_scroll_color", "TextEdit", control_font_pressed_color);
-	theme->set_color("completion_font_color", "TextEdit", Color(0.67, 0.67, 0.67));
 	theme->set_color("font_color", "TextEdit", control_font_color);
 	theme->set_color("font_selected_color", "TextEdit", Color(0, 0, 0));
 	theme->set_color("font_readonly_color", "TextEdit", Color(control_font_color.r, control_font_color.g, control_font_color.b, 0.5f));
 	theme->set_color("font_outline_color", "TextEdit", Color(1, 1, 1));
 	theme->set_color("selection_color", "TextEdit", control_selection_color);
-	theme->set_color("mark_color", "TextEdit", Color(1.0, 0.4, 0.4, 0.4));
-	theme->set_color("code_folding_color", "TextEdit", Color(0.8, 0.8, 0.8, 0.8));
 	theme->set_color("current_line_color", "TextEdit", Color(0.25, 0.25, 0.26, 0.8));
 	theme->set_color("caret_color", "TextEdit", control_font_color);
 	theme->set_color("caret_background_color", "TextEdit", Color(0, 0, 0));
 	theme->set_color("brace_mismatch_color", "TextEdit", Color(1, 0.2, 0.2));
 	theme->set_color("word_highlighted_color", "TextEdit", Color(0.8, 0.9, 0.9, 0.15));
 
-	theme->set_constant("completion_lines", "TextEdit", 7);
-	theme->set_constant("completion_max_width", "TextEdit", 50);
-	theme->set_constant("completion_scroll_width", "TextEdit", 3);
 	theme->set_constant("line_spacing", "TextEdit", 4 * scale);
 	theme->set_constant("outline_size", "TextEdit", 0);
 
@@ -479,6 +477,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_icon("executing_line", "CodeEdit", make_icon(arrow_right_png));
 	theme->set_icon("can_fold", "CodeEdit", make_icon(arrow_down_png));
 	theme->set_icon("folded", "CodeEdit", make_icon(arrow_right_png));
+	theme->set_icon("folded_eol_icon", "CodeEdit", make_icon(ellipsis_png));
 
 	theme->set_font("font", "CodeEdit", Ref<Font>());
 	theme->set_font_size("font_size", "CodeEdit", -1);
@@ -494,12 +493,11 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("font_readonly_color", "CodeEdit", Color(control_font_color.r, control_font_color.g, control_font_color.b, 0.5f));
 	theme->set_color("font_outline_color", "CodeEdit", Color(1, 1, 1));
 	theme->set_color("selection_color", "CodeEdit", control_selection_color);
-	theme->set_color("mark_color", "CodeEdit", Color(1.0, 0.4, 0.4, 0.4));
 	theme->set_color("bookmark_color", "CodeEdit", Color(0.5, 0.64, 1, 0.8));
 	theme->set_color("breakpoint_color", "CodeEdit", Color(0.9, 0.29, 0.3));
 	theme->set_color("executing_line_color", "CodeEdit", Color(0.98, 0.89, 0.27));
-	theme->set_color("code_folding_color", "CodeEdit", Color(0.8, 0.8, 0.8, 0.8));
 	theme->set_color("current_line_color", "CodeEdit", Color(0.25, 0.25, 0.26, 0.8));
+	theme->set_color("code_folding_color", "CodeEdit", Color(0.8, 0.8, 0.8, 0.8));
 	theme->set_color("caret_color", "CodeEdit", control_font_color);
 	theme->set_color("caret_background_color", "CodeEdit", Color(0, 0, 0));
 	theme->set_color("brace_mismatch_color", "CodeEdit", Color(1, 0.2, 0.2));
@@ -570,7 +568,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	// ScrollContainer
 
 	Ref<StyleBoxEmpty> empty;
-	empty.instance();
+	empty.instantiate();
 	theme->set_stylebox("bg", "ScrollContainer", empty);
 
 	// WindowDialog
@@ -721,6 +719,8 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("guide_color", "Tree", Color(0, 0, 0, 0.1));
 	theme->set_color("drop_position_color", "Tree", Color(1, 0.3, 0.2));
 	theme->set_color("relationship_line_color", "Tree", Color(0.27, 0.27, 0.27));
+	theme->set_color("parent_hl_line_color", "Tree", Color(0.27, 0.27, 0.27));
+	theme->set_color("children_hl_line_color", "Tree", Color(0.27, 0.27, 0.27));
 	theme->set_color("custom_button_font_highlight", "Tree", control_font_hover_color);
 
 	theme->set_constant("hseparation", "Tree", 4 * scale);
@@ -728,6 +728,10 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_constant("item_margin", "Tree", 12 * scale);
 	theme->set_constant("button_margin", "Tree", 4 * scale);
 	theme->set_constant("draw_relationship_lines", "Tree", 0);
+	theme->set_constant("relationship_line_width", "Tree", 1);
+	theme->set_constant("parent_hl_line_width", "Tree", 1);
+	theme->set_constant("children_hl_line_width", "Tree", 1);
+	theme->set_constant("parent_hl_line_margin", "Tree", 0);
 	theme->set_constant("draw_guides", "Tree", 1);
 	theme->set_constant("scroll_border", "Tree", 4);
 	theme->set_constant("scroll_speed", "Tree", 12);
@@ -984,12 +988,12 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 
 void make_default_theme(bool p_hidpi, Ref<Font> p_font) {
 	Ref<Theme> t;
-	t.instance();
+	t.instantiate();
 
 	Ref<StyleBox> default_style;
 	Ref<Texture2D> default_icon;
 	Ref<Font> default_font;
-	int default_font_size = 16;
+
 	if (p_font.is_valid()) {
 		// Use the custom font defined in the Project Settings.
 		default_font = p_font;
@@ -998,10 +1002,10 @@ void make_default_theme(bool p_hidpi, Ref<Font> p_font) {
 		// The default DynamicFont is chosen to have a small file size since it's
 		// embedded in both editor and export template binaries.
 		Ref<Font> dynamic_font;
-		dynamic_font.instance();
+		dynamic_font.instantiate();
 
 		Ref<FontData> dynamic_font_data;
-		dynamic_font_data.instance();
+		dynamic_font_data.instantiate();
 		dynamic_font_data->load_memory(_font_OpenSans_SemiBold, _font_OpenSans_SemiBold_size, "ttf", default_font_size);
 		dynamic_font->add_data(dynamic_font_data);
 

@@ -140,6 +140,8 @@
 			</return>
 			<argument index="0" name="shader" type="RID">
 			</argument>
+			<argument index="1" name="specialization_constants" type="RDPipelineSpecializationConstant[]" default="[]">
+			</argument>
 			<description>
 			</description>
 		</method>
@@ -196,15 +198,15 @@
 			</argument>
 			<argument index="4" name="final_depth_action" type="int" enum="RenderingDevice.FinalAction">
 			</argument>
-			<argument index="5" name="clear_color_values" type="PackedColorArray" default="PackedColorArray(  )">
+			<argument index="5" name="clear_color_values" type="PackedColorArray" default="PackedColorArray()">
 			</argument>
 			<argument index="6" name="clear_depth" type="float" default="1.0">
 			</argument>
 			<argument index="7" name="clear_stencil" type="int" default="0">
 			</argument>
-			<argument index="8" name="region" type="Rect2" default="Rect2i( 0, 0, 0, 0 )">
+			<argument index="8" name="region" type="Rect2" default="Rect2i(0, 0, 0, 0)">
 			</argument>
-			<argument index="9" name="storage_textures" type="Array" default="[  ]">
+			<argument index="9" name="storage_textures" type="Array" default="[]">
 			</argument>
 			<description>
 			</description>
@@ -214,7 +216,7 @@
 			</return>
 			<argument index="0" name="screen" type="int" default="0">
 			</argument>
-			<argument index="1" name="clear_color" type="Color" default="Color( 0, 0, 0, 1 )">
+			<argument index="1" name="clear_color" type="Color" default="Color(0, 0, 0, 1)">
 			</argument>
 			<description>
 			</description>
@@ -234,15 +236,15 @@
 			</argument>
 			<argument index="5" name="final_depth_action" type="int" enum="RenderingDevice.FinalAction">
 			</argument>
-			<argument index="6" name="clear_color_values" type="PackedColorArray" default="PackedColorArray(  )">
+			<argument index="6" name="clear_color_values" type="PackedColorArray" default="PackedColorArray()">
 			</argument>
 			<argument index="7" name="clear_depth" type="float" default="1.0">
 			</argument>
 			<argument index="8" name="clear_stencil" type="int" default="0">
 			</argument>
-			<argument index="9" name="region" type="Rect2" default="Rect2i( 0, 0, 0, 0 )">
+			<argument index="9" name="region" type="Rect2" default="Rect2i(0, 0, 0, 0)">
 			</argument>
-			<argument index="10" name="storage_textures" type="RID[]" default="[  ]">
+			<argument index="10" name="storage_textures" type="RID[]" default="[]">
 			</argument>
 			<description>
 			</description>
@@ -316,7 +318,7 @@
 			</return>
 			<argument index="0" name="draw_list" type="int">
 			</argument>
-			<argument index="1" name="rect" type="Rect2" default="Rect2i( 0, 0, 0, 0 )">
+			<argument index="1" name="rect" type="Rect2" default="Rect2i(0, 0, 0, 0)">
 			</argument>
 			<description>
 			</description>
@@ -341,12 +343,28 @@
 			<description>
 			</description>
 		</method>
+		<method name="draw_list_switch_to_next_pass">
+			<return type="int">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="draw_list_switch_to_next_pass_split">
+			<return type="PackedInt64Array">
+			</return>
+			<argument index="0" name="splits" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="framebuffer_create">
 			<return type="RID">
 			</return>
-			<argument index="0" name="textures" type="Array">
+			<argument index="0" name="textures" type="RID[]">
 			</argument>
 			<argument index="1" name="validate_with_format" type="int" default="-1">
+			</argument>
+			<argument index="2" name="view_count" type="int" default="1">
 			</argument>
 			<description>
 			</description>
@@ -363,10 +381,26 @@
 			<description>
 			</description>
 		</method>
+		<method name="framebuffer_create_multipass">
+			<return type="RID">
+			</return>
+			<argument index="0" name="textures" type="RID[]">
+			</argument>
+			<argument index="1" name="passes" type="RDFramebufferPass[]">
+			</argument>
+			<argument index="2" name="validate_with_format" type="int" default="-1">
+			</argument>
+			<argument index="3" name="view_count" type="int" default="1">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="framebuffer_format_create">
 			<return type="int">
 			</return>
 			<argument index="0" name="attachments" type="RDAttachmentFormat[]">
+			</argument>
+			<argument index="1" name="view_count" type="int" default="1">
 			</argument>
 			<description>
 			</description>
@@ -379,10 +413,24 @@
 			<description>
 			</description>
 		</method>
+		<method name="framebuffer_format_create_multipass">
+			<return type="int">
+			</return>
+			<argument index="0" name="attachments" type="RDAttachmentFormat[]">
+			</argument>
+			<argument index="1" name="passes" type="RDFramebufferPass[]">
+			</argument>
+			<argument index="2" name="view_count" type="int" default="1">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="framebuffer_format_get_texture_samples">
 			<return type="int" enum="RenderingDevice.TextureSamples">
 			</return>
 			<argument index="0" name="format" type="int">
+			</argument>
+			<argument index="1" name="render_pass" type="int" default="0">
 			</argument>
 			<description>
 			</description>
@@ -469,6 +517,14 @@
 			<description>
 			</description>
 		</method>
+		<method name="get_memory_usage" qualifiers="const">
+			<return type="int">
+			</return>
+			<argument index="0" name="arg0" type="int" enum="RenderingDevice.MemoryType">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="index_array_create">
 			<return type="RID">
 			</return>
@@ -488,7 +544,7 @@
 			</argument>
 			<argument index="1" name="format" type="int" enum="RenderingDevice.IndexBufferFormat">
 			</argument>
-			<argument index="2" name="data" type="PackedByteArray" default="PackedByteArray(  )">
+			<argument index="2" name="data" type="PackedByteArray" default="PackedByteArray()">
 			</argument>
 			<argument index="3" name="use_restart_indices" type="bool" default="false">
 			</argument>
@@ -523,6 +579,10 @@
 			<argument index="7" name="color_blend_state" type="RDPipelineColorBlendState">
 			</argument>
 			<argument index="8" name="dynamic_state_flags" type="int" default="0">
+			</argument>
+			<argument index="9" name="for_render_pass" type="int" default="0">
+			</argument>
+			<argument index="10" name="specialization_constants" type="RDPipelineSpecializationConstant[]" default="[]">
 			</argument>
 			<description>
 			</description>
@@ -606,7 +666,7 @@
 			</return>
 			<argument index="0" name="size_bytes" type="int">
 			</argument>
-			<argument index="1" name="data" type="PackedByteArray" default="PackedByteArray(  )">
+			<argument index="1" name="data" type="PackedByteArray" default="PackedByteArray()">
 			</argument>
 			<argument index="2" name="usage" type="int" default="0">
 			</argument>
@@ -632,7 +692,7 @@
 			</argument>
 			<argument index="1" name="format" type="int" enum="RenderingDevice.DataFormat">
 			</argument>
-			<argument index="2" name="data" type="PackedByteArray" default="PackedByteArray(  )">
+			<argument index="2" name="data" type="PackedByteArray" default="PackedByteArray()">
 			</argument>
 			<description>
 			</description>
@@ -690,7 +750,7 @@
 			</argument>
 			<argument index="1" name="view" type="RDTextureView">
 			</argument>
-			<argument index="2" name="data" type="PackedByteArray[]" default="[  ]">
+			<argument index="2" name="data" type="PackedByteArray[]" default="[]">
 			</argument>
 			<description>
 			</description>
@@ -788,7 +848,7 @@
 			</return>
 			<argument index="0" name="size_bytes" type="int">
 			</argument>
-			<argument index="1" name="data" type="PackedByteArray" default="PackedByteArray(  )">
+			<argument index="1" name="data" type="PackedByteArray" default="PackedByteArray()">
 			</argument>
 			<description>
 			</description>
@@ -818,7 +878,7 @@
 			</return>
 			<argument index="0" name="size_bytes" type="int">
 			</argument>
-			<argument index="1" name="data" type="PackedByteArray" default="PackedByteArray(  )">
+			<argument index="1" name="data" type="PackedByteArray" default="PackedByteArray()">
 			</argument>
 			<argument index="2" name="use_as_storage" type="bool" default="false">
 			</argument>
@@ -1653,6 +1713,12 @@
 		</constant>
 		<constant name="SHADER_LANGUAGE_HLSL" value="1" enum="ShaderLanguage">
 		</constant>
+		<constant name="PIPELINE_SPECIALIZATION_CONSTANT_TYPE_BOOL" value="0" enum="PipelineSpecializationConstantType">
+		</constant>
+		<constant name="PIPELINE_SPECIALIZATION_CONSTANT_TYPE_INT" value="1" enum="PipelineSpecializationConstantType">
+		</constant>
+		<constant name="PIPELINE_SPECIALIZATION_CONSTANT_TYPE_FLOAT" value="2" enum="PipelineSpecializationConstantType">
+		</constant>
 		<constant name="LIMIT_MAX_BOUND_UNIFORM_SETS" value="0" enum="Limit">
 		</constant>
 		<constant name="LIMIT_MAX_FRAMEBUFFER_COLOR_ATTACHMENTS" value="1" enum="Limit">
@@ -1722,6 +1788,12 @@
 		<constant name="LIMIT_MAX_COMPUTE_WORKGROUP_SIZE_Y" value="33" enum="Limit">
 		</constant>
 		<constant name="LIMIT_MAX_COMPUTE_WORKGROUP_SIZE_Z" value="34" enum="Limit">
+		</constant>
+		<constant name="MEMORY_TEXTURES" value="0" enum="MemoryType">
+		</constant>
+		<constant name="MEMORY_BUFFERS" value="1" enum="MemoryType">
+		</constant>
+		<constant name="MEMORY_TOTAL" value="2" enum="MemoryType">
 		</constant>
 		<constant name="INVALID_ID" value="-1">
 		</constant>

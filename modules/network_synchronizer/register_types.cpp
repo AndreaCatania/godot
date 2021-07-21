@@ -41,25 +41,25 @@
 #include "scene_synchronizer.h"
 
 void register_network_synchronizer_types() {
-	NetworkedController::sn_rpc_server_send_inputs = "_rpc_server_send_inputs";
-	NetworkedController::sn_rpc_send_tick_additional_speed = "_rpc_send_tick_additional_speed";
-	NetworkedController::sn_rpc_doll_notify_sync_pause = "_rpc_doll_notify_sync_pause";
-	NetworkedController::sn_rpc_doll_send_epoch_batch = "_rpc_doll_send_epoch_batch";
+	NetworkedController::sn_rpc_server_send_inputs = SNAME("_rpc_server_send_inputs");
+	NetworkedController::sn_rpc_send_tick_additional_speed = SNAME("_rpc_send_tick_additional_speed");
+	NetworkedController::sn_rpc_doll_notify_sync_pause = SNAME("_rpc_doll_notify_sync_pause");
+	NetworkedController::sn_rpc_doll_send_epoch_batch = SNAME("_rpc_doll_send_epoch_batch");
 
-	NetworkedController::sn_controller_process = "controller_process";
-	NetworkedController::sn_count_input_size = "count_input_size";
-	NetworkedController::sn_are_inputs_different = "are_inputs_different";
-	NetworkedController::sn_collect_epoch_data = "collect_epoch_data";
-	NetworkedController::sn_collect_inputs = "collect_inputs";
-	NetworkedController::sn_setup_interpolator = "setup_interpolator";
-	NetworkedController::sn_parse_epoch_data = "parse_epoch_data";
-	NetworkedController::sn_apply_epoch = "apply_epoch";
+	NetworkedController::sn_controller_process = SNAME("_controller_process");
+	NetworkedController::sn_count_input_size = SNAME("_count_input_size");
+	NetworkedController::sn_are_inputs_different = SNAME("_are_inputs_different");
+	NetworkedController::sn_collect_epoch_data = SNAME("_collect_epoch_data");
+	NetworkedController::sn_collect_inputs = SNAME("_collect_inputs");
+	NetworkedController::sn_setup_interpolator = SNAME("_setup_interpolator");
+	NetworkedController::sn_parse_epoch_data = SNAME("_parse_epoch_data");
+	NetworkedController::sn_apply_epoch = SNAME("_apply_epoch");
 
-	ClassDB::register_class<DataBuffer>();
-	ClassDB::register_class<SceneDiff>();
-	ClassDB::register_class<Interpolator>();
-	ClassDB::register_class<NetworkedController>();
-	ClassDB::register_class<SceneSynchronizer>();
+	GDREGISTER_CLASS(DataBuffer);
+	GDREGISTER_CLASS(SceneDiff);
+	GDREGISTER_CLASS(Interpolator);
+	GDREGISTER_CLASS(NetworkedController);
+	GDREGISTER_CLASS(SceneSynchronizer);
 
 	GLOBAL_DEF("NetworkSynchronizer/debug_server_speedup", false);
 	GLOBAL_DEF("NetworkSynchronizer/debug_doll_speedup", false);

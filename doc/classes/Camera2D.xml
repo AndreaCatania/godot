@@ -21,13 +21,6 @@
 				Aligns the camera to the tracked node.
 			</description>
 		</method>
-		<method name="clear_current">
-			<return type="void">
-			</return>
-			<description>
-				Removes any [Camera2D] from the ancestor [Viewport]'s internal currently-assigned camera.
-			</description>
-		</method>
 		<method name="force_update_scroll">
 			<return type="void">
 			</return>
@@ -67,13 +60,6 @@
 				Returns the camera limit for the specified [enum Side]. See also [member limit_bottom], [member limit_top], [member limit_left], and [member limit_right].
 			</description>
 		</method>
-		<method name="make_current">
-			<return type="void">
-			</return>
-			<description>
-				Make this the current 2D camera for the scene (viewport and layer), in case there are many cameras in the scene.
-			</description>
-		</method>
 		<method name="reset_smoothing">
 			<return type="void">
 			</return>
@@ -109,7 +95,7 @@
 		<member name="anchor_mode" type="int" setter="set_anchor_mode" getter="get_anchor_mode" enum="Camera2D.AnchorMode" default="1">
 			The Camera2D's anchor point. See [enum AnchorMode] constants.
 		</member>
-		<member name="current" type="bool" setter="_set_current" getter="is_current" default="false">
+		<member name="current" type="bool" setter="set_current" getter="is_current" default="false">
 			If [code]true[/code], the camera is the active camera for the current scene. Only one camera can be current, so setting a different camera [code]current[/code] will disable this one.
 		</member>
 		<member name="custom_viewport" type="Node" setter="set_custom_viewport" getter="get_custom_viewport">
@@ -161,11 +147,13 @@
 		</member>
 		<member name="limit_smoothed" type="bool" setter="set_limit_smoothing_enabled" getter="is_limit_smoothing_enabled" default="false">
 			If [code]true[/code], the camera smoothly stops when reaches its limits.
+			This has no effect if smoothing is disabled.
+			[b]Note:[/b] To immediately update the camera's position to be within limits without smoothing, even with this setting enabled, invoke [method reset_smoothing].
 		</member>
 		<member name="limit_top" type="int" setter="set_limit" getter="get_limit" default="-10000000">
 			Top scroll limit in pixels. The camera stops moving when reaching this value.
 		</member>
-		<member name="offset" type="Vector2" setter="set_offset" getter="get_offset" default="Vector2( 0, 0 )">
+		<member name="offset" type="Vector2" setter="set_offset" getter="get_offset" default="Vector2(0, 0)">
 			The camera's offset, useful for looking around or camera shake animations.
 		</member>
 		<member name="process_callback" type="int" setter="set_process_callback" getter="get_process_callback" enum="Camera2D.Camera2DProcessCallback" default="1">
@@ -180,7 +168,7 @@
 		<member name="smoothing_speed" type="float" setter="set_follow_smoothing" getter="get_follow_smoothing" default="5.0">
 			Speed in pixels per second of the camera's smoothing effect when [member smoothing_enabled] is [code]true[/code].
 		</member>
-		<member name="zoom" type="Vector2" setter="set_zoom" getter="get_zoom" default="Vector2( 1, 1 )">
+		<member name="zoom" type="Vector2" setter="set_zoom" getter="get_zoom" default="Vector2(1, 1)">
 			The camera's zoom relative to the viewport. Values larger than [code]Vector2(1, 1)[/code] zoom out and smaller values zoom in. For an example, use [code]Vector2(0.5, 0.5)[/code] for a 2× zoom-in, and [code]Vector2(4, 4)[/code] for a 4× zoom-out.
 		</member>
 	</members>

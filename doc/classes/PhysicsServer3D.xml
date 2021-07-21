@@ -16,7 +16,7 @@
 			</argument>
 			<argument index="1" name="shape" type="RID">
 			</argument>
-			<argument index="2" name="transform" type="Transform" default="Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )">
+			<argument index="2" name="transform" type="Transform3D" default="Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)">
 			</argument>
 			<argument index="3" name="disabled" type="bool" default="false">
 			</argument>
@@ -92,7 +92,7 @@
 			</description>
 		</method>
 		<method name="area_get_shape_transform" qualifiers="const">
-			<return type="Transform">
+			<return type="Transform3D">
 			</return>
 			<argument index="0" name="area" type="RID">
 			</argument>
@@ -121,7 +121,7 @@
 			</description>
 		</method>
 		<method name="area_get_transform" qualifiers="const">
-			<return type="Transform">
+			<return type="Transform3D">
 			</return>
 			<argument index="0" name="area" type="RID">
 			</argument>
@@ -258,7 +258,7 @@
 			</argument>
 			<argument index="1" name="shape_idx" type="int">
 			</argument>
-			<argument index="2" name="transform" type="Transform">
+			<argument index="2" name="transform" type="Transform3D">
 			</argument>
 			<description>
 				Sets the transform matrix for an area shape.
@@ -291,7 +291,7 @@
 			</return>
 			<argument index="0" name="area" type="RID">
 			</argument>
-			<argument index="1" name="transform" type="Transform">
+			<argument index="1" name="transform" type="Transform3D">
 			</argument>
 			<description>
 				Sets the transform matrix for an area.
@@ -325,7 +325,7 @@
 			</argument>
 			<argument index="1" name="force" type="Vector3">
 			</argument>
-			<argument index="2" name="position" type="Vector3" default="Vector3( 0, 0, 0 )">
+			<argument index="2" name="position" type="Vector3" default="Vector3(0, 0, 0)">
 			</argument>
 			<description>
 			</description>
@@ -337,7 +337,7 @@
 			</argument>
 			<argument index="1" name="shape" type="RID">
 			</argument>
-			<argument index="2" name="transform" type="Transform" default="Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )">
+			<argument index="2" name="transform" type="Transform3D" default="Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)">
 			</argument>
 			<argument index="3" name="disabled" type="bool" default="false">
 			</argument>
@@ -372,7 +372,7 @@
 			</argument>
 			<argument index="1" name="impulse" type="Vector3">
 			</argument>
-			<argument index="2" name="position" type="Vector3" default="Vector3( 0, 0, 0 )">
+			<argument index="2" name="position" type="Vector3" default="Vector3(0, 0, 0)">
 			</argument>
 			<description>
 				Gives the body a push at a [code]position[/code] in the direction of the [code]impulse[/code].
@@ -443,14 +443,6 @@
 				Returns the [PhysicsDirectBodyState3D] of the body.
 			</description>
 		</method>
-		<method name="body_get_kinematic_safe_margin" qualifiers="const">
-			<return type="float">
-			</return>
-			<argument index="0" name="body" type="RID">
-			</argument>
-			<description>
-			</description>
-		</method>
 		<method name="body_get_max_contacts_reported" qualifiers="const">
 			<return type="int">
 			</return>
@@ -510,7 +502,7 @@
 			</description>
 		</method>
 		<method name="body_get_shape_transform" qualifiers="const">
-			<return type="Transform">
+			<return type="Transform3D">
 			</return>
 			<argument index="0" name="body" type="RID">
 			</argument>
@@ -661,16 +653,6 @@
 				Sets the function used to calculate physics for an object, if that object allows it (see [method body_set_omit_force_integration]).
 			</description>
 		</method>
-		<method name="body_set_kinematic_safe_margin">
-			<return type="void">
-			</return>
-			<argument index="0" name="body" type="RID">
-			</argument>
-			<argument index="1" name="margin" type="float">
-			</argument>
-			<description>
-			</description>
-		</method>
 		<method name="body_set_max_contacts_reported">
 			<return type="void">
 			</return>
@@ -760,7 +742,7 @@
 			</argument>
 			<argument index="1" name="shape_idx" type="int">
 			</argument>
-			<argument index="2" name="transform" type="Transform">
+			<argument index="2" name="transform" type="Transform3D">
 			</argument>
 			<description>
 				Sets the transform matrix for a body shape.
@@ -788,6 +770,25 @@
 			</argument>
 			<description>
 				Sets a body state (see [enum BodyState] constants).
+			</description>
+		</method>
+		<method name="body_test_motion">
+			<return type="bool">
+			</return>
+			<argument index="0" name="body" type="RID">
+			</argument>
+			<argument index="1" name="from" type="Transform3D">
+			</argument>
+			<argument index="2" name="motion" type="Vector3">
+			</argument>
+			<argument index="3" name="infinite_inertia" type="bool">
+			</argument>
+			<argument index="4" name="margin" type="float" default="0.001">
+			</argument>
+			<argument index="5" name="result" type="PhysicsTestMotionResult3D" default="null">
+			</argument>
+			<description>
+				Returns [code]true[/code] if a collision would result from moving in the given direction from a given point in space. Margin increases the size of the shapes involved in the collision detection. [PhysicsTestMotionResult3D] can be passed to return additional information in.
 			</description>
 		</method>
 		<method name="box_shape_create">
@@ -1017,11 +1018,11 @@
 			</argument>
 			<argument index="1" name="body_A" type="RID">
 			</argument>
-			<argument index="2" name="local_ref_A" type="Transform">
+			<argument index="2" name="local_ref_A" type="Transform3D">
 			</argument>
 			<argument index="3" name="body_B" type="RID">
 			</argument>
-			<argument index="4" name="local_ref_B" type="Transform">
+			<argument index="4" name="local_ref_B" type="Transform3D">
 			</argument>
 			<description>
 			</description>
@@ -1033,11 +1034,11 @@
 			</argument>
 			<argument index="1" name="body_A" type="RID">
 			</argument>
-			<argument index="2" name="local_ref_A" type="Transform">
+			<argument index="2" name="local_ref_A" type="Transform3D">
 			</argument>
 			<argument index="3" name="body_B" type="RID">
 			</argument>
-			<argument index="4" name="local_ref_B" type="Transform">
+			<argument index="4" name="local_ref_B" type="Transform3D">
 			</argument>
 			<description>
 			</description>
@@ -1049,11 +1050,11 @@
 			</argument>
 			<argument index="1" name="body_A" type="RID">
 			</argument>
-			<argument index="2" name="hinge_A" type="Transform">
+			<argument index="2" name="hinge_A" type="Transform3D">
 			</argument>
 			<argument index="3" name="body_B" type="RID">
 			</argument>
-			<argument index="4" name="hinge_B" type="Transform">
+			<argument index="4" name="hinge_B" type="Transform3D">
 			</argument>
 			<description>
 			</description>
@@ -1081,11 +1082,11 @@
 			</argument>
 			<argument index="1" name="body_A" type="RID">
 			</argument>
-			<argument index="2" name="local_ref_A" type="Transform">
+			<argument index="2" name="local_ref_A" type="Transform3D">
 			</argument>
 			<argument index="3" name="body_B" type="RID">
 			</argument>
-			<argument index="4" name="local_ref_B" type="Transform">
+			<argument index="4" name="local_ref_B" type="Transform3D">
 			</argument>
 			<description>
 			</description>
@@ -1184,6 +1185,16 @@
 			</argument>
 			<description>
 				Activates or deactivates the 3D physics engine.
+			</description>
+		</method>
+		<method name="set_collision_iterations">
+			<return type="void">
+			</return>
+			<argument index="0" name="iterations" type="int">
+			</argument>
+			<description>
+				Sets the amount of iterations for calculating velocities of colliding bodies. The greater the amount of iterations, the more accurate the collisions will be. However, a greater amount of iterations requires more CPU power, which can decrease performance. The default value is [code]8[/code].
+				[b]Note:[/b] Only has an effect when using the default GodotPhysics engine, not the Bullet physics engine.
 			</description>
 		</method>
 		<method name="shape_get_data" qualifiers="const">
@@ -1595,16 +1606,16 @@
 			This area replaces any gravity/damp calculated so far, but keeps calculating the rest of the areas, down to the default one.
 		</constant>
 		<constant name="BODY_MODE_STATIC" value="0" enum="BodyMode">
-			Constant for static bodies.
+			Constant for static bodies. In this mode, a body can be only moved by user code.
 		</constant>
 		<constant name="BODY_MODE_KINEMATIC" value="1" enum="BodyMode">
-			Constant for kinematic bodies.
+			Constant for kinematic bodies. In this mode, a body can be only moved by user code and collides with other bodies along its path.
 		</constant>
-		<constant name="BODY_MODE_RIGID" value="2" enum="BodyMode">
-			Constant for rigid bodies.
+		<constant name="BODY_MODE_DYNAMIC" value="2" enum="BodyMode">
+			Constant for dynamic bodies. In this mode, a body can be pushed by other bodies and has forces applied.
 		</constant>
-		<constant name="BODY_MODE_CHARACTER" value="3" enum="BodyMode">
-			Constant for rigid bodies in character mode. In this mode, a body can not rotate, and only its linear velocity is affected by physics.
+		<constant name="BODY_MODE_DYNAMIC_LOCKED" value="3" enum="BodyMode">
+			Constant for locked dynamic bodies. In this mode, a body is dynamic but can not rotate, and only its linear velocity is affected by external forces.
 		</constant>
 		<constant name="BODY_PARAM_BOUNCE" value="0" enum="BodyParameter">
 			Constant to set/get a body's bounce factor.

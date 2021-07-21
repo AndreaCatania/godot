@@ -778,7 +778,7 @@
 			<return type="float">
 			</return>
 			<description>
-				Returns a random floating point value on the interval [code][0, 1][/code].
+				Returns a random floating point value between [code]0.0[/code] and [code]1.0[/code] (inclusive).
 				[codeblock]
 				randf() # Returns e.g. 0.375671
 				[/codeblock]
@@ -792,7 +792,7 @@
 			<argument index="1" name="to" type="float">
 			</argument>
 			<description>
-				Random range, any floating point value between [code]from[/code] and [code]to[/code].
+				Returns a random floating point value on the interval between [code]from[/code] and [code]to[/code] (inclusive).
 				[codeblock]
 				prints(randf_range(-10, 10), randf_range(-10, 10)) # Prints e.g. -3.844535 7.45315
 				[/codeblock]
@@ -819,7 +819,7 @@
 			<argument index="1" name="to" type="int">
 			</argument>
 			<description>
-				Random range, any 32-bit integer value between [code]from[/code] and [code]to[/code] (inclusive). If [code]to[/code] is lesser than [code]from[/code] they are swapped.
+				Returns a random signed 32-bit integer between [code]from[/code] and [code]to[/code] (inclusive). If [code]to[/code] is lesser than [code]from[/code], they are swapped.
 				[codeblock]
 				print(randi_range(0, 1)) # Prints 0 or 1
 				print(randi_range(-10, 1000)) # Prints any number from -10 to 1000
@@ -1066,11 +1066,13 @@
 			<description>
 				Returns the internal type of the given Variant object, using the [enum Variant.Type] values.
 				[codeblock]
-				p = parse_json('["a", "b", "c"]')
-				if typeof(p) == TYPE_ARRAY:
-				    print(p[0]) # Prints a
+				var json = JSON.new()
+				json.parse('["a", "b", "c"]')
+				var result = json.get_data()
+				if typeof(result) == TYPE_ARRAY:
+				    print(result[0]) # Prints a
 				else:
-				    print("unexpected results")
+				    print("Unexpected result")
 				[/codeblock]
 			</description>
 		</method>
@@ -1211,9 +1213,6 @@
 		<member name="InputMap" type="InputMap" setter="" getter="">
 			The [InputMap] singleton.
 		</member>
-		<member name="JSON" type="JSON" setter="" getter="">
-			The [JSON] singleton.
-		</member>
 		<member name="JavaClassWrapper" type="JavaClassWrapper" setter="" getter="">
 			The [JavaClassWrapper] singleton.
 			[b]Note:[/b] Only implemented on Android.
@@ -1224,6 +1223,8 @@
 		</member>
 		<member name="Marshalls" type="Marshalls" setter="" getter="">
 			The [Marshalls] singleton.
+		</member>
+		<member name="NativeExtensionManager" type="NativeExtensionManager" setter="" getter="">
 		</member>
 		<member name="NavigationMeshGenerator" type="NavigationMeshGenerator" setter="" getter="">
 			The [NavigationMeshGenerator] singleton.
@@ -1260,6 +1261,9 @@
 		</member>
 		<member name="TextServerManager" type="TextServerManager" setter="" getter="">
 			The [TextServerManager] singleton.
+		</member>
+		<member name="Time" type="Time" setter="" getter="">
+			The [Time] singleton.
 		</member>
 		<member name="TranslationServer" type="TranslationServer" setter="" getter="">
 			The [TranslationServer] singleton.
@@ -2406,12 +2410,14 @@
 		</constant>
 		<constant name="PROPERTY_HINT_RANGE" value="1" enum="PropertyHint">
 			Hints that an integer or float property should be within a range specified via the hint string [code]"min,max"[/code] or [code]"min,max,step"[/code]. The hint string can optionally include [code]"or_greater"[/code] and/or [code]"or_lesser"[/code] to allow manual input going respectively above the max or below the min values. Example: [code]"-360,360,1,or_greater,or_lesser"[/code].
+			Additionally, other keywords can be included: "exp" for exponential range editing, "radians" for editing radian angles in degrees, "degrees" to hint at an angle and "noslider" to hide the slider.
 		</constant>
-		<constant name="PROPERTY_HINT_EXP_RANGE" value="2" enum="PropertyHint">
-			Hints that an integer or float property should be within an exponential range specified via the hint string [code]"min,max"[/code] or [code]"min,max,step"[/code]. The hint string can optionally include [code]"or_greater"[/code] and/or [code]"or_lesser"[/code] to allow manual input going respectively above the max or below the min values. Example: [code]"0.01,100,0.01,or_greater"[/code].
-		</constant>
-		<constant name="PROPERTY_HINT_ENUM" value="3" enum="PropertyHint">
+		<constant name="PROPERTY_HINT_ENUM" value="2" enum="PropertyHint">
 			Hints that an integer, float or string property is an enumerated value to pick in a list specified via a hint string such as [code]"Hello,Something,Else"[/code].
+		</constant>
+		<constant name="PROPERTY_HINT_ENUM_SUGGESTION" value="3" enum="PropertyHint">
+			Hints that a string property is can be an enumerated value to pick in a list specified via a hint string such as [code]"Hello,Something,Else"[/code].
+			Unlike [constant PROPERTY_HINT_ENUM] a property with this hint still accepts arbitrary values and can be empty. The list of values serves to suggest possible values.
 		</constant>
 		<constant name="PROPERTY_HINT_EXP_EASING" value="4" enum="PropertyHint">
 			Hints that a float property should be edited via an exponential easing function. The hint string can include [code]"attenuation"[/code] to flip the curve horizontally and/or [code]"inout"[/code] to also include in/out easing.
@@ -2596,8 +2602,8 @@
 		<constant name="TYPE_PLANE" value="12" enum="Variant.Type">
 			Variable is of type [Plane].
 		</constant>
-		<constant name="TYPE_QUAT" value="13" enum="Variant.Type">
-			Variable is of type [Quat].
+		<constant name="TYPE_QUATERNION" value="13" enum="Variant.Type">
+			Variable is of type [Quaternion].
 		</constant>
 		<constant name="TYPE_AABB" value="14" enum="Variant.Type">
 			Variable is of type [AABB].
@@ -2605,8 +2611,8 @@
 		<constant name="TYPE_BASIS" value="15" enum="Variant.Type">
 			Variable is of type [Basis].
 		</constant>
-		<constant name="TYPE_TRANSFORM" value="16" enum="Variant.Type">
-			Variable is of type [Transform].
+		<constant name="TYPE_TRANSFORM3D" value="16" enum="Variant.Type">
+			Variable is of type [Transform3D].
 		</constant>
 		<constant name="TYPE_COLOR" value="17" enum="Variant.Type">
 			Variable is of type [Color].

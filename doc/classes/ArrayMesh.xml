@@ -43,7 +43,7 @@
 		[/csharp]
 		[/codeblocks]
 		The [MeshInstance3D] is ready to be added to the [SceneTree] to be shown.
-		See also [ImmediateGeometry3D], [MeshDataTool] and [SurfaceTool] for procedural geometry generation.
+		See also [ImmediateMesh], [MeshDataTool] and [SurfaceTool] for procedural geometry generation.
 		[b]Note:[/b] Godot uses clockwise [url=https://learnopengl.com/Advanced-OpenGL/Face-culling]winding order[/url] for front faces of triangle primitive modes.
 	</description>
 	<tutorials>
@@ -66,7 +66,7 @@
 			</argument>
 			<argument index="1" name="arrays" type="Array">
 			</argument>
-			<argument index="2" name="blend_shapes" type="Array" default="[  ]">
+			<argument index="2" name="blend_shapes" type="Array" default="[]">
 			</argument>
 			<argument index="3" name="lods" type="Dictionary" default="{
 }">
@@ -77,7 +77,6 @@
 				Creates a new surface.
 				Surfaces are created to be rendered using a [code]primitive[/code], which may be any of the types defined in [enum Mesh.PrimitiveType]. (As a note, when using indices, it is recommended to only use points, lines or triangles.) [method Mesh.get_surface_count] will become the [code]surf_idx[/code] for this new surface.
 				The [code]arrays[/code] argument is an array of arrays. See [enum Mesh.ArrayType] for the values used in this array. For example, [code]arrays[0][/code] is the array of vertices. That first vertex sub-array is always required; the others are optional. Adding an index array puts this function into "index mode" where the vertex and other arrays become the sources of data and the index array defines the vertex order. All sub-arrays must have the same length as the vertex array or be empty, except for [constant Mesh.ARRAY_INDEX] if it is used.
-				Adding an index array puts this function into "index mode" where the vertex and other arrays become the sources of data, and the index array defines the order of the vertices.
 			</description>
 		</method>
 		<method name="clear_blend_shapes">
@@ -113,7 +112,7 @@
 		<method name="lightmap_unwrap">
 			<return type="int" enum="Error">
 			</return>
-			<argument index="0" name="transform" type="Transform">
+			<argument index="0" name="transform" type="Transform3D">
 			</argument>
 			<argument index="1" name="texel_size" type="float">
 			</argument>
@@ -203,7 +202,7 @@
 				Sets a name for a given surface.
 			</description>
 		</method>
-		<method name="surface_update_region">
+		<method name="surface_update_attribute_region">
 			<return type="void">
 			</return>
 			<argument index="0" name="surf_idx" type="int">
@@ -213,8 +212,30 @@
 			<argument index="2" name="data" type="PackedByteArray">
 			</argument>
 			<description>
-				Updates a specified region of mesh arrays on the GPU.
-				[b]Warning:[/b] Only use if you know what you are doing. You can easily cause crashes by calling this function with improper arguments.
+			</description>
+		</method>
+		<method name="surface_update_skin_region">
+			<return type="void">
+			</return>
+			<argument index="0" name="surf_idx" type="int">
+			</argument>
+			<argument index="1" name="offset" type="int">
+			</argument>
+			<argument index="2" name="data" type="PackedByteArray">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="surface_update_vertex_region">
+			<return type="void">
+			</return>
+			<argument index="0" name="surf_idx" type="int">
+			</argument>
+			<argument index="1" name="offset" type="int">
+			</argument>
+			<argument index="2" name="data" type="PackedByteArray">
+			</argument>
+			<description>
 			</description>
 		</method>
 	</methods>
@@ -222,7 +243,7 @@
 		<member name="blend_shape_mode" type="int" setter="set_blend_shape_mode" getter="get_blend_shape_mode" enum="Mesh.BlendShapeMode" default="1">
 			Sets the blend shape mode to one of [enum Mesh.BlendShapeMode].
 		</member>
-		<member name="custom_aabb" type="AABB" setter="set_custom_aabb" getter="get_custom_aabb" default="AABB( 0, 0, 0, 0, 0, 0 )">
+		<member name="custom_aabb" type="AABB" setter="set_custom_aabb" getter="get_custom_aabb" default="AABB(0, 0, 0, 0, 0, 0)">
 			Overrides the [AABB] with one defined by user for use with frustum culling. Especially useful to avoid unexpected culling when using a shader to offset vertices.
 		</member>
 		<member name="shadow_mesh" type="ArrayMesh" setter="set_shadow_mesh" getter="get_shadow_mesh">

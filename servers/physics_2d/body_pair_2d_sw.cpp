@@ -229,7 +229,7 @@ bool BodyPair2DSW::setup(real_t p_step) {
 	dynamic_A = (A->get_mode() > PhysicsServer2D::BODY_MODE_KINEMATIC);
 	dynamic_B = (B->get_mode() > PhysicsServer2D::BODY_MODE_KINEMATIC);
 
-	if (!A->test_collision_mask(B) || A->has_exception(B->get_self()) || B->has_exception(A->get_self())) {
+	if (!A->interacts_with(B) || A->has_exception(B->get_self()) || B->has_exception(A->get_self())) {
 		collided = false;
 		return false;
 	}
@@ -242,11 +242,6 @@ bool BodyPair2DSW::setup(real_t p_step) {
 			collided = false;
 			return false;
 		}
-	}
-
-	if (A->is_shape_set_as_disabled(shape_A) || B->is_shape_set_as_disabled(shape_B)) {
-		collided = false;
-		return false;
 	}
 
 	//use local A coordinates to avoid numerical issues on collision detection

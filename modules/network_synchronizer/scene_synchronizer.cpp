@@ -154,8 +154,8 @@ void SceneSynchronizer::_notification(int p_what) {
 			reset_controllers();
 
 			// Init the peers already connected.
-			if (get_tree()->get_network_peer().is_valid()) {
-				const Vector<int> peer_ids = get_tree()->get_network_connected_peers();
+			if (get_tree()->get_multiplayer()->get_network_peer().is_valid()) {
+				const Vector<int> peer_ids = get_tree()->get_multiplayer()->get_network_connected_peers();
 				const int *peer_ids_ptr = peer_ids.ptr();
 				for (int i = 0; i < peer_ids.size(); i += 1) {
 					_on_peer_connected(peer_ids_ptr[i]);
@@ -191,10 +191,10 @@ void SceneSynchronizer::_notification(int p_what) {
 }
 
 SceneSynchronizer::SceneSynchronizer() {
-	rpc_config("_rpc_send_state", MultiplayerAPI::RPC_MODE_REMOTE);
-	rpc_config("_rpc_notify_need_full_snapshot", MultiplayerAPI::RPC_MODE_REMOTE);
-	rpc_config("_rpc_set_network_enabled", MultiplayerAPI::RPC_MODE_REMOTE);
-	rpc_config("_rpc_notify_peer_status", MultiplayerAPI::RPC_MODE_REMOTE);
+	rpc_config("_rpc_send_state", MultiplayerAPI::RPC_MODE_REMOTE, MultiplayerPeer::TRANSFER_MODE_RELIABLE);
+	rpc_config("_rpc_notify_need_full_snapshot", MultiplayerAPI::RPC_MODE_REMOTE, MultiplayerPeer::TRANSFER_MODE_RELIABLE);
+	rpc_config("_rpc_set_network_enabled", MultiplayerAPI::RPC_MODE_REMOTE, MultiplayerPeer::TRANSFER_MODE_RELIABLE);
+	rpc_config("_rpc_notify_peer_status", MultiplayerAPI::RPC_MODE_REMOTE, MultiplayerPeer::TRANSFER_MODE_RELIABLE);
 
 	// Avoid too much useless re-allocations.
 	event_listener.reserve(100);
@@ -638,7 +638,7 @@ void SceneSynchronizer::unregister_process(Node *p_node, const StringName &p_fun
 }
 
 void SceneSynchronizer::start_tracking_scene_changes(Object *p_diff_handle) const {
-	ERR_FAIL_COND_MSG(get_tree()->is_network_server() == false, "This function is supposed to be called only on server.");
+	ERR_FAIL_COND_MSG(get_tree()->get_multiplayer()->is_network_server() == false, "This function is supposed to be called only on server.");
 	SceneDiff *diff = Object::cast_to<SceneDiff>(p_diff_handle);
 	ERR_FAIL_COND_MSG(diff == nullptr, "The object is not a SceneDiff class.");
 
@@ -646,7 +646,7 @@ void SceneSynchronizer::start_tracking_scene_changes(Object *p_diff_handle) cons
 }
 
 void SceneSynchronizer::stop_tracking_scene_changes(Object *p_diff_handle) const {
-	ERR_FAIL_COND_MSG(get_tree()->is_network_server() == false, "This function is supposed to be called only on server.");
+	ERR_FAIL_COND_MSG(get_tree()->get_multiplayer()->is_network_server() == false, "This function is supposed to be called only on server.");
 	SceneDiff *diff = Object::cast_to<SceneDiff>(p_diff_handle);
 	ERR_FAIL_COND_MSG(diff == nullptr, "The object is not a SceneDiff class.");
 
@@ -880,12 +880,12 @@ void SceneSynchronizer::reset_synchronizer_mode() {
 
 	peer_ptr = get_multiplayer() == nullptr ? nullptr : get_multiplayer()->get_network_peer().ptr();
 
-	if (get_tree() == nullptr || get_tree()->get_network_peer().is_null()) {
+	if (get_tree() == nullptr || get_tree()->get_multiplayer()->get_network_peer().is_null()) {
 		synchronizer_type = SYNCHRONIZER_TYPE_NONETWORK;
 		synchronizer = memnew(NoNetSynchronizer(this));
 		generate_id = true;
 
-	} else if (get_tree()->is_network_server()) {
+	} else if (get_tree()->get_multiplayer()->is_network_server()) {
 		synchronizer_type = SYNCHRONIZER_TYPE_SERVER;
 		synchronizer = memnew(ServerSynchronizer(this));
 		generate_id = true;
@@ -1338,10 +1338,10 @@ bool SceneSynchronizer::compare(const Variant &p_first, const Variant &p_second,
 		case Variant::VECTOR3: {
 			return compare(Vector3(p_first), Vector3(p_second), p_tolerance);
 		}
-		case Variant::QUAT: {
-			const Quat a = p_first;
-			const Quat b = p_second;
-			const Quat r(a - b); // Element wise subtraction.
+		case Variant::QUATERNION: {
+			const Quaternion a = p_first;
+			const Quaternion b = p_second;
+			const Quaternion r(a - b); // Element wise subtraction.
 			return (r.x * r.x + r.y * r.y + r.z * r.z + r.w * r.w) <= (p_tolerance * p_tolerance);
 		}
 		case Variant::PLANE: {
@@ -1376,9 +1376,9 @@ bool SceneSynchronizer::compare(const Variant &p_first, const Variant &p_second,
 			}
 			return false;
 		}
-		case Variant::TRANSFORM: {
-			const Transform a = p_first;
-			const Transform b = p_second;
+		case Variant::TRANSFORM3D: {
+			const Transform3D a = p_first;
+			const Transform3D b = p_second;
 			if (compare(a.origin, b.origin, p_tolerance)) {
 				if (compare(a.basis.elements[0], b.basis.elements[0], p_tolerance)) {
 					if (compare(a.basis.elements[1], b.basis.elements[1], p_tolerance)) {
@@ -1572,10 +1572,10 @@ void SceneSynchronizer::reset_controller(NetUtility::NodeData *p_controller_nd) 
 		return;
 	}
 
-	if (get_tree()->get_network_peer().is_null()) {
+	if (get_tree()->get_multiplayer()->get_network_peer().is_null()) {
 		controller->controller_type = NetworkedController::CONTROLLER_TYPE_NONETWORK;
 		controller->controller = memnew(NoNetController(controller));
-	} else if (get_tree()->is_network_server()) {
+	} else if (get_tree()->get_multiplayer()->is_network_server()) {
 		controller->controller_type = NetworkedController::CONTROLLER_TYPE_SERVER;
 		controller->controller = memnew(ServerController(controller, controller->get_network_traced_frames()));
 	} else if (controller->is_network_master()) {

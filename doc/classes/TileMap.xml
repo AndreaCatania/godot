@@ -36,6 +36,8 @@
 			</return>
 			<argument index="0" name="coords" type="Vector2i">
 			</argument>
+			<argument index="1" name="use_proxies" type="bool">
+			</argument>
 			<description>
 			</description>
 		</method>
@@ -44,6 +46,8 @@
 			</return>
 			<argument index="0" name="coords" type="Vector2i">
 			</argument>
+			<argument index="1" name="use_proxies" type="bool">
+			</argument>
 			<description>
 			</description>
 		</method>
@@ -51,6 +55,8 @@
 			<return type="int">
 			</return>
 			<argument index="0" name="coords" type="Vector2i">
+			</argument>
+			<argument index="1" name="use_proxies" type="bool">
 			</argument>
 			<description>
 			</description>
@@ -103,7 +109,7 @@
 			</argument>
 			<argument index="1" name="source_id" type="int" default="-1">
 			</argument>
-			<argument index="2" name="atlas_coords" type="Vector2i" default="Vector2i( -1, -1 )">
+			<argument index="2" name="atlas_coords" type="Vector2i" default="Vector2i(-1, -1)">
 			</argument>
 			<argument index="3" name="alternative_tile" type="int" default="-1">
 			</argument>
@@ -132,6 +138,10 @@
 		<member name="cell_quadrant_size" type="int" setter="set_quadrant_size" getter="get_quadrant_size" default="16">
 			The TileMap's quadrant size. Optimizes drawing by batching, using chunks of this size.
 		</member>
+		<member name="show_collision" type="int" setter="set_collision_visibility_mode" getter="get_collision_visibility_mode" enum="TileMap.VisibilityMode" default="0">
+		</member>
+		<member name="show_navigation" type="int" setter="set_navigation_visibility_mode" getter="get_navigation_visibility_mode" enum="TileMap.VisibilityMode" default="0">
+		</member>
 		<member name="tile_set" type="TileSet" setter="set_tileset" getter="get_tileset">
 			The assigned [TileSet].
 		</member>
@@ -144,5 +154,11 @@
 		</signal>
 	</signals>
 	<constants>
+		<constant name="VISIBILITY_MODE_DEFAULT" value="0" enum="VisibilityMode">
+		</constant>
+		<constant name="VISIBILITY_MODE_FORCE_HIDE" value="2" enum="VisibilityMode">
+		</constant>
+		<constant name="VISIBILITY_MODE_FORCE_SHOW" value="1" enum="VisibilityMode">
+		</constant>
 	</constants>
 </class>

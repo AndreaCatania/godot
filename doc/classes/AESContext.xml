@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="AESContext" inherits="Reference" version="4.0">
+<class name="AESContext" inherits="RefCounted" version="4.0">
 	<brief_description>
 		Interface to low level AES encryption features.
 	</brief_description>
@@ -101,7 +101,7 @@
 			</argument>
 			<argument index="1" name="key" type="PackedByteArray">
 			</argument>
-			<argument index="2" name="iv" type="PackedByteArray" default="PackedByteArray(  )">
+			<argument index="2" name="iv" type="PackedByteArray" default="PackedByteArray()">
 			</argument>
 			<description>
 				Start the AES context in the given [code]mode[/code]. A [code]key[/code] of either 16 or 32 bytes must always be provided, while an [code]iv[/code] (initialization vector) of exactly 16 bytes, is only needed when [code]mode[/code] is either [constant MODE_CBC_ENCRYPT] or [constant MODE_CBC_DECRYPT].

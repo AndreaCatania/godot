@@ -35,34 +35,11 @@
 #include "core/debugger/engine_debugger.h"
 #include "core/io/file_access_compressed.h"
 #include "core/io/file_access_encrypted.h"
-#include "core/io/json.h"
 #include "core/io/marshalls.h"
 #include "core/math/geometry_2d.h"
 #include "core/math/geometry_3d.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
-
-/**
- *  Time constants borrowed from loc_time.h
- */
-#define EPOCH_YR 1970 /* EPOCH = Jan 1 1970 00:00:00 */
-#define SECS_DAY (24L * 60L * 60L)
-#define LEAPYEAR(year) (!((year) % 4) && (((year) % 100) || !((year) % 400)))
-#define YEARSIZE(year) (LEAPYEAR(year) ? 366 : 365)
-#define SECOND_KEY "second"
-#define MINUTE_KEY "minute"
-#define HOUR_KEY "hour"
-#define DAY_KEY "day"
-#define MONTH_KEY "month"
-#define YEAR_KEY "year"
-#define WEEKDAY_KEY "weekday"
-#define DST_KEY "dst"
-
-/// Table of number of days in each month (for regular year and leap year)
-static const unsigned int MONTH_DAYS_TABLE[2][12] = {
-	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 },
-	{ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
-};
 
 ////// _ResourceLoader //////
 
@@ -322,198 +299,6 @@ uint64_t _OS::get_static_memory_peak_usage() const {
 	return OS::get_singleton()->get_static_memory_peak_usage();
 }
 
-/**
- *  Get current datetime with consideration for utc and
- *     dst
- */
-Dictionary _OS::get_datetime(bool utc) const {
-	Dictionary dated = get_date(utc);
-	Dictionary timed = get_time(utc);
-
-	List<Variant> keys;
-	timed.get_key_list(&keys);
-
-	for (int i = 0; i < keys.size(); i++) {
-		dated[keys[i]] = timed[keys[i]];
-	}
-
-	return dated;
-}
-
-Dictionary _OS::get_date(bool utc) const {
-	OS::Date date = OS::get_singleton()->get_date(utc);
-	Dictionary dated;
-	dated[YEAR_KEY] = date.year;
-	dated[MONTH_KEY] = date.month;
-	dated[DAY_KEY] = date.day;
-	dated[WEEKDAY_KEY] = date.weekday;
-	dated[DST_KEY] = date.dst;
-	return dated;
-}
-
-Dictionary _OS::get_time(bool utc) const {
-	OS::Time time = OS::get_singleton()->get_time(utc);
-	Dictionary timed;
-	timed[HOUR_KEY] = time.hour;
-	timed[MINUTE_KEY] = time.min;
-	timed[SECOND_KEY] = time.sec;
-	return timed;
-}
-
-/**
- *  Get an epoch time value from a dictionary of time values
- *  @p datetime must be populated with the following keys:
- *    day, hour, minute, month, second, year. (dst is ignored).
- *
- *    You can pass the output from
- *   get_datetime_from_unix_time directly into this function
- *
- * @param datetime dictionary of date and time values to convert
- *
- * @return epoch calculated
- */
-int64_t _OS::get_unix_time_from_datetime(Dictionary datetime) const {
-	// if datetime is an empty Dictionary throws an error
-	ERR_FAIL_COND_V_MSG(datetime.is_empty(), 0, "Invalid datetime Dictionary: Dictionary is empty");
-
-	// Bunch of conversion constants
-	static const unsigned int SECONDS_PER_MINUTE = 60;
-	static const unsigned int MINUTES_PER_HOUR = 60;
-	static const unsigned int HOURS_PER_DAY = 24;
-	static const unsigned int SECONDS_PER_HOUR = MINUTES_PER_HOUR * SECONDS_PER_MINUTE;
-	static const unsigned int SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
-
-	// Get all time values from the dictionary, set to zero if it doesn't exist.
-	//   Risk incorrect calculation over throwing errors
-	unsigned int second = ((datetime.has(SECOND_KEY)) ? static_cast<unsigned int>(datetime[SECOND_KEY]) : 0);
-	unsigned int minute = ((datetime.has(MINUTE_KEY)) ? static_cast<unsigned int>(datetime[MINUTE_KEY]) : 0);
-	unsigned int hour = ((datetime.has(HOUR_KEY)) ? static_cast<unsigned int>(datetime[HOUR_KEY]) : 0);
-	unsigned int day = ((datetime.has(DAY_KEY)) ? static_cast<unsigned int>(datetime[DAY_KEY]) : 1);
-	unsigned int month = ((datetime.has(MONTH_KEY)) ? static_cast<unsigned int>(datetime[MONTH_KEY]) : 1);
-	unsigned int year = ((datetime.has(YEAR_KEY)) ? static_cast<unsigned int>(datetime[YEAR_KEY]) : 0);
-
-	/// How many days come before each month (0-12)
-	static const unsigned short int DAYS_PAST_THIS_YEAR_TABLE[2][13] = {
-		/* Normal years.  */
-		{ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 },
-		/* Leap years.  */
-		{ 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }
-	};
-
-	ERR_FAIL_COND_V_MSG(second > 59, 0, "Invalid second value of: " + itos(second) + ".");
-
-	ERR_FAIL_COND_V_MSG(minute > 59, 0, "Invalid minute value of: " + itos(minute) + ".");
-
-	ERR_FAIL_COND_V_MSG(hour > 23, 0, "Invalid hour value of: " + itos(hour) + ".");
-
-	ERR_FAIL_COND_V_MSG(month > 12 || month == 0, 0, "Invalid month value of: " + itos(month) + ".");
-
-	// Do this check after month is tested as valid
-	ERR_FAIL_COND_V_MSG(day > MONTH_DAYS_TABLE[LEAPYEAR(year)][month - 1] || day == 0, 0, "Invalid day value of '" + itos(day) + "' which is larger than '" + itos(MONTH_DAYS_TABLE[LEAPYEAR(year)][month - 1]) + "' or 0.");
-	// Calculate all the seconds from months past in this year
-	uint64_t SECONDS_FROM_MONTHS_PAST_THIS_YEAR = DAYS_PAST_THIS_YEAR_TABLE[LEAPYEAR(year)][month - 1] * SECONDS_PER_DAY;
-
-	int64_t SECONDS_FROM_YEARS_PAST = 0;
-	if (year >= EPOCH_YR) {
-		for (unsigned int iyear = EPOCH_YR; iyear < year; iyear++) {
-			SECONDS_FROM_YEARS_PAST += YEARSIZE(iyear) * SECONDS_PER_DAY;
-		}
-	} else {
-		for (unsigned int iyear = EPOCH_YR - 1; iyear >= year; iyear--) {
-			SECONDS_FROM_YEARS_PAST -= YEARSIZE(iyear) * SECONDS_PER_DAY;
-		}
-	}
-
-	int64_t epoch =
-			second +
-			minute * SECONDS_PER_MINUTE +
-			hour * SECONDS_PER_HOUR +
-			// Subtract 1 from day, since the current day isn't over yet
-			//   and we cannot count all 24 hours.
-			(day - 1) * SECONDS_PER_DAY +
-			SECONDS_FROM_MONTHS_PAST_THIS_YEAR +
-			SECONDS_FROM_YEARS_PAST;
-	return epoch;
-}
-
-/**
- *  Get a dictionary of time values when given epoch time
- *
- *  Dictionary Time values will be a union if values from #get_time
- *    and #get_date dictionaries (with the exception of dst =
- *    day light standard time, as it cannot be determined from epoch)
- *
- * @param unix_time_val epoch time to convert
- *
- * @return dictionary of date and time values
- */
-Dictionary _OS::get_datetime_from_unix_time(int64_t unix_time_val) const {
-	OS::Date date;
-	OS::Time time;
-
-	long dayclock, dayno;
-	int year = EPOCH_YR;
-
-	if (unix_time_val >= 0) {
-		dayno = unix_time_val / SECS_DAY;
-		dayclock = unix_time_val % SECS_DAY;
-		/* day 0 was a thursday */
-		date.weekday = static_cast<OS::Weekday>((dayno + 4) % 7);
-		while (dayno >= YEARSIZE(year)) {
-			dayno -= YEARSIZE(year);
-			year++;
-		}
-	} else {
-		dayno = (unix_time_val - SECS_DAY + 1) / SECS_DAY;
-		dayclock = unix_time_val - dayno * SECS_DAY;
-		date.weekday = static_cast<OS::Weekday>(((dayno % 7) + 11) % 7);
-		do {
-			year--;
-			dayno += YEARSIZE(year);
-		} while (dayno < 0);
-	}
-
-	time.sec = dayclock % 60;
-	time.min = (dayclock % 3600) / 60;
-	time.hour = dayclock / 3600;
-	date.year = year;
-
-	size_t imonth = 0;
-
-	while ((unsigned long)dayno >= MONTH_DAYS_TABLE[LEAPYEAR(year)][imonth]) {
-		dayno -= MONTH_DAYS_TABLE[LEAPYEAR(year)][imonth];
-		imonth++;
-	}
-
-	/// Add 1 to month to make sure months are indexed starting at 1
-	date.month = static_cast<OS::Month>(imonth + 1);
-
-	date.day = dayno + 1;
-
-	Dictionary timed;
-	timed[HOUR_KEY] = time.hour;
-	timed[MINUTE_KEY] = time.min;
-	timed[SECOND_KEY] = time.sec;
-	timed[YEAR_KEY] = date.year;
-	timed[MONTH_KEY] = date.month;
-	timed[DAY_KEY] = date.day;
-	timed[WEEKDAY_KEY] = date.weekday;
-
-	return timed;
-}
-
-Dictionary _OS::get_time_zone_info() const {
-	OS::TimeZoneInfo info = OS::get_singleton()->get_time_zone_info();
-	Dictionary infod;
-	infod["bias"] = info.bias;
-	infod["name"] = info.name;
-	return infod;
-}
-
-double _OS::get_unix_time() const {
-	return OS::get_singleton()->get_unix_time();
-}
-
 /** This method uses a signed argument for better error reporting as it's used from the scripting API. */
 void _OS::delay_usec(int p_usec) const {
 	ERR_FAIL_COND_MSG(
@@ -528,14 +313,6 @@ void _OS::delay_msec(int p_msec) const {
 			p_msec < 0,
 			vformat("Can't sleep for %d milliseconds. The delay provided must be greater than or equal to 0 milliseconds.", p_msec));
 	OS::get_singleton()->delay_usec(int64_t(p_msec) * 1000);
-}
-
-uint32_t _OS::get_ticks_msec() const {
-	return OS::get_singleton()->get_ticks_msec();
-}
-
-uint64_t _OS::get_ticks_usec() const {
-	return OS::get_singleton()->get_ticks_usec();
 }
 
 bool _OS::can_use_threads() const {
@@ -644,6 +421,25 @@ String _OS::get_user_data_dir() const {
 	return OS::get_singleton()->get_user_data_dir();
 }
 
+String _OS::get_external_data_dir() const {
+	return OS::get_singleton()->get_external_data_dir();
+}
+
+String _OS::get_config_dir() const {
+	// Exposed as `get_config_dir()` instead of `get_config_path()` for consistency with other exposed OS methods.
+	return OS::get_singleton()->get_config_path();
+}
+
+String _OS::get_data_dir() const {
+	// Exposed as `get_data_dir()` instead of `get_data_path()` for consistency with other exposed OS methods.
+	return OS::get_singleton()->get_data_path();
+}
+
+String _OS::get_cache_dir() const {
+	// Exposed as `get_cache_dir()` instead of `get_cache_path()` for consistency with other exposed OS methods.
+	return OS::get_singleton()->get_cache_path();
+}
+
 bool _OS::is_debug_build() const {
 #ifdef DEBUG_ENABLED
 	return true;
@@ -713,18 +509,8 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_name"), &_OS::get_name);
 	ClassDB::bind_method(D_METHOD("get_cmdline_args"), &_OS::get_cmdline_args);
 
-	ClassDB::bind_method(D_METHOD("get_datetime", "utc"), &_OS::get_datetime, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_date", "utc"), &_OS::get_date, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_time", "utc"), &_OS::get_time, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_time_zone_info"), &_OS::get_time_zone_info);
-	ClassDB::bind_method(D_METHOD("get_unix_time"), &_OS::get_unix_time);
-	ClassDB::bind_method(D_METHOD("get_datetime_from_unix_time", "unix_time_val"), &_OS::get_datetime_from_unix_time);
-	ClassDB::bind_method(D_METHOD("get_unix_time_from_datetime", "datetime"), &_OS::get_unix_time_from_datetime);
-
 	ClassDB::bind_method(D_METHOD("delay_usec", "usec"), &_OS::delay_usec);
 	ClassDB::bind_method(D_METHOD("delay_msec", "msec"), &_OS::delay_msec);
-	ClassDB::bind_method(D_METHOD("get_ticks_msec"), &_OS::get_ticks_msec);
-	ClassDB::bind_method(D_METHOD("get_ticks_usec"), &_OS::get_ticks_usec);
 	ClassDB::bind_method(D_METHOD("get_locale"), &_OS::get_locale);
 	ClassDB::bind_method(D_METHOD("get_model_name"), &_OS::get_model_name);
 
@@ -744,7 +530,11 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_static_memory_peak_usage"), &_OS::get_static_memory_peak_usage);
 
 	ClassDB::bind_method(D_METHOD("get_user_data_dir"), &_OS::get_user_data_dir);
+	ClassDB::bind_method(D_METHOD("get_external_data_dir"), &_OS::get_external_data_dir);
 	ClassDB::bind_method(D_METHOD("get_system_dir", "dir"), &_OS::get_system_dir);
+	ClassDB::bind_method(D_METHOD("get_config_dir"), &_OS::get_config_dir);
+	ClassDB::bind_method(D_METHOD("get_data_dir"), &_OS::get_data_dir);
+	ClassDB::bind_method(D_METHOD("get_cache_dir"), &_OS::get_cache_dir);
 	ClassDB::bind_method(D_METHOD("get_unique_id"), &_OS::get_unique_id);
 
 	ClassDB::bind_method(D_METHOD("print_all_textures_by_size"), &_OS::print_all_textures_by_size);
@@ -1226,7 +1016,7 @@ Error _File::open(const String &p_path, ModeFlags p_mode_flags) {
 	Error err;
 	f = FileAccess::open(p_path, p_mode_flags, &err);
 	if (f) {
-		f->set_endian_swap(eswap);
+		f->set_big_endian(big_endian);
 	}
 	return err;
 }
@@ -1273,9 +1063,9 @@ uint64_t _File::get_position() const {
 	return f->get_position();
 }
 
-uint64_t _File::get_len() const {
+uint64_t _File::get_length() const {
 	ERR_FAIL_COND_V_MSG(!f, 0, "File must be opened before use.");
-	return f->get_len();
+	return f->get_length();
 }
 
 bool _File::eof_reached() const {
@@ -1382,15 +1172,15 @@ Vector<String> _File::get_csv_line(const String &p_delim) const {
  * These flags get reset to false (little endian) on each open
  */
 
-void _File::set_endian_swap(bool p_swap) {
-	eswap = p_swap;
+void _File::set_big_endian(bool p_big_endian) {
+	big_endian = p_big_endian;
 	if (f) {
-		f->set_endian_swap(p_swap);
+		f->set_big_endian(p_big_endian);
 	}
 }
 
-bool _File::get_endian_swap() {
-	return eswap;
+bool _File::is_big_endian() {
+	return big_endian;
 }
 
 Error _File::get_error() const {
@@ -1537,7 +1327,7 @@ void _File::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("seek", "position"), &_File::seek);
 	ClassDB::bind_method(D_METHOD("seek_end", "position"), &_File::seek_end, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("get_position"), &_File::get_position);
-	ClassDB::bind_method(D_METHOD("get_len"), &_File::get_len);
+	ClassDB::bind_method(D_METHOD("get_length"), &_File::get_length);
 	ClassDB::bind_method(D_METHOD("eof_reached"), &_File::eof_reached);
 	ClassDB::bind_method(D_METHOD("get_8"), &_File::get_8);
 	ClassDB::bind_method(D_METHOD("get_16"), &_File::get_16);
@@ -1546,14 +1336,14 @@ void _File::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_float"), &_File::get_float);
 	ClassDB::bind_method(D_METHOD("get_double"), &_File::get_double);
 	ClassDB::bind_method(D_METHOD("get_real"), &_File::get_real);
-	ClassDB::bind_method(D_METHOD("get_buffer", "len"), &_File::get_buffer);
+	ClassDB::bind_method(D_METHOD("get_buffer", "length"), &_File::get_buffer);
 	ClassDB::bind_method(D_METHOD("get_line"), &_File::get_line);
 	ClassDB::bind_method(D_METHOD("get_csv_line", "delim"), &_File::get_csv_line, DEFVAL(","));
 	ClassDB::bind_method(D_METHOD("get_as_text"), &_File::get_as_text);
 	ClassDB::bind_method(D_METHOD("get_md5", "path"), &_File::get_md5);
 	ClassDB::bind_method(D_METHOD("get_sha256", "path"), &_File::get_sha256);
-	ClassDB::bind_method(D_METHOD("get_endian_swap"), &_File::get_endian_swap);
-	ClassDB::bind_method(D_METHOD("set_endian_swap", "enable"), &_File::set_endian_swap);
+	ClassDB::bind_method(D_METHOD("is_big_endian"), &_File::is_big_endian);
+	ClassDB::bind_method(D_METHOD("set_big_endian", "big_endian"), &_File::set_big_endian);
 	ClassDB::bind_method(D_METHOD("get_error"), &_File::get_error);
 	ClassDB::bind_method(D_METHOD("get_var", "allow_objects"), &_File::get_var, DEFVAL(false));
 
@@ -1576,7 +1366,7 @@ void _File::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("file_exists", "path"), &_File::file_exists);
 	ClassDB::bind_method(D_METHOD("get_modified_time", "file"), &_File::get_modified_time);
 
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "endian_swap"), "set_endian_swap", "get_endian_swap");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "big_endian"), "set_big_endian", "is_big_endian");
 
 	BIND_ENUM_CONSTANT(READ);
 	BIND_ENUM_CONSTANT(WRITE);
@@ -1617,11 +1407,11 @@ bool _Directory::is_open() const {
 	return d && dir_open;
 }
 
-Error _Directory::list_dir_begin(bool p_skip_navigational, bool p_skip_hidden) {
+Error _Directory::list_dir_begin(bool p_show_navigational, bool p_show_hidden) {
 	ERR_FAIL_COND_V_MSG(!is_open(), ERR_UNCONFIGURED, "Directory must be opened before use.");
 
-	_list_skip_navigational = p_skip_navigational;
-	_list_skip_hidden = p_skip_hidden;
+	_list_skip_navigational = !p_show_navigational;
+	_list_skip_hidden = !p_show_hidden;
 
 	return d->list_dir_begin();
 }
@@ -1759,7 +1549,7 @@ Error _Directory::remove(String p_name) {
 
 void _Directory::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("open", "path"), &_Directory::open);
-	ClassDB::bind_method(D_METHOD("list_dir_begin", "skip_navigational", "skip_hidden"), &_Directory::list_dir_begin, DEFVAL(false), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("list_dir_begin", "show_navigational", "show_hidden"), &_Directory::list_dir_begin, DEFVAL(false), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_next"), &_Directory::get_next);
 	ClassDB::bind_method(D_METHOD("current_is_dir"), &_Directory::current_is_dir);
 	ClassDB::bind_method(D_METHOD("list_dir_end"), &_Directory::list_dir_end);
@@ -1939,10 +1729,11 @@ void _Thread::_start_func(void *ud) {
 	memdelete(tud);
 	Callable::CallError ce;
 	const Variant *arg[1] = { &t->userdata };
+	int argc = (int)(arg[0]->get_type() != Variant::NIL);
 
 	Thread::set_name(t->target_method);
 
-	t->ret = t->target_instance->call(t->target_method, arg, 1, ce);
+	t->ret = t->target_instance->call(t->target_method, arg, argc, ce);
 	if (ce.error != Callable::CallError::CALL_OK) {
 		String reason;
 		switch (ce.error) {
@@ -2060,17 +1851,17 @@ bool _ClassDB::is_parent_class(const StringName &p_class, const StringName &p_in
 	return ClassDB::is_parent_class(p_class, p_inherits);
 }
 
-bool _ClassDB::can_instance(const StringName &p_class) const {
-	return ClassDB::can_instance(p_class);
+bool _ClassDB::can_instantiate(const StringName &p_class) const {
+	return ClassDB::can_instantiate(p_class);
 }
 
-Variant _ClassDB::instance(const StringName &p_class) const {
-	Object *obj = ClassDB::instance(p_class);
+Variant _ClassDB::instantiate(const StringName &p_class) const {
+	Object *obj = ClassDB::instantiate(p_class);
 	if (!obj) {
 		return Variant();
 	}
 
-	Reference *r = Object::cast_to<Reference>(obj);
+	RefCounted *r = Object::cast_to<RefCounted>(obj);
 	if (r) {
 		return REF(r);
 	} else {
@@ -2194,8 +1985,8 @@ void _ClassDB::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_parent_class", "class"), &_ClassDB::get_parent_class);
 	ClassDB::bind_method(D_METHOD("class_exists", "class"), &_ClassDB::class_exists);
 	ClassDB::bind_method(D_METHOD("is_parent_class", "class", "inherits"), &_ClassDB::is_parent_class);
-	ClassDB::bind_method(D_METHOD("can_instance", "class"), &_ClassDB::can_instance);
-	ClassDB::bind_method(D_METHOD("instance", "class"), &_ClassDB::instance);
+	ClassDB::bind_method(D_METHOD("can_instantiate", "class"), &_ClassDB::can_instantiate);
+	ClassDB::bind_method(D_METHOD("instantiate", "class"), &_ClassDB::instantiate);
 
 	ClassDB::bind_method(D_METHOD("class_has_signal", "class", "signal"), &_ClassDB::has_signal);
 	ClassDB::bind_method(D_METHOD("class_get_signal", "class", "signal"), &_ClassDB::get_signal);
@@ -2321,6 +2112,14 @@ bool _Engine::is_editor_hint() const {
 	return Engine::get_singleton()->is_editor_hint();
 }
 
+void _Engine::set_print_error_messages(bool p_enabled) {
+	Engine::get_singleton()->set_print_error_messages(p_enabled);
+}
+
+bool _Engine::is_printing_error_messages() const {
+	return Engine::get_singleton()->is_printing_error_messages();
+}
+
 void _Engine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_iterations_per_second", "iterations_per_second"), &_Engine::set_iterations_per_second);
 	ClassDB::bind_method(D_METHOD("get_iterations_per_second"), &_Engine::get_iterations_per_second);
@@ -2355,7 +2154,11 @@ void _Engine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_editor_hint", "enabled"), &_Engine::set_editor_hint);
 	ClassDB::bind_method(D_METHOD("is_editor_hint"), &_Engine::is_editor_hint);
 
+	ClassDB::bind_method(D_METHOD("set_print_error_messages", "enabled"), &_Engine::set_print_error_messages);
+	ClassDB::bind_method(D_METHOD("is_printing_error_messages"), &_Engine::is_printing_error_messages);
+
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "editor_hint"), "set_editor_hint", "is_editor_hint");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "print_error_messages"), "set_print_error_messages", "is_printing_error_messages");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "iterations_per_second"), "set_iterations_per_second", "get_iterations_per_second");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "target_fps"), "set_target_fps", "get_target_fps");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "time_scale"), "set_time_scale", "get_time_scale");
@@ -2363,80 +2166,6 @@ void _Engine::_bind_methods() {
 }
 
 _Engine *_Engine::singleton = nullptr;
-
-////// _JSON //////
-
-void JSONParseResult::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("get_error"), &JSONParseResult::get_error);
-	ClassDB::bind_method(D_METHOD("get_error_string"), &JSONParseResult::get_error_string);
-	ClassDB::bind_method(D_METHOD("get_error_line"), &JSONParseResult::get_error_line);
-	ClassDB::bind_method(D_METHOD("get_result"), &JSONParseResult::get_result);
-
-	ClassDB::bind_method(D_METHOD("set_error", "error"), &JSONParseResult::set_error);
-	ClassDB::bind_method(D_METHOD("set_error_string", "error_string"), &JSONParseResult::set_error_string);
-	ClassDB::bind_method(D_METHOD("set_error_line", "error_line"), &JSONParseResult::set_error_line);
-	ClassDB::bind_method(D_METHOD("set_result", "result"), &JSONParseResult::set_result);
-
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "error", PROPERTY_HINT_NONE, "Error", PROPERTY_USAGE_CLASS_IS_ENUM), "set_error", "get_error");
-	ADD_PROPERTY(PropertyInfo(Variant::STRING, "error_string"), "set_error_string", "get_error_string");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "error_line"), "set_error_line", "get_error_line");
-	ADD_PROPERTY(PropertyInfo(Variant::NIL, "result", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NIL_IS_VARIANT), "set_result", "get_result");
-}
-
-void JSONParseResult::set_error(Error p_error) {
-	error = p_error;
-}
-
-Error JSONParseResult::get_error() const {
-	return error;
-}
-
-void JSONParseResult::set_error_string(const String &p_error_string) {
-	error_string = p_error_string;
-}
-
-String JSONParseResult::get_error_string() const {
-	return error_string;
-}
-
-void JSONParseResult::set_error_line(int p_error_line) {
-	error_line = p_error_line;
-}
-
-int JSONParseResult::get_error_line() const {
-	return error_line;
-}
-
-void JSONParseResult::set_result(const Variant &p_result) {
-	result = p_result;
-}
-
-Variant JSONParseResult::get_result() const {
-	return result;
-}
-
-void _JSON::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("print", "value", "indent", "sort_keys"), &_JSON::print, DEFVAL(String()), DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("parse", "json"), &_JSON::parse);
-}
-
-String _JSON::print(const Variant &p_value, const String &p_indent, bool p_sort_keys) {
-	return JSON::print(p_value, p_indent, p_sort_keys);
-}
-
-Ref<JSONParseResult> _JSON::parse(const String &p_json) {
-	Ref<JSONParseResult> result;
-	result.instance();
-
-	result->error = JSON::parse(p_json, result->result, result->error_string, result->error_line);
-
-	if (result->error != OK) {
-		ERR_PRINT(vformat("Error parsing JSON at line %s: %s", result->error_line, result->error_string));
-	}
-	return result;
-}
-
-_JSON *_JSON::singleton = nullptr;
 
 ////// _EngineDebugger //////
 

@@ -149,7 +149,7 @@
 			</argument>
 			<argument index="4" name="index" type="int">
 			</argument>
-			<argument index="5" name="color" type="Color" default="Color( 1, 1, 1, 1 )">
+			<argument index="5" name="color" type="Color" default="Color(1, 1, 1, 1)">
 			</argument>
 			<description>
 				Draws single glyph into a canvas item at the position, using [code]font[/code] at the size [code]size[/code].
@@ -171,7 +171,7 @@
 			</argument>
 			<argument index="5" name="index" type="int">
 			</argument>
-			<argument index="6" name="color" type="Color" default="Color( 1, 1, 1, 1 )">
+			<argument index="6" name="color" type="Color" default="Color(1, 1, 1, 1)">
 			</argument>
 			<description>
 				Draws single glyph outline of size [code]outline_size[/code] into a canvas item at the position, using [code]font[/code] at the size [code]size[/code].
@@ -788,7 +788,7 @@
 			</argument>
 			<argument index="4" name="clip_r" type="float" default="-1">
 			</argument>
-			<argument index="5" name="color" type="Color" default="Color( 1, 1, 1, 1 )">
+			<argument index="5" name="color" type="Color" default="Color(1, 1, 1, 1)">
 			</argument>
 			<description>
 				Draw shaped text into a canvas item at a given position, with [code]color[/code]. [code]pos[/code] specifies the leftmost point of the baseline (for horizontal layout) or topmost point of the baseline (for vertical layout).
@@ -809,7 +809,7 @@
 			</argument>
 			<argument index="5" name="outline_size" type="int" default="1">
 			</argument>
-			<argument index="6" name="color" type="Color" default="Color( 1, 1, 1, 1 )">
+			<argument index="6" name="color" type="Color" default="Color(1, 1, 1, 1)">
 			</argument>
 			<description>
 				Draw the outline of the shaped text into a canvas item at a given position, with [code]color[/code]. [code]pos[/code] specifies the leftmost point of the baseline (for horizontal layout) or topmost point of the baseline (for vertical layout).
@@ -976,7 +976,7 @@
 			</argument>
 			<description>
 				Returns [code]true[/code] if text buffer is configured to display hexadecimal codes in place of invalid characters.
-				Note: If set to [code]false[/code], nothing is displayed  in place of invalid characters.
+				Note: If set to [code]false[/code], nothing is displayed in place of invalid characters.
 			</description>
 		</method>
 		<method name="shaped_text_get_range" qualifiers="const">
@@ -1086,6 +1086,19 @@
 			</argument>
 			<description>
 				Returns composite character end position closest to the [code]pos[/code].
+			</description>
+		</method>
+		<method name="shaped_text_overrun_trim_to_width">
+			<return type="void">
+			</return>
+			<argument index="0" name="shaped" type="RID">
+			</argument>
+			<argument index="1" name="width" type="float" default="0">
+			</argument>
+			<argument index="2" name="overrun_trim_flags" type="int" default="0">
+			</argument>
+			<description>
+				Trims text if it exceeds the given width.
 			</description>
 		</method>
 		<method name="shaped_text_prev_grapheme_pos">
@@ -1259,6 +1272,21 @@
 		</constant>
 		<constant name="BREAK_GRAPHEME_BOUND" value="64" enum="LineBreakFlag">
 			Break the line between any unconnected graphemes.
+		</constant>
+		<constant name="OVERRUN_NO_TRIMMING" value="0" enum="TextOverrunFlag">
+			No trimming is performed.
+		</constant>
+		<constant name="OVERRUN_TRIM" value="1" enum="TextOverrunFlag">
+			Trims the text when it exceeds the given width.
+		</constant>
+		<constant name="OVERRUN_TRIM_WORD_ONLY" value="2" enum="TextOverrunFlag">
+			Trims the text per word instead of per grapheme.
+		</constant>
+		<constant name="OVERRUN_ADD_ELLIPSIS" value="4" enum="TextOverrunFlag">
+			Determines whether an ellipsis should be added at the end of the text.
+		</constant>
+		<constant name="OVERRUN_ENFORCE_ELLIPSIS" value="8" enum="TextOverrunFlag">
+			Determines whether the ellipsis at the end of the text is enforced and may not be hidden.
 		</constant>
 		<constant name="GRAPHEME_IS_RTL" value="2" enum="GraphemeFlag">
 			Grapheme is part of right-to-left or bottom-to-top run.

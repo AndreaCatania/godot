@@ -30,7 +30,7 @@
 
 #include "gdscript_cache.h"
 
-#include "core/os/file_access.h"
+#include "core/io/file_access.h"
 #include "core/templates/vector.h"
 #include "gdscript.h"
 #include "gdscript_analyzer.h"
@@ -134,7 +134,7 @@ Ref<GDScriptParserRef> GDScriptCache::get_parser(const String &p_path, GDScriptP
 			return ref;
 		}
 		GDScriptParser *parser = memnew(GDScriptParser);
-		ref.instance();
+		ref.instantiate();
 		ref->parser = parser;
 		ref->path = p_path;
 		singleton->parser_map[p_path] = ref.ptr();
@@ -153,7 +153,7 @@ String GDScriptCache::get_source_code(const String &p_path) {
 		ERR_FAIL_COND_V(err, "");
 	}
 
-	uint64_t len = f->get_len();
+	uint64_t len = f->get_length();
 	source_file.resize(len + 1);
 	uint64_t r = f->get_buffer(source_file.ptrw(), len);
 	f->close();
@@ -180,7 +180,7 @@ Ref<GDScript> GDScriptCache::get_shallow_script(const String &p_path, const Stri
 	}
 
 	Ref<GDScript> script;
-	script.instance();
+	script.instantiate();
 	script->set_path(p_path, true);
 	script->set_script_path(p_path);
 	script->load_source_code(p_path);

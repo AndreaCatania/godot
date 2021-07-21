@@ -40,12 +40,12 @@
 			</description>
 		</method>
 		<method name="get_instance_transform" qualifiers="const">
-			<return type="Transform">
+			<return type="Transform3D">
 			</return>
 			<argument index="0" name="instance" type="int">
 			</argument>
 			<description>
-				Returns the [Transform] of a specific instance.
+				Returns the [Transform3D] of a specific instance.
 			</description>
 		</method>
 		<method name="get_instance_transform_2d" qualifiers="const">
@@ -86,10 +86,10 @@
 			</return>
 			<argument index="0" name="instance" type="int">
 			</argument>
-			<argument index="1" name="transform" type="Transform">
+			<argument index="1" name="transform" type="Transform3D">
 			</argument>
 			<description>
-				Sets the [Transform] for a specific instance.
+				Sets the [Transform3D] for a specific instance.
 			</description>
 		</method>
 		<method name="set_instance_transform_2d">
@@ -105,7 +105,7 @@
 		</method>
 	</methods>
 	<members>
-		<member name="buffer" type="PackedFloat32Array" setter="set_buffer" getter="get_buffer" default="PackedFloat32Array(  )">
+		<member name="buffer" type="PackedFloat32Array" setter="set_buffer" getter="get_buffer" default="PackedFloat32Array()">
 		</member>
 		<member name="color_array" type="PackedColorArray" setter="_set_color_array" getter="_get_color_array">
 		</member>

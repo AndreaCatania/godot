@@ -27,6 +27,40 @@
 			<description>
 			</description>
 		</method>
+		<method name="cleanup_invalid_tile_proxies">
+			<return type="void">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="clear_tile_proxies">
+			<return type="void">
+			</return>
+			<description>
+			</description>
+		</method>
+		<method name="get_alternative_level_tile_proxy">
+			<return type="Array">
+			</return>
+			<argument index="0" name="source_from" type="int">
+			</argument>
+			<argument index="1" name="coords_from" type="Vector2i">
+			</argument>
+			<argument index="2" name="alternative_from" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="get_coords_level_tile_proxy">
+			<return type="Array">
+			</return>
+			<argument index="0" name="source_from" type="int">
+			</argument>
+			<argument index="1" name="coords_from" type="Vector2i">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="get_navigation_layer_layers" qualifiers="const">
 			<return type="int">
 			</return>
@@ -103,6 +137,14 @@
 			<description>
 			</description>
 		</method>
+		<method name="get_source_level_tile_proxy">
+			<return type="int">
+			</return>
+			<argument index="0" name="source_from" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="get_terrain_color" qualifiers="const">
 			<return type="Color">
 			</return>
@@ -139,6 +181,28 @@
 			<description>
 			</description>
 		</method>
+		<method name="has_alternative_level_tile_proxy">
+			<return type="bool">
+			</return>
+			<argument index="0" name="source_from" type="int">
+			</argument>
+			<argument index="1" name="coords_from" type="Vector2i">
+			</argument>
+			<argument index="2" name="alternative_from" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="has_coords_level_tile_proxy">
+			<return type="bool">
+			</return>
+			<argument index="0" name="source_from" type="int">
+			</argument>
+			<argument index="1" name="coords_from" type="Vector2i">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="has_source" qualifiers="const">
 			<return type="bool">
 			</return>
@@ -147,10 +211,92 @@
 			<description>
 			</description>
 		</method>
+		<method name="has_source_level_tile_proxy">
+			<return type="bool">
+			</return>
+			<argument index="0" name="source_from" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="map_tile_proxy" qualifiers="const">
+			<return type="Array">
+			</return>
+			<argument index="0" name="source_from" type="int">
+			</argument>
+			<argument index="1" name="coords_from" type="Vector2i">
+			</argument>
+			<argument index="2" name="alternative_from" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="remove_alternative_level_tile_proxy">
+			<return type="void">
+			</return>
+			<argument index="0" name="source_from" type="int">
+			</argument>
+			<argument index="1" name="coords_from" type="Vector2i">
+			</argument>
+			<argument index="2" name="alternative_from" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="remove_coords_level_tile_proxy">
+			<return type="void">
+			</return>
+			<argument index="0" name="source_from" type="int">
+			</argument>
+			<argument index="1" name="coords_from" type="Vector2i">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="remove_source">
 			<return type="void">
 			</return>
 			<argument index="0" name="source_id" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="remove_source_level_tile_proxy">
+			<return type="void">
+			</return>
+			<argument index="0" name="source_from" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="set_alternative_level_tile_proxy">
+			<return type="void">
+			</return>
+			<argument index="0" name="source_from" type="int">
+			</argument>
+			<argument index="1" name="coords_from" type="Vector2i">
+			</argument>
+			<argument index="2" name="alternative_from" type="int">
+			</argument>
+			<argument index="3" name="source_to" type="int">
+			</argument>
+			<argument index="4" name="coords_to" type="Vector2i">
+			</argument>
+			<argument index="5" name="alternative_to" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
+		<method name="set_coords_level_tile_proxy">
+			<return type="void">
+			</return>
+			<argument index="0" name="p_source_from" type="int">
+			</argument>
+			<argument index="1" name="coords_from" type="Vector2i">
+			</argument>
+			<argument index="2" name="source_to" type="int">
+			</argument>
+			<argument index="3" name="coords_to" type="Vector2i">
 			</argument>
 			<description>
 			</description>
@@ -225,6 +371,16 @@
 			<description>
 			</description>
 		</method>
+		<method name="set_source_level_tile_proxy">
+			<return type="void">
+			</return>
+			<argument index="0" name="source_from" type="int">
+			</argument>
+			<argument index="1" name="source_to" type="int">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="set_terrain_color">
 			<return type="void">
 			</return>
@@ -287,9 +443,7 @@
 		</member>
 		<member name="tile_shape" type="int" setter="set_tile_shape" getter="get_tile_shape" enum="TileSet.TileShape" default="0">
 		</member>
-		<member name="tile_size" type="Vector2i" setter="set_tile_size" getter="get_tile_size" default="Vector2i( 16, 16 )">
-		</member>
-		<member name="tile_skew" type="Vector2" setter="set_tile_skew" getter="get_tile_skew" default="Vector2( 0, 0 )">
+		<member name="tile_size" type="Vector2i" setter="set_tile_size" getter="get_tile_size" default="Vector2i(16, 16)">
 		</member>
 		<member name="uv_clipping" type="bool" setter="set_uv_clipping" getter="is_uv_clipping" default="false">
 		</member>
@@ -324,37 +478,37 @@
 		</constant>
 		<constant name="TILE_OFFSET_AXIS_VERTICAL" value="1" enum="TileOffsetAxis">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_RIGHT_SIDE" value="0" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_RIGHT_SIDE" value="0" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_RIGHT_CORNER" value="1" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_RIGHT_CORNER" value="1" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_BOTTOM_RIGHT_SIDE" value="2" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_BOTTOM_RIGHT_SIDE" value="2" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_BOTTOM_RIGHT_CORNER" value="3" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_BOTTOM_RIGHT_CORNER" value="3" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_BOTTOM_SIDE" value="4" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_BOTTOM_SIDE" value="4" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_BOTTOM_CORNER" value="5" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_BOTTOM_CORNER" value="5" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_BOTTOM_LEFT_SIDE" value="6" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_BOTTOM_LEFT_SIDE" value="6" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_BOTTOM_LEFT_CORNER" value="7" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_BOTTOM_LEFT_CORNER" value="7" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_LEFT_SIDE" value="8" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_LEFT_SIDE" value="8" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_LEFT_CORNER" value="9" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_LEFT_CORNER" value="9" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_TOP_LEFT_SIDE" value="10" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_TOP_LEFT_SIDE" value="10" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_TOP_LEFT_CORNER" value="11" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_TOP_LEFT_CORNER" value="11" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_TOP_SIDE" value="12" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_TOP_SIDE" value="12" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_TOP_CORNER" value="13" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_TOP_CORNER" value="13" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_TOP_RIGHT_SIDE" value="14" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_TOP_RIGHT_SIDE" value="14" enum="CellNeighbor">
 		</constant>
-		<constant name="TileSet::CELL_NEIGHBOR_TOP_RIGHT_CORNER" value="15" enum="CellNeighbor">
+		<constant name="CELL_NEIGHBOR_TOP_RIGHT_CORNER" value="15" enum="CellNeighbor">
 		</constant>
 		<constant name="TERRAIN_MODE_MATCH_CORNERS_AND_SIDES" value="0" enum="TerrainMode">
 		</constant>

@@ -10,6 +10,13 @@
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="_backspace" qualifiers="virtual">
+			<return type="void">
+			</return>
+			<description>
+				A virtual method that is called whenever backspace is triggered.
+			</description>
+		</method>
 		<method name="add_gutter">
 			<return type="void">
 			</return>
@@ -18,13 +25,11 @@
 			<description>
 			</description>
 		</method>
-		<method name="can_fold" qualifiers="const">
-			<return type="bool">
+		<method name="backspace">
+			<return type="void">
 			</return>
-			<argument index="0" name="line" type="int">
-			</argument>
 			<description>
-				Returns if the given line is foldable, that is, it has indented lines right below it.
+				Causes the [TextEdit] to perform a backspace.
 			</description>
 		</method>
 		<method name="center_viewport_to_cursor">
@@ -95,7 +100,7 @@
 			<description>
 				Moves the cursor at the specified [code]line[/code] index.
 				If [code]adjust_viewport[/code] is set to [code]true[/code], the viewport will center at the cursor position after the move occurs.
-				If [code]can_be_hidden[/code] is set to [code]true[/code], the specified [code]line[/code] can be hidden using [method set_line_as_hidden].
+				If [code]can_be_hidden[/code] is set to [code]true[/code], the specified [code]line[/code] can be hidden.
 			</description>
 		</method>
 		<method name="cut">
@@ -105,6 +110,12 @@
 				Cut's the current selection.
 			</description>
 		</method>
+		<method name="delete_selection">
+			<return type="void">
+			</return>
+			<description>
+			</description>
+		</method>
 		<method name="deselect">
 			<return type="void">
 			</return>
@@ -112,20 +123,19 @@
 				Deselects the current selection.
 			</description>
 		</method>
-		<method name="fold_all_lines">
-			<return type="void">
+		<method name="get_caret_draw_pos" qualifiers="const">
+			<return type="Vector2">
 			</return>
 			<description>
-				Folds all lines that are possible to be folded (see [method can_fold]).
+				Gets the caret pixel draw poistion.
 			</description>
 		</method>
-		<method name="fold_line">
-			<return type="void">
+		<method name="get_first_non_whitespace_column" qualifiers="const">
+			<return type="int">
 			</return>
 			<argument index="0" name="line" type="int">
 			</argument>
 			<description>
-				Folds the given line, if possible (see [method can_fold]).
 			</description>
 		</method>
 		<method name="get_gutter_count" qualifiers="const">
@@ -158,6 +168,15 @@
 			<description>
 			</description>
 		</method>
+		<method name="get_indent_level" qualifiers="const">
+			<return type="int">
+			</return>
+			<argument index="0" name="line" type="int">
+			</argument>
+			<description>
+				Returns the indent level of a specific line.
+			</description>
+		</method>
 		<method name="get_line" qualifiers="const">
 			<return type="String">
 			</return>
@@ -165,6 +184,15 @@
 			</argument>
 			<description>
 				Returns the text of a specific line.
+			</description>
+		</method>
+		<method name="get_line_background_color">
+			<return type="Color">
+			</return>
+			<argument index="0" name="line" type="int">
+			</argument>
+			<description>
+				Returns the current background color of the line. [code]Color(0, 0, 0, 0)[/code] is returned if no color is set.
 			</description>
 		</method>
 		<method name="get_line_count" qualifiers="const">
@@ -283,6 +311,13 @@
 				Returns the selection end line.
 			</description>
 		</method>
+		<method name="get_tab_size" qualifiers="const">
+			<return type="int">
+			</return>
+			<description>
+				Returns the [TextEdit]'s' tab size.
+			</description>
+		</method>
 		<method name="get_visible_line_count" qualifiers="const">
 			<return type="int">
 			</return>
@@ -306,13 +341,11 @@
 				Insert the specified text at the cursor position.
 			</description>
 		</method>
-		<method name="is_folded" qualifiers="const">
+		<method name="is_caret_visible" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="line" type="int">
-			</argument>
 			<description>
-				Returns whether the line at the specified index is folded or not.
+				Returns [code]true[/code] if the caret is visible on the screen.
 			</description>
 		</method>
 		<method name="is_gutter_clickable" qualifiers="const">
@@ -349,13 +382,11 @@
 			<description>
 			</description>
 		</method>
-		<method name="is_line_hidden" qualifiers="const">
+		<method name="is_menu_visible" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="line" type="int">
-			</argument>
 			<description>
-				Returns whether the line at the specified index is hidden or not.
+				Returns whether the menu is visible. Use this instead of [code]get_menu().visible[/code] to improve performance (so the creation of the menu is avoided).
 			</description>
 		</method>
 		<method name="is_selection_active" qualifiers="const">
@@ -372,6 +403,16 @@
 			</argument>
 			<description>
 				Triggers a right-click menu action by the specified index. See [enum MenuItems] for a list of available indexes.
+			</description>
+		</method>
+		<method name="merge_gutters">
+			<return type="void">
+			</return>
+			<argument index="0" name="from_line" type="int">
+			</argument>
+			<argument index="1" name="to_line" type="int">
+			</argument>
+			<description>
 			</description>
 		</method>
 		<method name="paste">
@@ -537,15 +578,15 @@
 				Sets the text for a specific line.
 			</description>
 		</method>
-		<method name="set_line_as_hidden">
+		<method name="set_line_background_color">
 			<return type="void">
 			</return>
 			<argument index="0" name="line" type="int">
 			</argument>
-			<argument index="1" name="enable" type="bool">
+			<argument index="1" name="color" type="Color">
 			</argument>
 			<description>
-				If [code]true[/code], hides the line of the specified index.
+				Sets the current background color of the line. Set to [code]Color(0, 0, 0, 0)[/code] for no color.
 			</description>
 		</method>
 		<method name="set_line_gutter_clickable">
@@ -631,13 +672,13 @@
 			<description>
 			</description>
 		</method>
-		<method name="toggle_fold_line">
+		<method name="set_tab_size">
 			<return type="void">
 			</return>
-			<argument index="0" name="line" type="int">
+			<argument index="0" name="size" type="int">
 			</argument>
 			<description>
-				Toggle the folding of the code block at the given line.
+				Sets the tab size for the [TextEdit] to use.
 			</description>
 		</method>
 		<method name="undo">
@@ -645,22 +686,6 @@
 			</return>
 			<description>
 				Perform undo operation.
-			</description>
-		</method>
-		<method name="unfold_line">
-			<return type="void">
-			</return>
-			<argument index="0" name="line" type="int">
-			</argument>
-			<description>
-				Unfolds the given line, if folded.
-			</description>
-		</method>
-		<method name="unhide_all_lines">
-			<return type="void">
-			</return>
-			<description>
-				Unhide all lines that were previously set to hidden by [method set_line_as_hidden].
 			</description>
 		</method>
 	</methods>
@@ -696,9 +721,6 @@
 			If [code]true[/code], the "tab" character will have a visible representation.
 		</member>
 		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" override="true" enum="Control.FocusMode" default="2" />
-		<member name="hiding_enabled" type="bool" setter="set_hiding_enabled" getter="is_hiding_enabled" default="false">
-			If [code]true[/code], all lines that have been set to hidden by [method set_line_as_hidden], will not be visible.
-		</member>
 		<member name="highlight_all_occurrences" type="bool" setter="set_highlight_all_occurrences" getter="is_highlight_all_occurrences_enabled" default="false">
 			If [code]true[/code], all occurrences of the selected text will be highlighted.
 		</member>
@@ -740,7 +762,7 @@
 		<member name="structured_text_bidi_override" type="int" setter="set_structured_text_bidi_override" getter="get_structured_text_bidi_override" enum="Control.StructuredTextParser" default="0">
 			Set BiDi algorithm override for the structured text.
 		</member>
-		<member name="structured_text_bidi_override_options" type="Array" setter="set_structured_text_bidi_override_options" getter="get_structured_text_bidi_override_options" default="[  ]">
+		<member name="structured_text_bidi_override_options" type="Array" setter="set_structured_text_bidi_override_options" getter="get_structured_text_bidi_override_options" default="[]">
 			Set additional options for BiDi override.
 		</member>
 		<member name="syntax_highlighter" type="SyntaxHighlighter" setter="set_syntax_highlighter" getter="get_syntax_highlighter">
@@ -792,10 +814,6 @@
 			<description>
 			</description>
 		</signal>
-		<signal name="request_completion">
-			<description>
-			</description>
-		</signal>
 		<signal name="symbol_lookup">
 			<argument index="0" name="symbol" type="String">
 			</argument>
@@ -840,9 +858,9 @@
 		</constant>
 		<constant name="GUTTER_TYPE_STRING" value="0" enum="GutterType">
 		</constant>
-		<constant name="GUTTER_TPYE_ICON" value="1" enum="GutterType">
+		<constant name="GUTTER_TYPE_ICON" value="1" enum="GutterType">
 		</constant>
-		<constant name="GUTTER_TPYE_CUSTOM" value="2" enum="GutterType">
+		<constant name="GUTTER_TYPE_CUSTOM" value="2" enum="GutterType">
 		</constant>
 		<constant name="MENU_CUT" value="0" enum="MenuItems">
 			Cuts (copies and clears) the selected text.
@@ -933,36 +951,16 @@
 		</constant>
 	</constants>
 	<theme_items>
-		<theme_item name="background_color" type="Color" default="Color( 0, 0, 0, 0 )">
+		<theme_item name="background_color" type="Color" default="Color(0, 0, 0, 0)">
 			Sets the background [Color] of this [TextEdit].
 		</theme_item>
-		<theme_item name="brace_mismatch_color" type="Color" default="Color( 1, 0.2, 0.2, 1 )">
+		<theme_item name="brace_mismatch_color" type="Color" default="Color(1, 0.2, 0.2, 1)">
 		</theme_item>
-		<theme_item name="caret_background_color" type="Color" default="Color( 0, 0, 0, 1 )">
+		<theme_item name="caret_background_color" type="Color" default="Color(0, 0, 0, 1)">
 		</theme_item>
-		<theme_item name="caret_color" type="Color" default="Color( 0.88, 0.88, 0.88, 1 )">
+		<theme_item name="caret_color" type="Color" default="Color(0.88, 0.88, 0.88, 1)">
 		</theme_item>
-		<theme_item name="code_folding_color" type="Color" default="Color( 0.8, 0.8, 0.8, 0.8 )">
-		</theme_item>
-		<theme_item name="completion" type="StyleBox">
-		</theme_item>
-		<theme_item name="completion_background_color" type="Color" default="Color( 0.17, 0.16, 0.2, 1 )">
-		</theme_item>
-		<theme_item name="completion_existing_color" type="Color" default="Color( 0.87, 0.87, 0.87, 0.13 )">
-		</theme_item>
-		<theme_item name="completion_font_color" type="Color" default="Color( 0.67, 0.67, 0.67, 1 )">
-		</theme_item>
-		<theme_item name="completion_lines" type="int" default="7">
-		</theme_item>
-		<theme_item name="completion_max_width" type="int" default="50">
-		</theme_item>
-		<theme_item name="completion_scroll_color" type="Color" default="Color( 1, 1, 1, 1 )">
-		</theme_item>
-		<theme_item name="completion_scroll_width" type="int" default="3">
-		</theme_item>
-		<theme_item name="completion_selected_color" type="Color" default="Color( 0.26, 0.26, 0.27, 1 )">
-		</theme_item>
-		<theme_item name="current_line_color" type="Color" default="Color( 0.25, 0.25, 0.26, 0.8 )">
+		<theme_item name="current_line_color" type="Color" default="Color(0.25, 0.25, 0.26, 0.8)">
 			Sets the [Color] of the breakpoints. [member breakpoint_gutter] has to be enabled.
 		</theme_item>
 		<theme_item name="focus" type="StyleBox">
@@ -970,15 +968,15 @@
 		<theme_item name="font" type="Font">
 			Sets the default [Font].
 		</theme_item>
-		<theme_item name="font_color" type="Color" default="Color( 0.88, 0.88, 0.88, 1 )">
+		<theme_item name="font_color" type="Color" default="Color(0.88, 0.88, 0.88, 1)">
 			Sets the font [Color].
 		</theme_item>
-		<theme_item name="font_outline_color" type="Color" default="Color( 1, 1, 1, 1 )">
+		<theme_item name="font_outline_color" type="Color" default="Color(1, 1, 1, 1)">
 			The tint of text outline of the [TextEdit].
 		</theme_item>
-		<theme_item name="font_readonly_color" type="Color" default="Color( 0.88, 0.88, 0.88, 0.5 )">
+		<theme_item name="font_readonly_color" type="Color" default="Color(0.88, 0.88, 0.88, 0.5)">
 		</theme_item>
-		<theme_item name="font_selected_color" type="Color" default="Color( 0, 0, 0, 1 )">
+		<theme_item name="font_selected_color" type="Color" default="Color(0, 0, 0, 1)">
 			Sets the [Color] of the selected text. [member override_selected_font_color] has to be enabled.
 		</theme_item>
 		<theme_item name="font_size" type="int">
@@ -986,9 +984,6 @@
 		</theme_item>
 		<theme_item name="line_spacing" type="int" default="4">
 			Sets the spacing between the lines.
-		</theme_item>
-		<theme_item name="mark_color" type="Color" default="Color( 1, 0.4, 0.4, 0.4 )">
-			Sets the [Color] of marked text.
 		</theme_item>
 		<theme_item name="normal" type="StyleBox">
 			Sets the [StyleBox] of this [TextEdit].
@@ -999,7 +994,7 @@
 		<theme_item name="read_only" type="StyleBox">
 			Sets the [StyleBox] of this [TextEdit] when [member readonly] is enabled.
 		</theme_item>
-		<theme_item name="selection_color" type="Color" default="Color( 0.49, 0.49, 0.49, 1 )">
+		<theme_item name="selection_color" type="Color" default="Color(0.49, 0.49, 0.49, 1)">
 			Sets the highlight [Color] of text selections.
 		</theme_item>
 		<theme_item name="space" type="Texture2D">
@@ -1008,7 +1003,7 @@
 		<theme_item name="tab" type="Texture2D">
 			Sets a custom [Texture2D] for tab text characters.
 		</theme_item>
-		<theme_item name="word_highlighted_color" type="Color" default="Color( 0.8, 0.9, 0.9, 0.15 )">
+		<theme_item name="word_highlighted_color" type="Color" default="Color(0.8, 0.9, 0.9, 0.15)">
 			Sets the highlight [Color] of multiple occurrences. [member highlight_all_occurrences] has to be enabled.
 		</theme_item>
 	</theme_items>

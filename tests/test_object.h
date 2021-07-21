@@ -93,35 +93,8 @@ public:
 	Ref<Script> get_script() const override {
 		return Ref<Script>();
 	}
-	Vector<ScriptNetData> get_rpc_methods() const override {
-		return Vector<ScriptNetData>();
-	}
-	uint16_t get_rpc_method_id(const StringName &p_method) const override {
-		return 0;
-	}
-	StringName get_rpc_method(uint16_t p_id) const override {
-		return StringName();
-	}
-	MultiplayerAPI::RPCMode get_rpc_mode_by_id(uint16_t p_id) const override {
-		return MultiplayerAPI::RPC_MODE_PUPPET;
-	}
-	MultiplayerAPI::RPCMode get_rpc_mode(const StringName &p_method) const override {
-		return MultiplayerAPI::RPC_MODE_PUPPET;
-	}
-	Vector<ScriptNetData> get_rset_properties() const override {
-		return Vector<ScriptNetData>();
-	}
-	uint16_t get_rset_property_id(const StringName &p_variable) const override {
-		return 0;
-	}
-	StringName get_rset_property(uint16_t p_id) const override {
-		return StringName();
-	}
-	MultiplayerAPI::RPCMode get_rset_mode_by_id(uint16_t p_id) const override {
-		return MultiplayerAPI::RPC_MODE_PUPPET;
-	}
-	MultiplayerAPI::RPCMode get_rset_mode(const StringName &p_variable) const override {
-		return MultiplayerAPI::RPC_MODE_PUPPET;
+	const Vector<MultiplayerAPI::RPCConfig> get_rpc_methods() const override {
+		return Vector<MultiplayerAPI::RPCConfig>();
 	}
 	ScriptLanguage *get_language() override {
 		return nullptr;
@@ -192,8 +165,8 @@ TEST_CASE("[Object] Construction") {
 	Object object;
 
 	CHECK_MESSAGE(
-			!object.is_reference(),
-			"Object is not a Reference.");
+			!object.is_ref_counted(),
+			"Object is not a RefCounted.");
 
 	Object *p_db = ObjectDB::get_instance(object.get_instance_id());
 	CHECK_MESSAGE(
@@ -233,7 +206,7 @@ TEST_CASE("[Object] Script instance property getter") {
 }
 
 TEST_CASE("[Object] Built-in property setter") {
-	ClassDB::register_class<_TestDerivedObject>();
+	GDREGISTER_CLASS(_TestDerivedObject);
 	_TestDerivedObject derived_object;
 
 	bool valid = false;
@@ -245,7 +218,7 @@ TEST_CASE("[Object] Built-in property setter") {
 }
 
 TEST_CASE("[Object] Built-in property getter") {
-	ClassDB::register_class<_TestDerivedObject>();
+	GDREGISTER_CLASS(_TestDerivedObject);
 	_TestDerivedObject derived_object;
 	derived_object.set_property(100);
 

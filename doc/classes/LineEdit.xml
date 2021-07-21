@@ -102,6 +102,13 @@
 				Inserts [code]text[/code] at the caret. If the resulting value is longer than [member max_length], nothing happens.
 			</description>
 		</method>
+		<method name="is_menu_visible" qualifiers="const">
+			<return type="bool">
+			</return>
+			<description>
+				Returns whether the menu is visible. Use this instead of [code]get_menu().visible[/code] to improve performance (so the creation of the menu is avoided).
+			</description>
+		</method>
 		<method name="menu_option">
 			<return type="void">
 			</return>
@@ -169,6 +176,7 @@
 			The caret's column position inside the [LineEdit]. When set, the text may scroll to accommodate it.
 		</member>
 		<member name="caret_force_displayed" type="bool" setter="set_caret_force_displayed" getter="is_caret_force_displayed" default="false">
+			If [code]true[/code], the [LineEdit] will always show the caret, even if focus is lost.
 		</member>
 		<member name="caret_mid_grapheme" type="bool" setter="set_caret_mid_grapheme_enabled" getter="is_caret_mid_grapheme_enabled" default="false">
 			Allow moving caret, selecting and removing the individual composite character components.
@@ -195,6 +203,28 @@
 		</member>
 		<member name="max_length" type="int" setter="set_max_length" getter="get_max_length" default="0">
 			Maximum amount of characters that can be entered inside the [LineEdit]. If [code]0[/code], there is no limit.
+			When a limit is defined, characters that would exceed [member max_length] are truncated. This happens both for existing [member text] contents when setting the max length, or for new text inserted in the [LineEdit], including pasting. If any input text is truncated, the [signal text_change_rejected] signal is emitted with the truncated substring as parameter.
+			[b]Example:[/b]
+			[codeblocks]
+			[gdscript]
+			text = "Hello world"
+			max_length = 5
+			# `text` becomes "Hello".
+			max_length = 10
+			text += " goodbye"
+			# `text` becomes "Hello good".
+			# `text_change_rejected` is emitted with "bye" as parameter.
+			[/gdscript]
+			[csharp]
+			Text = "Hello world";
+			MaxLength = 5;
+			// `Text` becomes "Hello".
+			MaxLength = 10;
+			Text += " goodbye";
+			// `Text` becomes "Hello good".
+			// `text_change_rejected` is emitted with "bye" as parameter.
+			[/csharp]
+			[/codeblocks]
 		</member>
 		<member name="mouse_default_cursor_shape" type="int" setter="set_default_cursor_shape" getter="get_default_cursor_shape" override="true" enum="Control.CursorShape" default="1" />
 		<member name="placeholder_alpha" type="float" setter="set_placeholder_alpha" getter="get_placeholder_alpha" default="0.6">
@@ -221,7 +251,7 @@
 		<member name="structured_text_bidi_override" type="int" setter="set_structured_text_bidi_override" getter="get_structured_text_bidi_override" enum="Control.StructuredTextParser" default="0">
 			Set BiDi algorithm override for the structured text.
 		</member>
-		<member name="structured_text_bidi_override_options" type="Array" setter="set_structured_text_bidi_override_options" getter="get_structured_text_bidi_override_options" default="[  ]">
+		<member name="structured_text_bidi_override_options" type="Array" setter="set_structured_text_bidi_override_options" getter="get_structured_text_bidi_override_options" default="[]">
 			Set additional options for BiDi override.
 		</member>
 		<member name="text" type="String" setter="set_text" getter="get_text" default="&quot;&quot;">
@@ -237,8 +267,10 @@
 	</members>
 	<signals>
 		<signal name="text_change_rejected">
+			<argument index="0" name="rejected_substring" type="String">
+			</argument>
 			<description>
-				Emitted when trying to append text that would overflow the [member max_length].
+				Emitted when appending text that overflows the [member max_length]. The appended text is truncated to fit [member max_length], and the part that couldn't fit is passed as the [code]rejected_substring[/code] argument.
 			</description>
 		</signal>
 		<signal name="text_changed">
@@ -248,7 +280,7 @@
 				Emitted when the text changes.
 			</description>
 		</signal>
-		<signal name="text_entered">
+		<signal name="text_submitted">
 			<argument index="0" name="new_text" type="String">
 			</argument>
 			<description>
@@ -359,16 +391,16 @@
 		</constant>
 	</constants>
 	<theme_items>
-		<theme_item name="caret_color" type="Color" default="Color( 0.94, 0.94, 0.94, 1 )">
+		<theme_item name="caret_color" type="Color" default="Color(0.94, 0.94, 0.94, 1)">
 			Color of the [LineEdit]'s caret (text cursor).
 		</theme_item>
 		<theme_item name="clear" type="Texture2D">
 			Texture for the clear button. See [member clear_button_enabled].
 		</theme_item>
-		<theme_item name="clear_button_color" type="Color" default="Color( 0.88, 0.88, 0.88, 1 )">
+		<theme_item name="clear_button_color" type="Color" default="Color(0.88, 0.88, 0.88, 1)">
 			Color used as default tint for the clear button.
 		</theme_item>
-		<theme_item name="clear_button_color_pressed" type="Color" default="Color( 1, 1, 1, 1 )">
+		<theme_item name="clear_button_color_pressed" type="Color" default="Color(1, 1, 1, 1)">
 			Color used for the clear button when it's pressed.
 		</theme_item>
 		<theme_item name="focus" type="StyleBox">
@@ -377,19 +409,19 @@
 		<theme_item name="font" type="Font">
 			Font used for the text.
 		</theme_item>
-		<theme_item name="font_color" type="Color" default="Color( 0.88, 0.88, 0.88, 1 )">
+		<theme_item name="font_color" type="Color" default="Color(0.88, 0.88, 0.88, 1)">
 			Default font color.
 		</theme_item>
-		<theme_item name="font_outline_color" type="Color" default="Color( 1, 1, 1, 1 )">
+		<theme_item name="font_outline_color" type="Color" default="Color(1, 1, 1, 1)">
 			The tint of text outline of the [LineEdit].
 		</theme_item>
-		<theme_item name="font_selected_color" type="Color" default="Color( 0, 0, 0, 1 )">
+		<theme_item name="font_selected_color" type="Color" default="Color(0, 0, 0, 1)">
 			Font color for selected text (inside the selection rectangle).
 		</theme_item>
 		<theme_item name="font_size" type="int">
 			Font size of the [LineEdit]'s text.
 		</theme_item>
-		<theme_item name="font_uneditable_color" type="Color" default="Color( 0.88, 0.88, 0.88, 0.5 )">
+		<theme_item name="font_uneditable_color" type="Color" default="Color(0.88, 0.88, 0.88, 0.5)">
 			Font color when editing is disabled.
 		</theme_item>
 		<theme_item name="minimum_character_width" type="int" default="4">
@@ -404,7 +436,7 @@
 		<theme_item name="read_only" type="StyleBox">
 			Background used when [LineEdit] is in read-only mode ([member editable] is set to [code]false[/code]).
 		</theme_item>
-		<theme_item name="selection_color" type="Color" default="Color( 0.49, 0.49, 0.49, 1 )">
+		<theme_item name="selection_color" type="Color" default="Color(0.49, 0.49, 0.49, 1)">
 			Color of the selection rectangle.
 		</theme_item>
 	</theme_items>

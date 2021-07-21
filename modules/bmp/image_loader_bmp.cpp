@@ -205,7 +205,7 @@ Error ImageLoaderBMP::load_image(Ref<Image> p_image, FileAccess *f,
 
 	// A valid bmp file should always at least have a
 	// file header and a minimal info header
-	if (f->get_len() > BITMAP_FILE_HEADER_SIZE + BITMAP_INFO_HEADER_MIN_SIZE) {
+	if (f->get_length() > BITMAP_FILE_HEADER_SIZE + BITMAP_INFO_HEADER_MIN_SIZE) {
 		// File Header
 		bmp_header.bmp_file_header.bmp_signature = f->get_16();
 		if (bmp_header.bmp_file_header.bmp_signature == BITMAP_SIGNATURE) {
@@ -298,7 +298,7 @@ static Ref<Image> _bmp_mem_loader_func(const uint8_t *p_bmp, int p_size) {
 	Error open_memfile_error = memfile.open_custom(p_bmp, p_size);
 	ERR_FAIL_COND_V_MSG(open_memfile_error, Ref<Image>(), "Could not create memfile for BMP image buffer.");
 	Ref<Image> img;
-	img.instance();
+	img.instantiate();
 	Error load_error = ImageLoaderBMP().load_image(img, &memfile, false, 1.0f);
 	ERR_FAIL_COND_V_MSG(load_error, Ref<Image>(), "Failed to load BMP image.");
 	return img;

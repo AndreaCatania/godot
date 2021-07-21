@@ -6,7 +6,7 @@
 	<description>
 		This class implements a WebSocket client compatible with any RFC 6455-compliant WebSocket server.
 		This client can be optionally used as a network peer for the [MultiplayerAPI].
-		After starting the client ([method connect_to_url]), you will need to [method NetworkedMultiplayerPeer.poll] it at regular intervals (e.g. inside [method Node._process]).
+		After starting the client ([method connect_to_url]), you will need to [method MultiplayerPeer.poll] it at regular intervals (e.g. inside [method Node._process]).
 		You will receive appropriate signals when connecting, disconnecting, or when new data is available.
 	</description>
 	<tutorials>
@@ -17,11 +17,11 @@
 			</return>
 			<argument index="0" name="url" type="String">
 			</argument>
-			<argument index="1" name="protocols" type="PackedStringArray" default="PackedStringArray(  )">
+			<argument index="1" name="protocols" type="PackedStringArray" default="PackedStringArray()">
 			</argument>
 			<argument index="2" name="gd_mp_api" type="bool" default="false">
 			</argument>
-			<argument index="3" name="custom_headers" type="PackedStringArray" default="PackedStringArray(  )">
+			<argument index="3" name="custom_headers" type="PackedStringArray" default="PackedStringArray()">
 			</argument>
 			<description>
 				Connects to the given URL requesting one of the given [code]protocols[/code] as sub-protocol. If the list empty (default), no sub-protocol will be requested.

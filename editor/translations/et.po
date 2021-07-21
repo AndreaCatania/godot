@@ -409,10 +409,6 @@ msgid "Animation tracks can only point to AnimationPlayer nodes."
 msgstr "Animatsiooni rajad võivad osutada ainult AnimationPlayer sõlmedele."
 
 #: editor/animation_track_editor.cpp
-msgid "An animation player can't animate itself, only other players."
-msgstr "AnimationPlayer ei saa animeerida iseennast, ainult teisi mängijaid."
-
-#: editor/animation_track_editor.cpp
 msgid "Not possible to add a new track without a root"
 msgstr "Ei saa lisada uut rada ilma tüveta"
 
@@ -457,8 +453,9 @@ msgid "Anim Move Keys"
 msgstr ""
 
 #: editor/animation_track_editor.cpp
-msgid "Clipboard is empty"
-msgstr "Lõikelaud on tühi"
+#: modules/visual_script/visual_script_editor.cpp
+msgid "Clipboard is empty!"
+msgstr ""
 
 #: editor/animation_track_editor.cpp
 msgid "Paste Tracks"
@@ -1090,6 +1087,10 @@ msgstr ""
 #: editor/editor_about.cpp
 msgid "Thanks from the Godot community!"
 msgstr "Suur tänu Godot kogukonnalt!"
+
+#: editor/editor_about.cpp editor/editor_node.cpp editor/project_manager.cpp
+msgid "Click to copy."
+msgstr ""
 
 #: editor/editor_about.cpp
 msgid "Godot Engine contributors"
@@ -2446,7 +2447,7 @@ msgid "Save changes to the following scene(s) before quitting?"
 msgstr ""
 
 #: editor/editor_node.cpp
-msgid "Save changes the following scene(s) before opening Project Manager?"
+msgid "Save changes to the following scene(s) before opening Project Manager?"
 msgstr ""
 
 #: editor/editor_node.cpp
@@ -9746,7 +9747,7 @@ msgstr ""
 
 #: editor/project_settings_editor.cpp
 msgid ""
-"Invalid action name. it cannot be empty nor contain '/', ':', '=', '\\' or "
+"Invalid action name. It cannot be empty nor contain '/', ':', '=', '\\' or "
 "'\"'"
 msgstr ""
 
@@ -11544,10 +11545,6 @@ msgid "Can't copy the function node."
 msgstr ""
 
 #: modules/visual_script/visual_script_editor.cpp
-msgid "Clipboard is empty!"
-msgstr ""
-
-#: modules/visual_script/visual_script_editor.cpp
 msgid "Paste VisualScript Nodes"
 msgstr ""
 
@@ -11752,7 +11749,19 @@ msgid ""
 msgstr ""
 
 #: platform/android/export/export.cpp
+msgid ""
+"Either Debug Keystore, Debug User AND Debug Password settings must be "
+"configured OR none of them."
+msgstr ""
+
+#: platform/android/export/export.cpp
 msgid "Debug keystore not configured in the Editor Settings nor in the preset."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid ""
+"Either Release Keystore, Release User AND Release Password settings must be "
+"configured OR none of them."
 msgstr ""
 
 #: platform/android/export/export.cpp
@@ -12557,6 +12566,13 @@ msgstr ""
 #: servers/visual/shader_language.cpp
 msgid "Constants cannot be modified."
 msgstr "Konstante ei saa muuta."
+
+#~ msgid "An animation player can't animate itself, only other players."
+#~ msgstr ""
+#~ "AnimationPlayer ei saa animeerida iseennast, ainult teisi mängijaid."
+
+#~ msgid "Clipboard is empty"
+#~ msgstr "Lõikelaud on tühi"
 
 #~ msgid "Error trying to save layout!"
 #~ msgstr "Viga paigutuse salvestamisel!"

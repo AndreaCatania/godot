@@ -161,7 +161,7 @@ void BodyPair3DSW::validate_contacts() {
 	}
 }
 
-bool BodyPair3DSW::_test_ccd(real_t p_step, Body3DSW *p_A, int p_shape_A, const Transform &p_xform_A, Body3DSW *p_B, int p_shape_B, const Transform &p_xform_B) {
+bool BodyPair3DSW::_test_ccd(real_t p_step, Body3DSW *p_A, int p_shape_A, const Transform3D &p_xform_A, Body3DSW *p_B, int p_shape_B, const Transform3D &p_xform_B) {
 	Vector3 motion = p_A->get_linear_velocity() * p_step;
 	real_t mlen = motion.length();
 	if (mlen < CMP_EPSILON) {
@@ -184,7 +184,7 @@ bool BodyPair3DSW::_test_ccd(real_t p_step, Body3DSW *p_A, int p_shape_A, const 
 	Vector3 from = p_xform_A.xform(s);
 	Vector3 to = from + motion;
 
-	Transform from_inv = p_xform_B.affine_inverse();
+	Transform3D from_inv = p_xform_B.affine_inverse();
 
 	Vector3 local_from = from_inv.xform(from - mnormal * mlen * 0.1); //start from a little inside the bounding box
 	Vector3 local_to = from_inv.xform(to);
@@ -215,7 +215,7 @@ bool BodyPair3DSW::setup(real_t p_step) {
 	dynamic_A = (A->get_mode() > PhysicsServer3D::BODY_MODE_KINEMATIC);
 	dynamic_B = (B->get_mode() > PhysicsServer3D::BODY_MODE_KINEMATIC);
 
-	if (!A->test_collision_mask(B) || A->has_exception(B->get_self()) || B->has_exception(A->get_self())) {
+	if (!A->interacts_with(B) || A->has_exception(B->get_self()) || B->has_exception(A->get_self())) {
 		collided = false;
 		return false;
 	}
@@ -230,22 +230,17 @@ bool BodyPair3DSW::setup(real_t p_step) {
 		}
 	}
 
-	if (A->is_shape_set_as_disabled(shape_A) || B->is_shape_set_as_disabled(shape_B)) {
-		collided = false;
-		return false;
-	}
-
 	offset_B = B->get_transform().get_origin() - A->get_transform().get_origin();
 
 	validate_contacts();
 
 	const Vector3 &offset_A = A->get_transform().get_origin();
-	Transform xform_Au = Transform(A->get_transform().basis, Vector3());
-	Transform xform_A = xform_Au * A->get_shape_transform(shape_A);
+	Transform3D xform_Au = Transform3D(A->get_transform().basis, Vector3());
+	Transform3D xform_A = xform_Au * A->get_shape_transform(shape_A);
 
-	Transform xform_Bu = B->get_transform();
+	Transform3D xform_Bu = B->get_transform();
 	xform_Bu.origin -= offset_A;
-	Transform xform_B = xform_Bu * B->get_shape_transform(shape_B);
+	Transform3D xform_B = xform_Bu * B->get_shape_transform(shape_B);
 
 	Shape3DSW *shape_A_ptr = A->get_shape(shape_A);
 	Shape3DSW *shape_B_ptr = B->get_shape(shape_B);
@@ -571,7 +566,7 @@ void BodySoftBodyPair3DSW::contact_added_callback(const Vector3 &p_point_A, int 
 
 void BodySoftBodyPair3DSW::validate_contacts() {
 	// Make sure to erase contacts that are no longer valid.
-	const Transform &transform_A = body->get_transform();
+	const Transform3D &transform_A = body->get_transform();
 
 	real_t contact_max_separation = space->get_contact_max_separation();
 
@@ -602,21 +597,16 @@ void BodySoftBodyPair3DSW::validate_contacts() {
 bool BodySoftBodyPair3DSW::setup(real_t p_step) {
 	body_dynamic = (body->get_mode() > PhysicsServer3D::BODY_MODE_KINEMATIC);
 
-	if (!body->test_collision_mask(soft_body) || body->has_exception(soft_body->get_self()) || soft_body->has_exception(body->get_self())) {
+	if (!body->interacts_with(soft_body) || body->has_exception(soft_body->get_self()) || soft_body->has_exception(body->get_self())) {
 		collided = false;
 		return false;
 	}
 
-	if (body->is_shape_set_as_disabled(body_shape)) {
-		collided = false;
-		return false;
-	}
+	const Transform3D &xform_Au = body->get_transform();
+	Transform3D xform_A = xform_Au * body->get_shape_transform(body_shape);
 
-	const Transform &xform_Au = body->get_transform();
-	Transform xform_A = xform_Au * body->get_shape_transform(body_shape);
-
-	Transform xform_Bu = soft_body->get_transform();
-	Transform xform_B = xform_Bu * soft_body->get_shape_transform(0);
+	Transform3D xform_Bu = soft_body->get_transform();
+	Transform3D xform_B = xform_Bu * soft_body->get_shape_transform(0);
 
 	validate_contacts();
 
@@ -647,7 +637,7 @@ bool BodySoftBodyPair3DSW::pre_solve(real_t p_step) {
 
 	bool do_process = false;
 
-	const Transform &transform_A = body->get_transform();
+	const Transform3D &transform_A = body->get_transform();
 
 	uint32_t contact_count = contacts.size();
 	for (uint32_t contact_index = 0; contact_index < contact_count; ++contact_index) {

@@ -21,8 +21,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2021-04-22 14:39+0000\n"
-"Last-Translator: Javier Ocampos <xavier.ocampos@gmail.com>\n"
+"PO-Revision-Date: 2021-06-20 13:35+0000\n"
+"Last-Translator: Lisandro Lorea <lisandrolorea@gmail.com>\n"
 "Language-Team: Spanish (Argentina) <https://hosted.weblate.org/projects/"
 "godot-engine/godot/es_AR/>\n"
 "Language: es_AR\n"
@@ -30,7 +30,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.7-dev\n"
+"X-Generator: Weblate 4.7\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -424,12 +424,6 @@ msgid "Animation tracks can only point to AnimationPlayer nodes."
 msgstr "Las pistas de Animación solo pueden apuntar a nodos AnimationPlayer."
 
 #: editor/animation_track_editor.cpp
-msgid "An animation player can't animate itself, only other players."
-msgstr ""
-"Un reproductor de animación no puede animarse a sí mismo, solo a otros "
-"reproductores."
-
-#: editor/animation_track_editor.cpp
 msgid "Not possible to add a new track without a root"
 msgstr "No es posible agregar una nueva pista sin una raíz"
 
@@ -476,8 +470,9 @@ msgid "Anim Move Keys"
 msgstr "Mover Claves de Anim"
 
 #: editor/animation_track_editor.cpp
-msgid "Clipboard is empty"
-msgstr "El portapapeles está vacío"
+#: modules/visual_script/visual_script_editor.cpp
+msgid "Clipboard is empty!"
+msgstr "El portapapeles está vacío!"
 
 #: editor/animation_track_editor.cpp
 msgid "Paste Tracks"
@@ -1135,6 +1130,10 @@ msgstr "Cambiar Valor del Diccionario"
 #: editor/editor_about.cpp
 msgid "Thanks from the Godot community!"
 msgstr "Gracias de parte de la comunidad Godot!"
+
+#: editor/editor_about.cpp editor/editor_node.cpp editor/project_manager.cpp
+msgid "Click to copy."
+msgstr "Click para copiar."
 
 #: editor/editor_about.cpp
 msgid "Godot Engine contributors"
@@ -2524,7 +2523,7 @@ msgid "Save changes to the following scene(s) before quitting?"
 msgstr "Guardar cambios a la(s) siguiente(s) escena(s) antes de salir?"
 
 #: editor/editor_node.cpp
-msgid "Save changes the following scene(s) before opening Project Manager?"
+msgid "Save changes to the following scene(s) before opening Project Manager?"
 msgstr ""
 "Guardar cambios a la(s) siguiente(s) escena(s) antes de abrir el Gestor de "
 "Proyectos?"
@@ -2564,14 +2563,14 @@ msgid "Unable to load addon script from path: '%s'."
 msgstr "No se pudo cargar el script de addon desde la ruta: '%s'."
 
 #: editor/editor_node.cpp
-#, fuzzy
 msgid ""
 "Unable to load addon script from path: '%s'. This might be due to a code "
 "error in that script.\n"
 "Disabling the addon at '%s' to prevent further errors."
 msgstr ""
-"No se pudo cargar el script de addon desde la ruta: '%s' Parece haber un "
-"error en el código. Por favor, revisá la sintaxis."
+"No se pudo cargar el script de addon desde la ruta: '%s'. Puede ser por un "
+"error de código en dicho script.\n"
+"Desactivando el addon en '%s' para prevenir nuevos errores."
 
 #: editor/editor_node.cpp
 msgid ""
@@ -3020,7 +3019,7 @@ msgstr "Acerca de"
 
 #: editor/editor_node.cpp
 msgid "Support Godot Development"
-msgstr ""
+msgstr "Apoyar el desarrollo de Godot"
 
 #: editor/editor_node.cpp
 msgid "Play the project."
@@ -5266,11 +5265,10 @@ msgstr ""
 "contenidos dentro de la región cuadrada [0,0,1,0]."
 
 #: editor/plugins/baked_lightmap_editor_plugin.cpp
-#, fuzzy
 msgid ""
 "Godot editor was built without ray tracing support, lightmaps can't be baked."
 msgstr ""
-"El editor de Godot se compiló sin soporte de ray tracing, los lightmaps no "
+"El editor de Godot se compiló sin soporte para ray tracing, los lightmaps no "
 "pueden ser bakeados."
 
 #: editor/plugins/baked_lightmap_editor_plugin.cpp
@@ -10186,7 +10184,7 @@ msgstr "Botón de Mouse"
 
 #: editor/project_settings_editor.cpp
 msgid ""
-"Invalid action name. it cannot be empty nor contain '/', ':', '=', '\\' or "
+"Invalid action name. It cannot be empty nor contain '/', ':', '=', '\\' or "
 "'\"'"
 msgstr ""
 "Nombre de acción inválido. No puede estar vacío o contener '/', ':', '=', "
@@ -12040,10 +12038,6 @@ msgid "Can't copy the function node."
 msgstr "No se puede copiar el nodo de función."
 
 #: modules/visual_script/visual_script_editor.cpp
-msgid "Clipboard is empty!"
-msgstr "El portapapeles está vacío!"
-
-#: modules/visual_script/visual_script_editor.cpp
 msgid "Paste VisualScript Nodes"
 msgstr "Pegar Nodos de VisualScript"
 
@@ -12258,9 +12252,25 @@ msgstr ""
 "Instalala desde el menú de Proyecto."
 
 #: platform/android/export/export.cpp
+msgid ""
+"Either Debug Keystore, Debug User AND Debug Password settings must be "
+"configured OR none of them."
+msgstr ""
+"Deben estar configurados o bien Debug Keystore, Debug User Y Debug Password "
+"o bien ninguno de ellos."
+
+#: platform/android/export/export.cpp
 msgid "Debug keystore not configured in the Editor Settings nor in the preset."
 msgstr ""
 "Keystore debug no configurada en Configuración del Editor ni en el preset."
+
+#: platform/android/export/export.cpp
+msgid ""
+"Either Release Keystore, Release User AND Release Password settings must be "
+"configured OR none of them."
+msgstr ""
+"Deben estar configurados o bien Release Keystore, Release User y Release "
+"Passoword o bien ninguno de ellos."
 
 #: platform/android/export/export.cpp
 msgid "Release keystore incorrectly configured in the export preset."
@@ -13243,6 +13253,14 @@ msgstr "Solo se pueden asignar variaciones en funciones de vértice."
 #: servers/visual/shader_language.cpp
 msgid "Constants cannot be modified."
 msgstr "Las constantes no pueden modificarse."
+
+#~ msgid "An animation player can't animate itself, only other players."
+#~ msgstr ""
+#~ "Un reproductor de animación no puede animarse a sí mismo, solo a otros "
+#~ "reproductores."
+
+#~ msgid "Clipboard is empty"
+#~ msgstr "El portapapeles está vacío"
 
 #~ msgid ""
 #~ "InterpolatedCamera has been deprecated and will be removed in Godot 4.0."

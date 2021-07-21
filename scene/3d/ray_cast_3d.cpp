@@ -205,7 +205,7 @@ void RayCast3D::_update_raycast_state() {
 	PhysicsDirectSpaceState3D *dss = PhysicsServer3D::get_singleton()->space_get_direct_state(w3d->get_space());
 	ERR_FAIL_COND(!dss);
 
-	Transform gt = get_global_transform();
+	Transform3D gt = get_global_transform();
 
 	Vector3 to = target_position;
 	if (to == Vector3()) {
@@ -419,6 +419,8 @@ void RayCast3D::_update_debug_shape_material(bool p_check_collision) {
 		debug_material = material;
 
 		material->set_shading_mode(StandardMaterial3D::SHADING_MODE_UNSHADED);
+		// Use double-sided rendering so that the RayCast can be seen if the camera is inside.
+		material->set_cull_mode(BaseMaterial3D::CULL_DISABLED);
 		material->set_transparency(BaseMaterial3D::TRANSPARENCY_ALPHA);
 	}
 

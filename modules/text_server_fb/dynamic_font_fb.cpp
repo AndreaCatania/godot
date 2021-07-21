@@ -65,7 +65,7 @@ DynamicFontDataFallback::DataAtSize *DynamicFontDataFallback::get_data_for_size(
 					ERR_FAIL_V_MSG(nullptr, "Cannot open font file '" + font_path + "'.");
 				}
 
-				uint64_t len = f->get_len();
+				uint64_t len = f->get_length();
 				font_mem_cache.resize(len);
 				f->get_buffer(font_mem_cache.ptrw(), len);
 				font_mem = font_mem_cache.ptr();
@@ -306,7 +306,7 @@ DynamicFontDataFallback::Character DynamicFontDataFallback::bitmap_to_character(
 			Ref<Image> img = memnew(Image(tex.texture_size, tex.texture_size, 0, require_format, tex.imgdata));
 
 			if (tex.texture.is_null()) {
-				tex.texture.instance();
+				tex.texture.instantiate();
 				tex.texture->create_from_image(img);
 			} else {
 				tex.texture->update(img); //update

@@ -120,6 +120,23 @@ namespace Godot
         }
 
         /// <summary>
+        /// Returns a new vector with all components clamped between the
+        /// components of `min` and `max` using
+        /// <see cref="Mathf.Clamp(int, int, int)"/>.
+        /// </summary>
+        /// <param name="min">The vector with minimum allowed values.</param>
+        /// <param name="max">The vector with maximum allowed values.</param>
+        /// <returns>The vector with all components clamped.</returns>
+        public Vector2i Clamp(Vector2i min, Vector2i max)
+        {
+            return new Vector2i
+            (
+                Mathf.Clamp(x, min.x, max.x),
+                Mathf.Clamp(y, min.y, max.y)
+            );
+        }
+
+        /// <summary>
         /// Returns the cross product of this vector and `b`.
         /// </summary>
         /// <param name="b">The other vector.</param>
@@ -248,13 +265,13 @@ namespace Godot
         }
 
         /// <summary>
-        /// Returns a vector rotated 90 degrees counter-clockwise
+        /// Returns a perpendicular vector rotated 90 degrees counter-clockwise
         /// compared to the original, with the same length.
         /// </summary>
         /// <returns>The perpendicular vector.</returns>
-        public Vector2 Perpendicular()
+        public Vector2i Orthogonal()
         {
-            return new Vector2(y, -x);
+            return new Vector2i(y, -x);
         }
 
         // Constants

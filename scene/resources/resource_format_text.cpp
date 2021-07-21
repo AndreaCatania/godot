@@ -31,14 +31,14 @@
 #include "resource_format_text.h"
 
 #include "core/config/project_settings.h"
+#include "core/io/dir_access.h"
 #include "core/io/resource_format_binary.h"
-#include "core/os/dir_access.h"
 #include "core/version.h"
 
 //version 2: changed names for basis, aabb, Vectors, etc.
 #define FORMAT_VERSION 2
 
-#include "core/os/dir_access.h"
+#include "core/io/dir_access.h"
 #include "core/version.h"
 
 #define _printerr() ERR_PRINT(String(res_path + ":" + itos(lines) + " - Parse Error: " + error_text).utf8().get_data());
@@ -65,7 +65,7 @@ Error ResourceLoaderText::_parse_sub_resource_dummy(DummyReadData *p_data, Varia
 
 	if (!p_data->resource_map.has(index)) {
 		Ref<DummyResource> dr;
-		dr.instance();
+		dr.instantiate();
 		dr->set_subindex(index);
 		p_data->resource_map[index] = dr;
 		p_data->resource_set.insert(dr);
@@ -183,7 +183,7 @@ Error ResourceLoaderText::_parse_ext_resource(VariantParser::Stream *p_stream, R
 
 Ref<PackedScene> ResourceLoaderText::_parse_node_tag(VariantParser::ResourceParser &parser) {
 	Ref<PackedScene> packed_scene;
-	packed_scene.instance();
+	packed_scene.instantiate();
 
 	while (true) {
 		if (next_tag.name == "node") {
@@ -208,7 +208,7 @@ Ref<PackedScene> ResourceLoaderText::_parse_node_tag(VariantParser::ResourcePars
 			if (next_tag.fields.has("type")) {
 				type = packed_scene->get_state()->add_name(next_tag.fields["type"]);
 			} else {
-				type = SceneState::TYPE_INSTANCED; //no type? assume this was instanced
+				type = SceneState::TYPE_INSTANCED; //no type? assume this was instantiated
 			}
 
 			if (next_tag.fields.has("instance")) {
@@ -522,7 +522,7 @@ Error ResourceLoaderText::load() {
 			} else {
 				//create
 
-				Object *obj = ClassDB::instance(type);
+				Object *obj = ClassDB::instantiate(type);
 				if (!obj) {
 					error_text += "Can't create sub resource of type: " + type;
 					_printerr();
@@ -575,6 +575,7 @@ Error ResourceLoaderText::load() {
 		int_resources[id] = res; //always assign int resources
 		if (do_assign && cache_mode != ResourceFormatLoader::CACHE_MODE_IGNORE) {
 			res->set_path(path, cache_mode == ResourceFormatLoader::CACHE_MODE_REPLACE);
+			res->set_subindex(id);
 		}
 
 		if (progress && resources_total > 0) {
@@ -603,7 +604,7 @@ Error ResourceLoaderText::load() {
 		}
 
 		if (!resource.is_valid()) {
-			Object *obj = ClassDB::instance(res_type);
+			Object *obj = ClassDB::instantiate(res_type);
 			if (!obj) {
 				error_text += "Can't create sub resource of type: " + res_type;
 				_printerr();
@@ -1021,7 +1022,7 @@ Error ResourceLoaderText::save_as_binary(FileAccess *p_f, const String &p_path) 
 
 		int lindex = dummy_read.external_resources.size();
 		Ref<DummyResource> dr;
-		dr.instance();
+		dr.instantiate();
 		dr->set_path("res://dummy" + itos(lindex)); //anything is good to detect it for saving as external
 		dummy_read.external_resources[dr] = lindex;
 		dummy_read.rev_external_resources[index] = dr;

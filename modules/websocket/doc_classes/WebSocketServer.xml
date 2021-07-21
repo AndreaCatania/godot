@@ -5,7 +5,7 @@
 	</brief_description>
 	<description>
 		This class implements a WebSocket server that can also support the high-level multiplayer API.
-		After starting the server ([method listen]), you will need to [method NetworkedMultiplayerPeer.poll] it at regular intervals (e.g. inside [method Node._process]). When clients connect, disconnect, or send data, you will receive the appropriate signal.
+		After starting the server ([method listen]), you will need to [method MultiplayerPeer.poll] it at regular intervals (e.g. inside [method Node._process]). When clients connect, disconnect, or send data, you will receive the appropriate signal.
 		[b]Note:[/b] Not available in HTML5 exports.
 	</description>
 	<tutorials>
@@ -63,7 +63,7 @@
 			</return>
 			<argument index="0" name="port" type="int">
 			</argument>
-			<argument index="1" name="protocols" type="PackedStringArray" default="PackedStringArray(  )">
+			<argument index="1" name="protocols" type="PackedStringArray" default="PackedStringArray()">
 			</argument>
 			<argument index="2" name="gd_mp_api" type="bool" default="false">
 			</argument>
@@ -89,6 +89,9 @@
 		<member name="ca_chain" type="X509Certificate" setter="set_ca_chain" getter="get_ca_chain">
 			When using SSL (see [member private_key] and [member ssl_certificate]), you can set this to a valid [X509Certificate] to be provided as additional CA chain information during the SSL handshake.
 		</member>
+		<member name="handshake_timeout" type="float" setter="set_handshake_timeout" getter="get_handshake_timeout" default="3.0">
+			The time in seconds before a pending client (i.e. a client that has not yet finished the HTTP handshake) is considered stale and forcefully disconnected.
+		</member>
 		<member name="private_key" type="CryptoKey" setter="set_private_key" getter="get_private_key">
 			When set to a valid [CryptoKey] (along with [member ssl_certificate]) will cause the server to require SSL instead of regular TCP (i.e. the [code]wss://[/code] protocol).
 		</member>
@@ -113,8 +116,11 @@
 			</argument>
 			<argument index="1" name="protocol" type="String">
 			</argument>
+			<argument index="2" name="resource_name" type="String">
+			</argument>
 			<description>
-				Emitted when a new client connects. "protocol" will be the sub-protocol agreed with the client.
+				Emitted when a new client connects. "protocol" will be the sub-protocol agreed with the client, and "resource_name" will be the resource name of the URI the peer used.
+				"resource_name" is a path (at the very least a single forward slash) and potentially a query string.
 			</description>
 		</signal>
 		<signal name="client_disconnected">

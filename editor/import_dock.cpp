@@ -91,7 +91,7 @@ public:
 
 void ImportDock::set_edit_path(const String &p_path) {
 	Ref<ConfigFile> config;
-	config.instance();
+	config.instantiate();
 	Error err = config->load(p_path + ".import");
 	if (err != OK) {
 		clear();
@@ -182,7 +182,7 @@ void ImportDock::set_edit_multiple_paths(const Vector<String> &p_paths) {
 
 	for (int i = 0; i < p_paths.size(); i++) {
 		Ref<ConfigFile> config;
-		config.instance();
+		config.instantiate();
 		Error err = config->load(p_paths[i] + ".import");
 		ERR_CONTINUE(err != OK);
 
@@ -328,7 +328,7 @@ void ImportDock::_importer_selected(int i_idx) {
 
 		Ref<ConfigFile> config;
 		if (params->paths.size()) {
-			config.instance();
+			config.instantiate();
 			Error err = config->load(params->paths[0] + ".import");
 			if (err != OK) {
 				config.unref();
@@ -440,7 +440,7 @@ void ImportDock::_reimport_attempt() {
 	}
 	for (int i = 0; i < params->paths.size(); i++) {
 		Ref<ConfigFile> config;
-		config.instance();
+		config.instantiate();
 		Error err = config->load(params->paths[i] + ".import");
 		ERR_CONTINUE(err != OK);
 
@@ -477,7 +477,7 @@ void ImportDock::_advanced_options() {
 void ImportDock::_reimport() {
 	for (int i = 0; i < params->paths.size(); i++) {
 		Ref<ConfigFile> config;
-		config.instance();
+		config.instantiate();
 		Error err = config->load(params->paths[i] + ".import");
 		ERR_CONTINUE(err != OK);
 
@@ -526,18 +526,18 @@ void ImportDock::_reimport() {
 	}
 
 	EditorFileSystem::get_singleton()->reimport_files(params->paths);
-	EditorFileSystem::get_singleton()->emit_signal("filesystem_changed"); //it changed, so force emitting the signal
+	EditorFileSystem::get_singleton()->emit_signal(SNAME("filesystem_changed")); //it changed, so force emitting the signal
 }
 
 void ImportDock::_notification(int p_what) {
 	switch (p_what) {
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
-			imported->add_theme_style_override("normal", get_theme_stylebox("normal", "LineEdit"));
+			imported->add_theme_style_override("normal", get_theme_stylebox(SNAME("normal"), SNAME("LineEdit")));
 		} break;
 
 		case NOTIFICATION_ENTER_TREE: {
 			import_opts->edit(params);
-			label_warning->add_theme_color_override("font_color", get_theme_color("warning_color", "Editor"));
+			label_warning->add_theme_color_override("font_color", get_theme_color(SNAME("warning_color"), SNAME("Editor")));
 		} break;
 	}
 }
@@ -563,7 +563,7 @@ void ImportDock::initialize_import_options() const {
 ImportDock::ImportDock() {
 	set_name("Import");
 	imported = memnew(Label);
-	imported->add_theme_style_override("normal", EditorNode::get_singleton()->get_gui_base()->get_theme_stylebox("normal", "LineEdit"));
+	imported->add_theme_style_override("normal", EditorNode::get_singleton()->get_gui_base()->get_theme_stylebox(SNAME("normal"), SNAME("LineEdit")));
 	imported->set_clip_text(true);
 	add_child(imported);
 	HBoxContainer *hb = memnew(HBoxContainer);

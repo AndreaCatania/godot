@@ -27,7 +27,7 @@
 			</description>
 		</method>
 		<method name="get_camera_transform" qualifiers="const">
-			<return type="Transform">
+			<return type="Transform3D">
 			</return>
 			<description>
 				Gets the camera transform. Subclassed cameras such as [ClippedCamera3D] may provide different transforms than the [Node] transform.
@@ -55,8 +55,17 @@
 			<argument index="0" name="world_point" type="Vector3">
 			</argument>
 			<description>
-				Returns [code]true[/code] if the given position is behind the camera.
+				Returns [code]true[/code] if the given position is behind the camera (the blue part of the linked diagram). [url=https://raw.githubusercontent.com/godotengine/godot-docs/master/img/camera3d_position_frustum.png]See this diagram[/url] for an overview of position query methods.
 				[b]Note:[/b] A position which returns [code]false[/code] may still be outside the camera's field of view.
+			</description>
+		</method>
+		<method name="is_position_in_frustum" qualifiers="const">
+			<return type="bool">
+			</return>
+			<argument index="0" name="world_point" type="Vector3">
+			</argument>
+			<description>
+				Returns [code]true[/code] if the given position is inside the camera's frustum (the green part of the linked diagram). [url=https://raw.githubusercontent.com/godotengine/godot-docs/master/img/camera3d_position_frustum.png]See this diagram[/url] for an overview of position query methods.
 			</description>
 		</method>
 		<method name="make_current">
@@ -167,8 +176,8 @@
 				[codeblock]
 				# This code block is part of a script that inherits from Node3D.
 				# `control` is a reference to a node inheriting from Control.
-				control.visible = not get_viewport().get_camera().is_position_behind(global_transform.origin)
-				control.rect_position = get_viewport().get_camera().unproject_position(global_transform.origin)
+				control.visible = not get_viewport().get_camera_3d().is_position_behind(global_transform.origin)
+				control.rect_position = get_viewport().get_camera_3d().unproject_position(global_transform.origin)
 				[/codeblock]
 			</description>
 		</method>
@@ -200,7 +209,7 @@
 			- ~107.51 degrees in a 16:9 viewport
 			- ~121.63 degrees in a 21:9 viewport
 		</member>
-		<member name="frustum_offset" type="Vector2" setter="set_frustum_offset" getter="get_frustum_offset" default="Vector2( 0, 0 )">
+		<member name="frustum_offset" type="Vector2" setter="set_frustum_offset" getter="get_frustum_offset" default="Vector2(0, 0)">
 			The camera's frustum offset. This can be changed from the default to create "tilted frustum" effects such as [url=https://zdoom.org/wiki/Y-shearing]Y-shearing[/url].
 		</member>
 		<member name="h_offset" type="float" setter="set_h_offset" getter="get_h_offset" default="0.0">

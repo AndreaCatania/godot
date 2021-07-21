@@ -41,7 +41,7 @@ void Path3D::_curve_changed() {
 		update_gizmo();
 	}
 	if (is_inside_tree()) {
-		emit_signal("curve_changed");
+		emit_signal(SNAME("curve_changed"));
 	}
 
 	// update the configuration warnings of all children of type PathFollow
@@ -108,7 +108,7 @@ void PathFollow3D::_update_transform(bool p_update_xyz_rot) {
 	}
 
 	Vector3 pos = c->interpolate_baked(offset, cubic);
-	Transform t = get_transform();
+	Transform3D t = get_transform();
 	// Vector3 pos_offset = Vector3(h_offset, v_offset, 0); not used in all cases
 	// will be replaced by "Vector3(h_offset, v_offset, 0)" where it was formerly used
 

@@ -123,7 +123,7 @@
 			</return>
 			<argument index="0" name="device" type="int">
 			</argument>
-			<argument index="1" name="axis" type="int">
+			<argument index="1" name="axis" type="int" enum="JoyAxis">
 			</argument>
 			<description>
 				Returns the current value of the joypad axis at given index (see [enum JoyAxis]).
@@ -252,7 +252,7 @@
 			</return>
 			<argument index="0" name="device" type="int">
 			</argument>
-			<argument index="1" name="button" type="int">
+			<argument index="1" name="button" type="int" enum="JoyButton">
 			</argument>
 			<description>
 				Returns [code]true[/code] if you are pressing the joypad button (see [enum JoyButton]).
@@ -279,7 +279,7 @@
 		<method name="is_mouse_button_pressed" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="button" type="int">
+			<argument index="0" name="button" type="int" enum="MouseButton">
 			</argument>
 			<description>
 				Returns [code]true[/code] if you are pressing the mouse button specified with [enum MouseButton].
@@ -341,7 +341,7 @@
 			</argument>
 			<argument index="1" name="shape" type="int" enum="Input.CursorShape" default="0">
 			</argument>
-			<argument index="2" name="hotspot" type="Vector2" default="Vector2( 0, 0 )">
+			<argument index="2" name="hotspot" type="Vector2" default="Vector2(0, 0)">
 			</argument>
 			<description>
 				Sets a custom mouse cursor image, which is only visible inside the game window. The hotspot can also be specified. Passing [code]null[/code] to the image parameter resets to the system cursor. See [enum CursorShape] for the list of shapes.
@@ -449,7 +449,10 @@
 			[b]Note:[/b] If you want to process the mouse's movement in this mode, you need to use [member InputEventMouseMotion.relative].
 		</constant>
 		<constant name="MOUSE_MODE_CONFINED" value="3" enum="MouseMode">
-			Makes the mouse cursor visible but confines it to the game window.
+			Confines the mouse cursor to the game window, and make it visible.
+		</constant>
+		<constant name="MOUSE_MODE_CONFINED_HIDDEN" value="4" enum="MouseMode">
+			Confines the mouse cursor to the game window, and make it hidden.
 		</constant>
 		<constant name="CURSOR_ARROW" value="0" enum="CursorShape">
 			Arrow cursor. Standard, default pointing cursor.

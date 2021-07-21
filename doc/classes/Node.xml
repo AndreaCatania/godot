@@ -5,16 +5,16 @@
 	</brief_description>
 	<description>
 		Nodes are Godot's building blocks. They can be assigned as the child of another node, resulting in a tree arrangement. A given node can contain any number of nodes as children with the requirement that all siblings (direct children of a node) should have unique names.
-		A tree of nodes is called a [i]scene[/i]. Scenes can be saved to the disk and then instanced into other scenes. This allows for very high flexibility in the architecture and data model of Godot projects.
+		A tree of nodes is called a [i]scene[/i]. Scenes can be saved to the disk and then instantiated into other scenes. This allows for very high flexibility in the architecture and data model of Godot projects.
 		[b]Scene tree:[/b] The [SceneTree] contains the active tree of nodes. When a node is added to the scene tree, it receives the [constant NOTIFICATION_ENTER_TREE] notification and its [method _enter_tree] callback is triggered. Child nodes are always added [i]after[/i] their parent node, i.e. the [method _enter_tree] callback of a parent node will be triggered before its child's.
 		Once all nodes have been added in the scene tree, they receive the [constant NOTIFICATION_READY] notification and their respective [method _ready] callbacks are triggered. For groups of nodes, the [method _ready] callback is called in reverse order, starting with the children and moving up to the parent nodes.
 		This means that when adding a node to the scene tree, the following order will be used for the callbacks: [method _enter_tree] of the parent, [method _enter_tree] of the children, [method _ready] of the children and finally [method _ready] of the parent (recursively for the entire scene tree).
 		[b]Processing:[/b] Nodes can override the "process" state, so that they receive a callback on each frame requesting them to process (do something). Normal processing (callback [method _process], toggled with [method set_process]) happens as fast as possible and is dependent on the frame rate, so the processing time [i]delta[/i] (in seconds) is passed as an argument. Physics processing (callback [method _physics_process], toggled with [method set_physics_process]) happens a fixed number of times per second (60 by default) and is useful for code related to the physics engine.
 		Nodes can also process input events. When present, the [method _input] function will be called for each input that the program receives. In many cases, this can be overkill (unless used for simple projects), and the [method _unhandled_input] function might be preferred; it is called when the input event was not handled by anyone else (typically, GUI [Control] nodes), ensuring that the node only receives the events that were meant for it.
-		To keep track of the scene hierarchy (especially when instancing scenes into other scenes), an "owner" can be set for the node with the [member owner] property. This keeps track of who instanced what. This is mostly useful when writing editors and tools, though.
+		To keep track of the scene hierarchy (especially when instancing scenes into other scenes), an "owner" can be set for the node with the [member owner] property. This keeps track of who instantiated what. This is mostly useful when writing editors and tools, though.
 		Finally, when a node is freed with [method Object.free] or [method queue_free], it will also free all its children.
 		[b]Groups:[/b] Nodes can be added to as many groups as you want to be easy to manage, you could create groups like "enemies" or "collectables" for example, depending on your game. See [method add_to_group], [method is_in_group] and [method remove_from_group]. You can then retrieve all nodes in these groups, iterate them and even call methods on groups via the methods on [SceneTree].
-		[b]Networking with nodes:[/b] After connecting to a server (or making one, see [NetworkedMultiplayerENet]), it is possible to use the built-in RPC (remote procedure call) system to communicate over the network. By calling [method rpc] with a method name, it will be called locally and in all connected peers (peers = clients and the server that accepts connections). To identify which node receives the RPC call, Godot will use its [NodePath] (make sure node names are the same on all peers). Also, take a look at the high-level networking tutorial and corresponding demos.
+		[b]Networking with nodes:[/b] After connecting to a server (or making one, see [ENetMultiplayerPeer]), it is possible to use the built-in RPC (remote procedure call) system to communicate over the network. By calling [method rpc] with a method name, it will be called locally and in all connected peers (peers = clients and the server that accepts connections). To identify which node receives the RPC call, Godot will use its [NodePath] (make sure node names are the same on all peers). Also, take a look at the high-level networking tutorial and corresponding demos.
 	</description>
 	<tutorials>
 		<link title="Scenes and nodes">https://docs.godotengine.org/en/latest/getting_started/step_by_step/scenes_and_nodes.html</link>
@@ -128,7 +128,7 @@
 			</argument>
 			<description>
 				Adds a child node. Nodes can have any number of children, but every child must have a unique name. Child nodes are automatically deleted when the parent node is deleted, so an entire scene can be removed by deleting its topmost node.
-				If [code]legible_unique_name[/code] is [code]true[/code], the child node will have a human-readable name based on the name of the node being instanced instead of its type.
+				If [code]legible_unique_name[/code] is [code]true[/code], the child node will have a human-readable name based on the name of the node being instantiated instead of its type.
 				[b]Note:[/b] If the child node already has a parent, the function will fail. Use [method remove_child] first to remove the node from its current parent. For example:
 				[codeblocks]
 				[gdscript]
@@ -159,7 +159,7 @@
 			</argument>
 			<description>
 				Adds a [code]sibling[/code] node to current's node parent, at the same level as that node, right below it.
-				If [code]legible_unique_name[/code] is [code]true[/code], the child node will have a human-readable name based on the name of the node being instanced instead of its type.
+				If [code]legible_unique_name[/code] is [code]true[/code], the child node will have a human-readable name based on the name of the node being instantiated instead of its type.
 				Use [method add_child] instead of this method if you don't need the child node to be added below a specific node in the list of children.
 			</description>
 		</method>
@@ -180,6 +180,16 @@
 			</return>
 			<description>
 				Returns [code]true[/code] if the node can process while the scene tree is paused (see [member process_mode]). Always returns [code]true[/code] if the scene tree is not paused, and [code]false[/code] if the node is not in the tree.
+			</description>
+		</method>
+		<method name="create_tween">
+			<return type="Tween">
+			</return>
+			<description>
+				Creates a new [Tween] and binds it to this node. This is equivalent of doing:
+				[codeblock]
+				get_tree().create_tween().bind_node(self)
+				[/codeblock]
 			</description>
 		</method>
 		<method name="duplicate" qualifiers="const">
@@ -416,7 +426,7 @@
 				Returns [code]true[/code] if the [NodePath] points to a valid node and its subname points to a valid resource, e.g. [code]Area2D/CollisionShape2D:shape[/code]. Properties with a non-[Resource] type (e.g. nodes or primitive math types) are not considered resources.
 			</description>
 		</method>
-		<method name="is_a_parent_of" qualifiers="const">
+		<method name="is_ancestor_of" qualifiers="const">
 			<return type="bool">
 			</return>
 			<argument index="0" name="node" type="Node">
@@ -568,7 +578,7 @@
 			</return>
 			<argument index="0" name="method" type="StringName">
 			</argument>
-			<argument index="1" name="args" type="Array" default="[  ]">
+			<argument index="1" name="args" type="Array" default="[]">
 			</argument>
 			<argument index="2" name="parent_first" type="bool" default="false">
 			</argument>
@@ -649,8 +659,8 @@
 			<argument index="0" name="method" type="StringName">
 			</argument>
 			<description>
-				Sends a remote procedure call request for the given [code]method[/code] to peers on the network (and locally), optionally sending all additional arguments as arguments to the method called by the RPC. The call request will only be received by nodes with the same [NodePath], including the exact same node name. Behaviour depends on the RPC configuration for the given method, see [method rpc_config]. Methods are not exposed to RPCs by default. See also [method rset] and [method rset_config] for properties. Returns an empty [Variant].
-				[b]Note:[/b] You can only safely use RPCs on clients after you received the [code]connected_to_server[/code] signal from the [SceneTree]. You also need to keep track of the connection state, either by the [SceneTree] signals like [code]server_disconnected[/code] or by checking [code]SceneTree.network_peer.get_connection_status() == CONNECTION_CONNECTED[/code].
+				Sends a remote procedure call request for the given [code]method[/code] to peers on the network (and locally), optionally sending all additional arguments as arguments to the method called by the RPC. The call request will only be received by nodes with the same [NodePath], including the exact same node name. Behaviour depends on the RPC configuration for the given method, see [method rpc_config]. Methods are not exposed to RPCs by default. Returns an empty [Variant].
+				[b]Note:[/b] You can only safely use RPCs on clients after you received the [code]connected_to_server[/code] signal from the [MultiplayerAPI]. You also need to keep track of the connection state, either by the [MultiplayerAPI] signals like [code]server_disconnected[/code] or by checking [code]get_multiplayer().network_peer.get_connection_status() == CONNECTION_CONNECTED[/code].
 			</description>
 		</method>
 		<method name="rpc_config">
@@ -658,10 +668,14 @@
 			</return>
 			<argument index="0" name="method" type="StringName">
 			</argument>
-			<argument index="1" name="mode" type="int" enum="MultiplayerAPI.RPCMode">
+			<argument index="1" name="rpc_mode" type="int" enum="MultiplayerAPI.RPCMode">
+			</argument>
+			<argument index="2" name="transfer_mode" type="int" enum="MultiplayerPeer.TransferMode" default="2">
+			</argument>
+			<argument index="3" name="channel" type="int" default="0">
 			</argument>
 			<description>
-				Changes the RPC mode for the given [code]method[/code] to the given [code]mode[/code]. See [enum MultiplayerAPI.RPCMode]. An alternative is annotating methods and properties with the corresponding keywords ([code]remote[/code], [code]master[/code], [code]puppet[/code], [code]remotesync[/code], [code]mastersync[/code], [code]puppetsync[/code]). By default, methods are not exposed to networking (and RPCs). See also [method rset] and [method rset_config] for properties.
+				Changes the RPC mode for the given [code]method[/code] to the given [code]rpc_mode[/code], optionally specifying the [code]transfer_mode[/code] and [code]channel[/code] (on supported peers). See [enum MultiplayerAPI.RPCMode] and [enum MultiplayerPeer.TransferMode]. An alternative is annotating methods and properties with the corresponding keywords ([code]remote[/code], [code]master[/code], [code]puppet[/code], [code]remotesync[/code], [code]mastersync[/code], [code]puppetsync[/code]). By default, methods are not exposed to networking (and RPCs).
 			</description>
 		</method>
 		<method name="rpc_id" qualifiers="vararg">
@@ -672,86 +686,7 @@
 			<argument index="1" name="method" type="StringName">
 			</argument>
 			<description>
-				Sends a [method rpc] to a specific peer identified by [code]peer_id[/code] (see [method NetworkedMultiplayerPeer.set_target_peer]). Returns an empty [Variant].
-			</description>
-		</method>
-		<method name="rpc_unreliable" qualifiers="vararg">
-			<return type="Variant">
-			</return>
-			<argument index="0" name="method" type="StringName">
-			</argument>
-			<description>
-				Sends a [method rpc] using an unreliable protocol. Returns an empty [Variant].
-			</description>
-		</method>
-		<method name="rpc_unreliable_id" qualifiers="vararg">
-			<return type="Variant">
-			</return>
-			<argument index="0" name="peer_id" type="int">
-			</argument>
-			<argument index="1" name="method" type="StringName">
-			</argument>
-			<description>
-				Sends a [method rpc] to a specific peer identified by [code]peer_id[/code] using an unreliable protocol (see [method NetworkedMultiplayerPeer.set_target_peer]). Returns an empty [Variant].
-			</description>
-		</method>
-		<method name="rset">
-			<return type="void">
-			</return>
-			<argument index="0" name="property" type="StringName">
-			</argument>
-			<argument index="1" name="value" type="Variant">
-			</argument>
-			<description>
-				Remotely changes a property's value on other peers (and locally). Behaviour depends on the RPC configuration for the given property, see [method rset_config]. See also [method rpc] for RPCs for methods, most information applies to this method as well.
-			</description>
-		</method>
-		<method name="rset_config">
-			<return type="int">
-			</return>
-			<argument index="0" name="property" type="StringName">
-			</argument>
-			<argument index="1" name="mode" type="int" enum="MultiplayerAPI.RPCMode">
-			</argument>
-			<description>
-				Changes the RPC mode for the given [code]property[/code] to the given [code]mode[/code]. See [enum MultiplayerAPI.RPCMode]. An alternative is annotating methods and properties with the corresponding keywords ([code]remote[/code], [code]master[/code], [code]puppet[/code], [code]remotesync[/code], [code]mastersync[/code], [code]puppetsync[/code]). By default, properties are not exposed to networking (and RPCs). See also [method rpc] and [method rpc_config] for methods.
-			</description>
-		</method>
-		<method name="rset_id">
-			<return type="void">
-			</return>
-			<argument index="0" name="peer_id" type="int">
-			</argument>
-			<argument index="1" name="property" type="StringName">
-			</argument>
-			<argument index="2" name="value" type="Variant">
-			</argument>
-			<description>
-				Remotely changes the property's value on a specific peer identified by [code]peer_id[/code] (see [method NetworkedMultiplayerPeer.set_target_peer]).
-			</description>
-		</method>
-		<method name="rset_unreliable">
-			<return type="void">
-			</return>
-			<argument index="0" name="property" type="StringName">
-			</argument>
-			<argument index="1" name="value" type="Variant">
-			</argument>
-			<description>
-				Remotely changes the property's value on other peers (and locally) using an unreliable protocol.
-			</description>
-		</method>
-		<method name="rset_unreliable_id">
-			<return type="void">
-			</return>
-			<argument index="0" name="peer_id" type="int">
-			</argument>
-			<argument index="1" name="property" type="StringName">
-			</argument>
-			<argument index="2" name="value" type="Variant">
-			</argument>
-			<description>
-				Remotely changes property's value on a specific peer identified by [code]peer_id[/code] using an unreliable protocol (see [method NetworkedMultiplayerPeer.set_target_peer]).
+				Sends a [method rpc] to a specific peer identified by [code]peer_id[/code] (see [method MultiplayerPeer.set_target_peer]). Returns an empty [Variant].
 			</description>
 		</method>
 		<method name="set_display_folded">
@@ -870,7 +805,7 @@
 			The override to the default [MultiplayerAPI]. Set to [code]null[/code] to use the default [SceneTree] one.
 		</member>
 		<member name="filename" type="String" setter="set_filename" getter="get_filename">
-			When a scene is instanced from a file, its topmost node contains the filename from which it was loaded.
+			When a scene is instantiated from a file, its topmost node contains the filename from which it was loaded.
 		</member>
 		<member name="multiplayer" type="MultiplayerAPI" setter="" getter="get_multiplayer">
 			The [MultiplayerAPI] instance associated with this node. Either the [member custom_multiplayer], or the default SceneTree one (if inside tree).
@@ -949,7 +884,7 @@
 			Notification received when a node is unparented (parent removed it from the list of children).
 		</constant>
 		<constant name="NOTIFICATION_INSTANCED" value="20">
-			Notification received when the node is instanced.
+			Notification received when the node is instantiated.
 		</constant>
 		<constant name="NOTIFICATION_DRAG_BEGIN" value="21">
 			Notification received when a drag begins.
@@ -968,6 +903,18 @@
 		</constant>
 		<constant name="NOTIFICATION_POST_ENTER_TREE" value="27">
 			Notification received when the node is ready, just before [constant NOTIFICATION_READY] is received. Unlike the latter, it's sent every time the node enters tree, instead of only once.
+		</constant>
+		<constant name="NOTIFICATION_DISABLED" value="28">
+			Notification received when the node is disabled. See [constant PROCESS_MODE_DISABLED].
+		</constant>
+		<constant name="NOTIFICATION_ENABLED" value="29">
+			Notification received when the node is enabled again after being disabled. See [constant PROCESS_MODE_DISABLED].
+		</constant>
+		<constant name="NOTIFICATION_EDITOR_PRE_SAVE" value="9001">
+			Notification received right before the scene with the node is saved in the editor. This notification is only sent in the Godot editor and will not occur in exported projects.
+		</constant>
+		<constant name="NOTIFICATION_EDITOR_POST_SAVE" value="9002">
+			Notification received right after the scene with the node is saved in the editor. This notification is only sent in the Godot editor and will not occur in exported projects.
 		</constant>
 		<constant name="NOTIFICATION_WM_MOUSE_ENTER" value="1002">
 			Notification received from the OS when the mouse enters the game window.

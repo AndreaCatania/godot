@@ -47,9 +47,10 @@ class Window;
 class Material;
 class Mesh;
 class SceneDebugger;
+class Tween;
 
-class SceneTreeTimer : public Reference {
-	GDCLASS(SceneTreeTimer, Reference);
+class SceneTreeTimer : public RefCounted {
+	GDCLASS(SceneTreeTimer, RefCounted);
 
 	float time_left = 0.0;
 	bool process_always = true;
@@ -151,18 +152,12 @@ private:
 	//void _call_group(uint32_t p_call_flags,const StringName& p_group,const StringName& p_function,const Variant& p_arg1,const Variant& p_arg2);
 
 	List<Ref<SceneTreeTimer>> timers;
+	List<Ref<Tween>> tweens;
 
 	///network///
 
 	Ref<MultiplayerAPI> multiplayer;
 	bool multiplayer_poll = true;
-
-	void _network_peer_connected(int p_id);
-	void _network_peer_disconnected(int p_id);
-
-	void _connected_to_server();
-	void _connection_failed();
-	void _server_disconnected();
 
 	static SceneTree *singleton;
 	friend class Node;
@@ -171,6 +166,7 @@ private:
 	void node_added(Node *p_node);
 	void node_removed(Node *p_node);
 	void node_renamed(Node *p_node);
+	void process_tweens(float p_delta, bool p_physics_frame);
 
 	Group *add_to_group(const StringName &p_group, Node *p_node);
 	void remove_from_group(const StringName &p_group, Node *p_node);
@@ -318,6 +314,8 @@ public:
 	Error reload_current_scene();
 
 	Ref<SceneTreeTimer> create_timer(float p_delay_sec, bool p_process_always = true);
+	Ref<Tween> create_tween();
+	Array get_processed_tweens();
 
 	//used by Main::start, don't use otherwise
 	void add_current_scene(Node *p_current);
@@ -332,16 +330,6 @@ public:
 	void set_multiplayer_poll_enabled(bool p_enabled);
 	bool is_multiplayer_poll_enabled() const;
 	void set_multiplayer(Ref<MultiplayerAPI> p_multiplayer);
-	void set_network_peer(const Ref<NetworkedMultiplayerPeer> &p_network_peer);
-	Ref<NetworkedMultiplayerPeer> get_network_peer() const;
-	bool is_network_server() const;
-	bool has_network_peer() const;
-	int get_network_unique_id() const;
-	Vector<int> get_network_connected_peers() const;
-	int get_rpc_sender_id() const;
-
-	void set_refuse_new_network_connections(bool p_refuse);
-	bool is_refusing_new_network_connections() const;
 
 	static void add_idle_callback(IdleCallback p_callback);
 

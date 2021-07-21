@@ -51,8 +51,8 @@
 	ClassDB::bind_method(D_METHOD("get_" _MKSTR(m_sub) "_" _MKSTR(m_member)), &m_class::get_##m_sub##_##m_member);                      \
 	ADD_PROPERTY(PropertyInfo(m_variant_type, _MKSTR(m_sub) "_" _MKSTR(m_member)), "set_" _MKSTR(m_sub) "_" _MKSTR(m_member), "get_" _MKSTR(m_sub) "_" _MKSTR(m_member))
 
-class RDTextureFormat : public Reference {
-	GDCLASS(RDTextureFormat, Reference)
+class RDTextureFormat : public RefCounted {
+	GDCLASS(RDTextureFormat, RefCounted)
 	friend class RenderingDevice;
 
 	RD::TextureFormat base;
@@ -87,8 +87,8 @@ protected:
 	}
 };
 
-class RDTextureView : public Reference {
-	GDCLASS(RDTextureView, Reference)
+class RDTextureView : public RefCounted {
+	GDCLASS(RDTextureView, RefCounted)
 
 	friend class RenderingDevice;
 
@@ -110,8 +110,8 @@ protected:
 	}
 };
 
-class RDAttachmentFormat : public Reference {
-	GDCLASS(RDAttachmentFormat, Reference)
+class RDAttachmentFormat : public RefCounted {
+	GDCLASS(RDAttachmentFormat, RefCounted)
 	friend class RenderingDevice;
 
 	RD::AttachmentFormat base;
@@ -128,8 +128,36 @@ protected:
 	}
 };
 
-class RDSamplerState : public Reference {
-	GDCLASS(RDSamplerState, Reference)
+class RDFramebufferPass : public RefCounted {
+	GDCLASS(RDFramebufferPass, RefCounted)
+	friend class RenderingDevice;
+
+	RD::FramebufferPass base;
+
+public:
+	RD_SETGET(PackedInt32Array, color_attachments)
+	RD_SETGET(PackedInt32Array, input_attachments)
+	RD_SETGET(PackedInt32Array, resolve_attachments)
+	RD_SETGET(PackedInt32Array, preserve_attachments)
+	RD_SETGET(int32_t, depth_attachment)
+protected:
+	enum {
+		ATTACHMENT_UNUSED = -1
+	};
+
+	static void _bind_methods() {
+		RD_BIND(Variant::PACKED_INT32_ARRAY, RDFramebufferPass, color_attachments);
+		RD_BIND(Variant::PACKED_INT32_ARRAY, RDFramebufferPass, input_attachments);
+		RD_BIND(Variant::PACKED_INT32_ARRAY, RDFramebufferPass, resolve_attachments);
+		RD_BIND(Variant::PACKED_INT32_ARRAY, RDFramebufferPass, preserve_attachments);
+		RD_BIND(Variant::INT, RDFramebufferPass, depth_attachment);
+
+		BIND_CONSTANT(ATTACHMENT_UNUSED);
+	}
+};
+
+class RDSamplerState : public RefCounted {
+	GDCLASS(RDSamplerState, RefCounted)
 	friend class RenderingDevice;
 
 	RD::SamplerState base;
@@ -171,8 +199,8 @@ protected:
 	}
 };
 
-class RDVertexAttribute : public Reference {
-	GDCLASS(RDVertexAttribute, Reference)
+class RDVertexAttribute : public RefCounted {
+	GDCLASS(RDVertexAttribute, RefCounted)
 	friend class RenderingDevice;
 	RD::VertexAttribute base;
 
@@ -192,8 +220,8 @@ protected:
 		RD_BIND(Variant::INT, RDVertexAttribute, frequency);
 	}
 };
-class RDShaderSource : public Reference {
-	GDCLASS(RDShaderSource, Reference)
+class RDShaderSource : public RefCounted {
+	GDCLASS(RDShaderSource, RefCounted)
 	String source[RD::SHADER_STAGE_MAX];
 	RD::ShaderLanguage language = RD::SHADER_LANGUAGE_GLSL;
 
@@ -386,8 +414,8 @@ protected:
 	}
 };
 
-class RDUniform : public Reference {
-	GDCLASS(RDUniform, Reference)
+class RDUniform : public RefCounted {
+	GDCLASS(RDUniform, RefCounted)
 	friend class RenderingDevice;
 	RD::Uniform base;
 
@@ -424,8 +452,43 @@ protected:
 		ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "_ids", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_INTERNAL), "_set_ids", "get_ids");
 	}
 };
-class RDPipelineRasterizationState : public Reference {
-	GDCLASS(RDPipelineRasterizationState, Reference)
+
+class RDPipelineSpecializationConstant : public RefCounted {
+	GDCLASS(RDPipelineSpecializationConstant, RefCounted)
+	friend class RenderingDevice;
+
+	Variant value = false;
+	uint32_t constant_id = 0;
+
+public:
+	void set_value(const Variant &p_value) {
+		ERR_FAIL_COND(p_value.get_type() != Variant::BOOL && p_value.get_type() != Variant::INT && p_value.get_type() != Variant::FLOAT);
+		value = p_value;
+	}
+	Variant get_value() const { return value; }
+
+	void set_constant_id(uint32_t p_id) {
+		constant_id = p_id;
+	}
+	uint32_t get_constant_id() const {
+		return constant_id;
+	}
+
+protected:
+	static void _bind_methods() {
+		ClassDB::bind_method(D_METHOD("set_value", "value"), &RDPipelineSpecializationConstant::set_value);
+		ClassDB::bind_method(D_METHOD("get_value"), &RDPipelineSpecializationConstant::get_value);
+
+		ClassDB::bind_method(D_METHOD("set_constant_id", "constant_id"), &RDPipelineSpecializationConstant::set_constant_id);
+		ClassDB::bind_method(D_METHOD("get_constant_id"), &RDPipelineSpecializationConstant::get_constant_id);
+
+		ADD_PROPERTY(PropertyInfo(Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NIL_IS_VARIANT), "set_value", "get_value");
+		ADD_PROPERTY(PropertyInfo(Variant::INT, "constant_id", PROPERTY_HINT_RANGE, "0,65535,0"), "set_constant_id", "get_constant_id");
+	}
+};
+
+class RDPipelineRasterizationState : public RefCounted {
+	GDCLASS(RDPipelineRasterizationState, RefCounted)
 	friend class RenderingDevice;
 
 	RD::PipelineRasterizationState base;
@@ -459,8 +522,8 @@ protected:
 	}
 };
 
-class RDPipelineMultisampleState : public Reference {
-	GDCLASS(RDPipelineMultisampleState, Reference)
+class RDPipelineMultisampleState : public RefCounted {
+	GDCLASS(RDPipelineMultisampleState, RefCounted)
 	friend class RenderingDevice;
 
 	RD::PipelineMultisampleState base;
@@ -490,8 +553,8 @@ protected:
 	}
 };
 
-class RDPipelineDepthStencilState : public Reference {
-	GDCLASS(RDPipelineDepthStencilState, Reference)
+class RDPipelineDepthStencilState : public RefCounted {
+	GDCLASS(RDPipelineDepthStencilState, RefCounted)
 	friend class RenderingDevice;
 
 	RD::PipelineDepthStencilState base;
@@ -549,8 +612,8 @@ protected:
 	}
 };
 
-class RDPipelineColorBlendStateAttachment : public Reference {
-	GDCLASS(RDPipelineColorBlendStateAttachment, Reference)
+class RDPipelineColorBlendStateAttachment : public RefCounted {
+	GDCLASS(RDPipelineColorBlendStateAttachment, RefCounted)
 	friend class RenderingDevice;
 	RD::PipelineColorBlendState::Attachment base;
 
@@ -594,8 +657,8 @@ protected:
 	}
 };
 
-class RDPipelineColorBlendState : public Reference {
-	GDCLASS(RDPipelineColorBlendState, Reference)
+class RDPipelineColorBlendState : public RefCounted {
+	GDCLASS(RDPipelineColorBlendState, RefCounted)
 	friend class RenderingDevice;
 	RD::PipelineColorBlendState base;
 

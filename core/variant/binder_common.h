@@ -31,6 +31,7 @@
 #ifndef BINDER_COMMON_H
 #define BINDER_COMMON_H
 
+#include "core/input/input_enums.h"
 #include "core/object/object.h"
 #include "core/templates/list.h"
 #include "core/templates/simple_type.h"
@@ -76,6 +77,7 @@ struct VariantCaster<const T &> {
 		_FORCE_INLINE_ static m_enum convert(const void *p_ptr) {            \
 			return m_enum(*reinterpret_cast<const int *>(p_ptr));            \
 		}                                                                    \
+		typedef int64_t EncodeT;                                             \
 		_FORCE_INLINE_ static void encode(m_enum p_val, const void *p_ptr) { \
 			*(int *)p_ptr = p_val;                                           \
 		}                                                                    \
@@ -90,6 +92,12 @@ VARIANT_ENUM_CAST(Error);
 VARIANT_ENUM_CAST(Side);
 VARIANT_ENUM_CAST(ClockDirection);
 VARIANT_ENUM_CAST(Corner);
+VARIANT_ENUM_CAST(HatDir);
+VARIANT_ENUM_CAST(HatMask);
+VARIANT_ENUM_CAST(JoyAxis);
+VARIANT_ENUM_CAST(JoyButton);
+VARIANT_ENUM_CAST(MIDIMessage);
+VARIANT_ENUM_CAST(MouseButton);
 VARIANT_ENUM_CAST(Orientation);
 VARIANT_ENUM_CAST(HAlign);
 VARIANT_ENUM_CAST(VAlign);
@@ -110,6 +118,7 @@ struct PtrToArg<char32_t> {
 	_FORCE_INLINE_ static char32_t convert(const void *p_ptr) {
 		return char32_t(*reinterpret_cast<const int *>(p_ptr));
 	}
+	typedef int64_t EncodeT;
 	_FORCE_INLINE_ static void encode(char32_t p_val, const void *p_ptr) {
 		*(int *)p_ptr = p_val;
 	}

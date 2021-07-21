@@ -297,6 +297,7 @@ class TileMapEditor : public VBoxContainer {
 	GDCLASS(TileMapEditor, VBoxContainer);
 
 private:
+	UndoRedo *undo_redo = EditorNode::get_undo_redo();
 	bool tileset_changed_needs_update = false;
 	ObjectID tile_map_id;
 
@@ -305,6 +306,12 @@ private:
 
 	// Toolbar.
 	HBoxContainer *tilemap_toolbar;
+
+	Button *toggle_grid_button;
+	void _on_grid_toggled(bool p_pressed);
+
+	MenuButton *advanced_menu_button;
+	void _advanced_menu_button_id_pressed(int p_id);
 
 	// Bottom panel
 	Label *missing_tileset_label;

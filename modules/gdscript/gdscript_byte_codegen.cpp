@@ -85,10 +85,10 @@ uint32_t GDScriptByteCodeGenerator::add_temporary(const GDScriptDataType &p_type
 				case Variant::VECTOR3I:
 				case Variant::TRANSFORM2D:
 				case Variant::PLANE:
-				case Variant::QUAT:
+				case Variant::QUATERNION:
 				case Variant::AABB:
 				case Variant::BASIS:
-				case Variant::TRANSFORM:
+				case Variant::TRANSFORM3D:
 				case Variant::COLOR:
 				case Variant::STRING_NAME:
 				case Variant::NODE_PATH:
@@ -155,7 +155,7 @@ void GDScriptByteCodeGenerator::end_parameters() {
 	function->default_arguments.reverse();
 }
 
-void GDScriptByteCodeGenerator::write_start(GDScript *p_script, const StringName &p_function_name, bool p_static, MultiplayerAPI::RPCMode p_rpc_mode, const GDScriptDataType &p_return_type) {
+void GDScriptByteCodeGenerator::write_start(GDScript *p_script, const StringName &p_function_name, bool p_static, MultiplayerAPI::RPCConfig p_rpc_config, const GDScriptDataType &p_return_type) {
 	function = memnew(GDScriptFunction);
 	debug_stack = EngineDebugger::is_active();
 
@@ -170,7 +170,7 @@ void GDScriptByteCodeGenerator::write_start(GDScript *p_script, const StringName
 
 	function->_static = p_static;
 	function->return_type = p_return_type;
-	function->rpc_mode = p_rpc_mode;
+	function->rpc_config = p_rpc_config;
 	function->_argument_count = 0;
 }
 
@@ -458,8 +458,8 @@ void GDScriptByteCodeGenerator::write_type_adjust(const Address &p_target, Varia
 		case Variant::PLANE:
 			append(GDScriptFunction::OPCODE_TYPE_ADJUST_PLANE, 1);
 			break;
-		case Variant::QUAT:
-			append(GDScriptFunction::OPCODE_TYPE_ADJUST_QUAT, 1);
+		case Variant::QUATERNION:
+			append(GDScriptFunction::OPCODE_TYPE_ADJUST_QUATERNION, 1);
 			break;
 		case Variant::AABB:
 			append(GDScriptFunction::OPCODE_TYPE_ADJUST_AABB, 1);
@@ -467,7 +467,7 @@ void GDScriptByteCodeGenerator::write_type_adjust(const Address &p_target, Varia
 		case Variant::BASIS:
 			append(GDScriptFunction::OPCODE_TYPE_ADJUST_BASIS, 1);
 			break;
-		case Variant::TRANSFORM:
+		case Variant::TRANSFORM3D:
 			append(GDScriptFunction::OPCODE_TYPE_ADJUST_TRANSFORM, 1);
 			break;
 		case Variant::COLOR:
@@ -554,6 +554,14 @@ void GDScriptByteCodeGenerator::write_unary_operator(const Address &p_target, Va
 
 void GDScriptByteCodeGenerator::write_binary_operator(const Address &p_target, Variant::Operator p_operator, const Address &p_left_operand, const Address &p_right_operand) {
 	if (HAS_BUILTIN_TYPE(p_left_operand) && HAS_BUILTIN_TYPE(p_right_operand)) {
+		if (p_target.mode == Address::TEMPORARY) {
+			Variant::Type result_type = Variant::get_operator_return_type(p_operator, p_left_operand.type.builtin_type, p_right_operand.type.builtin_type);
+			Variant::Type temp_type = temporaries[p_target.address].type;
+			if (result_type != temp_type) {
+				write_type_adjust(p_target, result_type);
+			}
+		}
+
 		// Gather specific operator.
 		Variant::ValidatedOperatorEvaluator op_func = Variant::get_validated_operator_evaluator(p_operator, p_left_operand.type.builtin_type, p_right_operand.type.builtin_type);
 
@@ -779,67 +787,65 @@ void GDScriptByteCodeGenerator::write_get_member(const Address &p_target, const 
 	append(p_name);
 }
 
-void GDScriptByteCodeGenerator::write_assign(const Address &p_target, const Address &p_source) {
-	if (p_target.type.has_type && !p_source.type.has_type) {
-		// Typed assignment.
-		switch (p_target.type.kind) {
-			case GDScriptDataType::BUILTIN: {
-				if (p_target.type.builtin_type == Variant::ARRAY && p_target.type.has_container_element_type()) {
-					append(GDScriptFunction::OPCODE_ASSIGN_TYPED_ARRAY, 2);
-					append(p_target);
-					append(p_source);
-				} else {
-					append(GDScriptFunction::OPCODE_ASSIGN_TYPED_BUILTIN, 2);
-					append(p_target);
-					append(p_source);
-					append(p_target.type.builtin_type);
-				}
-			} break;
-			case GDScriptDataType::NATIVE: {
-				int class_idx = GDScriptLanguage::get_singleton()->get_global_map()[p_target.type.native_type];
-				Variant nc = GDScriptLanguage::get_singleton()->get_global_array()[class_idx];
-				class_idx = get_constant_pos(nc) | (GDScriptFunction::ADDR_TYPE_CONSTANT << GDScriptFunction::ADDR_BITS);
-				append(GDScriptFunction::OPCODE_ASSIGN_TYPED_NATIVE, 3);
+void GDScriptByteCodeGenerator::write_assign_with_conversion(const Address &p_target, const Address &p_source) {
+	switch (p_target.type.kind) {
+		case GDScriptDataType::BUILTIN: {
+			if (p_target.type.builtin_type == Variant::ARRAY && p_target.type.has_container_element_type()) {
+				append(GDScriptFunction::OPCODE_ASSIGN_TYPED_ARRAY, 2);
 				append(p_target);
 				append(p_source);
-				append(class_idx);
-			} break;
-			case GDScriptDataType::SCRIPT:
-			case GDScriptDataType::GDSCRIPT: {
-				Variant script = p_target.type.script_type;
-				int idx = get_constant_pos(script) | (GDScriptFunction::ADDR_TYPE_CONSTANT << GDScriptFunction::ADDR_BITS);
-
-				append(GDScriptFunction::OPCODE_ASSIGN_TYPED_SCRIPT, 3);
+			} else {
+				append(GDScriptFunction::OPCODE_ASSIGN_TYPED_BUILTIN, 2);
 				append(p_target);
 				append(p_source);
-				append(idx);
-			} break;
-			default: {
-				ERR_PRINT("Compiler bug: unresolved assign.");
-
-				// Shouldn't get here, but fail-safe to a regular assignment
-				append(GDScriptFunction::OPCODE_ASSIGN, 2);
-				append(p_target);
-				append(p_source);
+				append(p_target.type.builtin_type);
 			}
-		}
-	} else {
-		if (p_target.type.kind == GDScriptDataType::BUILTIN && p_target.type.builtin_type == Variant::ARRAY && p_target.type.has_container_element_type()) {
-			append(GDScriptFunction::OPCODE_ASSIGN_TYPED_ARRAY, 2);
+		} break;
+		case GDScriptDataType::NATIVE: {
+			int class_idx = GDScriptLanguage::get_singleton()->get_global_map()[p_target.type.native_type];
+			Variant nc = GDScriptLanguage::get_singleton()->get_global_array()[class_idx];
+			class_idx = get_constant_pos(nc) | (GDScriptFunction::ADDR_TYPE_CONSTANT << GDScriptFunction::ADDR_BITS);
+			append(GDScriptFunction::OPCODE_ASSIGN_TYPED_NATIVE, 3);
 			append(p_target);
 			append(p_source);
-		} else if (p_target.type.kind == GDScriptDataType::BUILTIN && p_source.type.kind == GDScriptDataType::BUILTIN && p_target.type.builtin_type != p_source.type.builtin_type) {
-			// Need conversion..
-			append(GDScriptFunction::OPCODE_ASSIGN_TYPED_BUILTIN, 2);
+			append(class_idx);
+		} break;
+		case GDScriptDataType::SCRIPT:
+		case GDScriptDataType::GDSCRIPT: {
+			Variant script = p_target.type.script_type;
+			int idx = get_constant_pos(script) | (GDScriptFunction::ADDR_TYPE_CONSTANT << GDScriptFunction::ADDR_BITS);
+
+			append(GDScriptFunction::OPCODE_ASSIGN_TYPED_SCRIPT, 3);
 			append(p_target);
 			append(p_source);
-			append(p_target.type.builtin_type);
-		} else {
-			// Either untyped assignment or already type-checked by the parser
+			append(idx);
+		} break;
+		default: {
+			ERR_PRINT("Compiler bug: unresolved assign.");
+
+			// Shouldn't get here, but fail-safe to a regular assignment
 			append(GDScriptFunction::OPCODE_ASSIGN, 2);
 			append(p_target);
 			append(p_source);
 		}
+	}
+}
+
+void GDScriptByteCodeGenerator::write_assign(const Address &p_target, const Address &p_source) {
+	if (p_target.type.kind == GDScriptDataType::BUILTIN && p_target.type.builtin_type == Variant::ARRAY && p_target.type.has_container_element_type()) {
+		append(GDScriptFunction::OPCODE_ASSIGN_TYPED_ARRAY, 2);
+		append(p_target);
+		append(p_source);
+	} else if (p_target.type.kind == GDScriptDataType::BUILTIN && p_source.type.kind == GDScriptDataType::BUILTIN && p_target.type.builtin_type != p_source.type.builtin_type) {
+		// Need conversion.
+		append(GDScriptFunction::OPCODE_ASSIGN_TYPED_BUILTIN, 2);
+		append(p_target);
+		append(p_source);
+		append(p_target.type.builtin_type);
+	} else {
+		append(GDScriptFunction::OPCODE_ASSIGN, 2);
+		append(p_target);
+		append(p_source);
 	}
 }
 
@@ -1102,12 +1108,12 @@ void GDScriptByteCodeGenerator::write_call_ptrcall(const Address &p_target, cons
 			CASE_TYPE(PLANE);
 			CASE_TYPE(AABB);
 			CASE_TYPE(BASIS);
-			CASE_TYPE(TRANSFORM);
+			CASE_TYPE(TRANSFORM3D);
 			CASE_TYPE(COLOR);
 			CASE_TYPE(STRING_NAME);
 			CASE_TYPE(NODE_PATH);
 			CASE_TYPE(RID);
-			CASE_TYPE(QUAT);
+			CASE_TYPE(QUATERNION);
 			CASE_TYPE(OBJECT);
 			CASE_TYPE(CALLABLE);
 			CASE_TYPE(SIGNAL);

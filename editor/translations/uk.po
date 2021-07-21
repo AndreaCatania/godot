@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ukrainian (Godot Engine)\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2021-05-14 20:34+0000\n"
+"PO-Revision-Date: 2021-06-20 13:35+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/uk/>\n"
@@ -30,7 +30,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.7-dev\n"
+"X-Generator: Weblate 4.7\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -424,12 +424,6 @@ msgid "Animation tracks can only point to AnimationPlayer nodes."
 msgstr "Доріжки анімації можуть вказувати лише на взули AnimationPlayer."
 
 #: editor/animation_track_editor.cpp
-msgid "An animation player can't animate itself, only other players."
-msgstr ""
-"Відтворювач анімації не може відтворювати сам себе, лише інші відтворювачі "
-"анімації."
-
-#: editor/animation_track_editor.cpp
 msgid "Not possible to add a new track without a root"
 msgstr "Не можна додавати нові доріжки без кореневого запису"
 
@@ -476,8 +470,9 @@ msgid "Anim Move Keys"
 msgstr "Перемістити ключі анімації"
 
 #: editor/animation_track_editor.cpp
-msgid "Clipboard is empty"
-msgstr "Буфер обміну порожній"
+#: modules/visual_script/visual_script_editor.cpp
+msgid "Clipboard is empty!"
+msgstr "Буфер обміну порожній!"
 
 #: editor/animation_track_editor.cpp
 msgid "Paste Tracks"
@@ -1134,6 +1129,10 @@ msgstr "Змінити значення словника"
 #: editor/editor_about.cpp
 msgid "Thanks from the Godot community!"
 msgstr "Спасибі від спільноти Godot!"
+
+#: editor/editor_about.cpp editor/editor_node.cpp editor/project_manager.cpp
+msgid "Click to copy."
+msgstr "Клацніть, щоб скопіювати."
 
 #: editor/editor_about.cpp
 msgid "Godot Engine contributors"
@@ -2517,7 +2516,7 @@ msgid "Save changes to the following scene(s) before quitting?"
 msgstr "Зберегти зміни в наступній(их) сцені(ах) перед тим, як вийти?"
 
 #: editor/editor_node.cpp
-msgid "Save changes the following scene(s) before opening Project Manager?"
+msgid "Save changes to the following scene(s) before opening Project Manager?"
 msgstr ""
 "Зберегти зміни в наступній(их) сцені(ах) перед відкриттям менеджера проєктів?"
 
@@ -3011,7 +3010,7 @@ msgstr "Про"
 
 #: editor/editor_node.cpp
 msgid "Support Godot Development"
-msgstr ""
+msgstr "Підтримати розробку Godot"
 
 #: editor/editor_node.cpp
 msgid "Play the project."
@@ -5251,7 +5250,6 @@ msgstr ""
 "потрапляють до квадратної області [0.0,1.0]."
 
 #: editor/plugins/baked_lightmap_editor_plugin.cpp
-#, fuzzy
 msgid ""
 "Godot editor was built without ray tracing support, lightmaps can't be baked."
 msgstr ""
@@ -10169,7 +10167,7 @@ msgstr "Кнопка миші"
 
 #: editor/project_settings_editor.cpp
 msgid ""
-"Invalid action name. it cannot be empty nor contain '/', ':', '=', '\\' or "
+"Invalid action name. It cannot be empty nor contain '/', ':', '=', '\\' or "
 "'\"'"
 msgstr ""
 "Некоректна назва дії. Назва не може бути порожньою і не може містити "
@@ -12022,10 +12020,6 @@ msgid "Can't copy the function node."
 msgstr "Неможливо скопіювати вузол функції."
 
 #: modules/visual_script/visual_script_editor.cpp
-msgid "Clipboard is empty!"
-msgstr "Буфер обміну порожній!"
-
-#: modules/visual_script/visual_script_editor.cpp
 msgid "Paste VisualScript Nodes"
 msgstr "Вставити вузли (Візуального скриптингу) VisualScript"
 
@@ -12237,10 +12231,26 @@ msgstr ""
 "допомогою меню «Проєкт»."
 
 #: platform/android/export/export.cpp
+msgid ""
+"Either Debug Keystore, Debug User AND Debug Password settings must be "
+"configured OR none of them."
+msgstr ""
+"Має бути налаштовано діагностику сховища ключів, діагностику користувача АБО "
+"діагностику пароля АБО не налаштовано діагностику жодного з цих компонентів."
+
+#: platform/android/export/export.cpp
 msgid "Debug keystore not configured in the Editor Settings nor in the preset."
 msgstr ""
 "Ні у параметрах редактора, ні у шаблоні не налаштовано діагностичне сховище "
 "ключів."
+
+#: platform/android/export/export.cpp
+msgid ""
+"Either Release Keystore, Release User AND Release Password settings must be "
+"configured OR none of them."
+msgstr ""
+"Має бути налаштовано параметри сховища ключів випуску, користувача випуску і "
+"пароля випуску або не налаштовано жоден з цих параметрів."
 
 #: platform/android/export/export.cpp
 msgid "Release keystore incorrectly configured in the export preset."
@@ -13228,6 +13238,14 @@ msgstr "Змінні величини можна пов'язувати лише 
 #: servers/visual/shader_language.cpp
 msgid "Constants cannot be modified."
 msgstr "Сталі не можна змінювати."
+
+#~ msgid "An animation player can't animate itself, only other players."
+#~ msgstr ""
+#~ "Відтворювач анімації не може відтворювати сам себе, лише інші "
+#~ "відтворювачі анімації."
+
+#~ msgid "Clipboard is empty"
+#~ msgstr "Буфер обміну порожній"
 
 #~ msgid ""
 #~ "Godot editor was built without ray tracing support; lightmaps can't be "
